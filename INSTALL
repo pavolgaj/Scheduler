@@ -1,0 +1,15 @@
+On server
+
+1. install python3 and 
+astroplan
+matplotlib
+pandas
+astropy>=5.2
+astroquery>=0.4.8
+flask
+flask-caching
+waitress
+
+2. make symlink to logs in static
+3. set cron autostart for web_start.sh or web.sh
+4. configure mail server in mail folder

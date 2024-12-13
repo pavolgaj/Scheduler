@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Show schedules
+        </title>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 50px;
+            }
+
+            table {
+                font-family: arial, sans-serif;
+                border-collapse: collapse;
+                /* width: 100%; */
+            }
+
+            td,
+            th {
+                border: 1px solid black;
+                text-align: left;
+                padding: 8px;
+                white-space: nowrap;
+            }
+
+            td {
+                height: 30px;
+            }
+
+            tr:nth-child(even) {
+                background-color: #dddddd;
+            }
+
+            a.button {
+                height: 35px;
+                padding: 10px 20px;
+                border: none;
+                border-radius: 5px;
+                background-color: #333;
+                color: white;
+                cursor: pointer;
+                text-decoration: none;
+            }
+
+            a.button:hover {
+                background-color: #555;
+            }
+        </style>
+    </head>
+
+    <body>
+        <center>
+            <h1>Generated schedules</h1>
+        </center>
+        <br>
+
+        <div>
+            Scheduling nights: {{ names |length }}
+        </div>
+        <br>
+
+        <!-- table with schedules stats -->
+        <center>
+            <h2>Schedules</h2>
+            <table id="my_table">
+                <thead>
+                    <th>Schedule</th>
+                    <th>Selected obj.</th>
+                    <th>Observable obj.</th>
+                    <th>Observing targets</th>
+                    <th></th>
+                </thead>
+                {% for name in names %}
+                <tr data-row-id="{{ loop.index0 }}">
+                    <td>{{ name }}</td>
+                    <td>{{ selected[loop.index0] }}</td>
+                    <td>{{ observable[loop.index0] }}</td>
+                    <td>{{ scheduled[loop.index0] }}</td>
+                    <td><a href="{{ url_for('modify') }}?name={{name}}" class="button">Modify</a>
+                    </td>        
+                </tr>
+                {% endfor %}
+            </table>
+        </center>
+        <br>
+
+    </body>
+
+</html>

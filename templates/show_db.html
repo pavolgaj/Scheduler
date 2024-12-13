@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Show objects DB
+        </title>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 50px;
+            }
+
+            table {
+                font-family: arial, sans-serif;
+                border-collapse: separate;
+                /* Don't collapse */
+                border-spacing: 0;
+                width: 100%;
+            }
+
+            td,
+            th {
+                border: 1px solid black;
+                text-align: left;
+                padding: 8px;
+                white-space: nowrap;
+            }
+
+            tr:nth-child(even) {
+                background-color: #dddddd;
+            }
+
+            tr:nth-child(odd) {
+                background-color: white;
+            }
+
+            thead th {
+                /* fix header */
+                position: sticky;
+                top: 0;
+                /* Stick the header to the top */
+                z-index: 1;
+                /* Ensure the header stays on top */
+                background-color: white;
+            }
+
+            tbody td:first-child {
+                /* fix first col  */
+                position: sticky;
+                left: 0;
+                /* Stick the first column to the left */
+                background-color: inherit;
+                /* same background as the row */
+                z-index: 0;
+                /* Ensure it stays above the other table cells */
+            }
+
+            button {
+                padding: 10px 20px;
+                border: none;
+                border-radius: 5px;
+                background-color: #333;
+                color: white;
+                cursor: pointer;
+            }
+
+            button:hover {
+                background-color: #555;
+            }
+        </style>
+        <!-- import basic jquery functions -> used for sorting -->
+        <script src="{{ url_for('static', filename='jquery.min.js') }}"></script>
+    </head>
+
+    <body>
+        <center>
+            <h1>Objects in database</h1>
+            <form method="post">
+                <button type="submit" name="download" title="Download all objects in DB">Download all
+                </button>
+                <button type="submit" name="observe"
+                    title="Download objects with needed observatios (not finished).">Download observation targets
+                </button>
+                <button type="submit" name="done" title="Download finished objects in DB">Download finished
+                </button>
+            </form>
+        </center>
+        <br>
+
+        <!-- table with observable obj -->
+        <center>
+            <h2>Objects for observations</h2>
+        </center>
+        <table id="my_table">
+            <thead>
+                <tr>
+                    {% for val in header %}
+                    <th class="obsHead" {% if loop.index0==0 %}
+                        style="position: sticky; left: 0px; z-index: 2; background-color: white;" {% endif %}>{{ val }}
+                    </th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            {% for row in data %}
+            {% set up=loop.index %} <!-- for different color of fixed col between rows -->
+            <tr>
+                {% for col in header %}
+                <td>
+                    <!-- compress output values = round floats and remove decimals from RA/DEC -->
+                    {% if not '.' in row[col] %}
+                    {{ row[col] }}
+                    {% elif row[col] | float(default=row[col]) is number %}
+                    {{ row[col] | float() | round(3) }}
+                    {% elif col=='RA' or col=='DEC' %}
+                    {{ row[col].split('.')[0] }}
+                    {% else %}
+                    {{ row[col] }}
+                    {% endif %}
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </table>
+        <br><br>
+
+        <!-- table with finished obj -->
+        <center>
+            <h2>Finished objects</h2>
+        </center>
+        <table id="done_table">
+            <thead>
+                <tr>
+                    {% for val in header %}
+                    <th class="doneHead" {% if loop.index0==0 %}
+                        style="position: sticky; left: 0px; z-index: 2; background-color: white;" {% endif %}>{{ val }}
+                    </th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            {% for row in done %}
+            {% set up=loop.index %} <!-- for different color of fixed col between rows -->
+            <tr>
+                {% for col in header %}
+                <td>
+                    <!-- compress output values = round floats and remove decimals from RA/DEC -->
+                    {% if not '.' in row[col] %}
+                    {{ row[col] }}
+                    {% elif row[col] | float(default=row[col]) is number %}
+                    {{ row[col] | float() | round(3) }}
+                    {% elif col=='RA' or col=='DEC' %}
+                    {{ row[col].split('.')[0] }}
+                    {% else %}
+                    {{ row[col] }}
+                    {% endif %}
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </table>
+        <br>
+    </body>
+    <script>
+        // sorting main table
+        function sortTable(f, n) {
+            let rows = $('#my_table tbody  tr').get();
+
+            rows.sort(function (a, b) {
+                // algorithm for sorting
+
+                let A = getVal(a);
+                let B = getVal(b);
+
+                if (A < B) {
+                    return -1 * f;
+                }
+                if (A > B) {
+                    return 1 * f;
+                }
+                return 0;
+            });
+
+            function getVal(elm) {
+                let v = $(elm).children('td').eq(n).text().toUpperCase();
+                if (n === 0) {
+                    return v;   //1st col with target name
+                }
+                if ($.isNumeric(v)) {
+                    v = parseFloat(v, 10);
+                }
+                else if ($.isNumeric(v.slice(0, 3))) {
+                    v = parseFloat(v.slice(0, 3), 10);    // RA/DEC -> number from 1st part
+                }
+                else if ($.isNumeric(v.slice(0, 2))) {
+                    v = parseFloat(v.slice(0, 2), 10);     // RA/DEC -> number from 1st part
+                }
+                else if (v === 'SERIES') {
+                    v = 50;                                 // number of exp.=series -> set some big number
+                }
+                return v;
+            }
+
+            $.each(rows, function (index, row) {
+                $('#my_table').children('tbody').append(row);
+            });
+        }
+        let f_sl = 1;
+
+        $(function () {
+
+            $("#my_table th").click(function () {
+                var headers = document.getElementsByClassName('obsHead');  // get header of obs tab
+                var old = -1;
+                for (var i = 0; i < headers.length; i++) {
+                    // remove symbol from old sorting col and save its index
+                    if (headers[i].innerHTML.indexOf('▼') > 0) {
+                        old = i;
+                        headers[i].innerHTML = headers[i].innerHTML.slice(0, headers[i].innerHTML.indexOf('▼') - 1);
+                        break;
+                    }
+                    if (headers[i].innerHTML.indexOf('▲') > 0) {
+                        old = i;
+                        headers[i].innerHTML = headers[i].innerHTML.slice(0, headers[i].innerHTML.indexOf('▲') - 1);
+                        break;
+                    }
+                }
+
+                let n = $(this).prevAll().length
+
+                if (old === n) {
+                    f_sl *= -1;  // resort old col
+                }
+                else {
+                    f_sl = 1;    // sorting using new col
+                }
+
+                // add symbol to header
+                sortTable(f_sl, n)
+                if (f_sl === -1)
+                    $(this).text($(this).text() + " ▼")
+                else
+                    $(this).text($(this).text() + " ▲")
+            });
+
+        });
+    </script>
+    <script>
+        // sorting done table
+        function sortDoneTable(f, n) {
+            let rows = $('#done_table tbody  tr').get();
+
+            rows.sort(function (a, b) {
+
+                let A = getVal(a);
+                let B = getVal(b);
+
+                if (A < B) {
+                    return -1 * f;
+                }
+                if (A > B) {
+                    return 1 * f;
+                }
+                return 0;
+            });
+
+            function getVal(elm) {
+                let v = $(elm).children('td').eq(n).text().toUpperCase();
+                if (n === 0) {
+                    return v;   //1st col with target name
+                }
+                if ($.isNumeric(v)) {
+                    v = parseFloat(v, 10);
+                }
+                else if ($.isNumeric(v.slice(0, 3))) {
+                    v = parseFloat(v.slice(0, 3), 10);
+                }
+                else if ($.isNumeric(v.slice(0, 2))) {
+                    v = parseFloat(v.slice(0, 2), 10);
+                }
+                else if (v === 'SERIES') {
+                    v = 50;
+                }
+                return v;
+            }
+
+            $.each(rows, function (index, row) {
+                $('#done_table').children('tbody').append(row);
+            });
+        }
+        let f_slDone = 1;
+
+        $(function () {
+
+            $("#done_table th").click(function () {
+                var headers = document.getElementsByClassName('doneHead');   // get header of done tab
+                var old = -1;
+                for (var i = 0; i < headers.length; i++) {
+                    if (headers[i].innerHTML.indexOf('▼') > 0) {
+                        old = i;
+                        headers[i].innerHTML = headers[i].innerHTML.slice(0, headers[i].innerHTML.indexOf('▼') - 1);
+                        break;
+                    }
+                    if (headers[i].innerHTML.indexOf('▲') > 0) {
+                        old = i;
+                        headers[i].innerHTML = headers[i].innerHTML.slice(0, headers[i].innerHTML.indexOf('▲') - 1);
+                        break;
+                    }
+                }
+
+                let n = $(this).prevAll().length
+
+                if (old === n) {
+                    f_slDone *= -1;
+                }
+                else {
+                    f_slDone = 1;
+                }
+
+                sortDoneTable(f_slDone, n)
+                if (f_slDone === -1)
+                    $(this).text($(this).text() + " ▼")
+                else
+                    $(this).text($(this).text() + " ▲")
+
+            });
+
+        });
+    </script>
+
+</html>

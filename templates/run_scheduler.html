@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Run automatic scheduler
+        </title>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 50px;
+            }
+
+            form {
+                max-width: 700px;
+                margin: 0 auto;
+                padding: 20px;
+                border: 1px solid #ccc;
+                border-radius: 10px;
+                background-color: #f9f9f9;
+            }
+
+            .form-group {
+                display: flex;
+                align-items: center;
+                margin-bottom: 15px;
+            }
+
+            .form-group label {
+                flex: 1;
+                font-weight: bold;
+            }
+
+            .form-group input {
+                flex: 2;
+                padding: 10px;
+                border-radius: 5px;
+                width: 100%;
+            }
+
+            .form-group select {
+                flex: 2;
+                padding: 10px;
+                border-radius: 5px;
+                width: 100%;
+            }
+
+            .form-group button {
+                flex: 1;
+                margin-left: 10px;
+            }
+
+            label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: bold;
+            }
+
+            button {
+                padding: 10px 20px;
+                border: none;
+                border-radius: 5px;
+                background-color: #333;
+                color: white;
+                cursor: pointer;
+                margin-inline: 5px;
+            }
+
+            button:hover {
+                background-color: #555;
+            }
+
+            .normal {
+                border: 1px solid #ccc;
+            }
+
+            .checkbox-wrapper {
+                display: flex;
+                align-items: center;
+                margin-bottom: 20px;
+            }
+
+            .checkbox-wrapper label {
+                margin: 0;
+                padding: 5px;
+                margin-left: -5px;
+                margin-right: 10px;
+                align-items: left;
+            }
+
+
+            /* Ensure the buttons are on the same line */
+            .button-group {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                margin-bottom: 10px;
+                gap: 10px;
+            }
+
+            table {
+                font-family: arial, sans-serif;
+                border-collapse: collapse;
+                width: 100%;
+            }
+
+            td,
+            th {
+                border: 1px solid black;
+                text-align: left;
+                padding: 8px;
+                white-space: nowrap;
+            }
+
+            tr:nth-child(even) {
+                background-color: #dddddd;
+            }
+
+            #time_start_label,
+            #time_end_label {
+                font-weight: normal;
+            }
+
+            /* additional input field */
+            #time_start,
+            #time_end {
+                margin-left: 10px;
+                margin-right: 10px;
+                padding: 5px;
+                border-radius: 5px;
+                width: 100%;
+                flex: 2;
+            }
+        </style>
+        <!-- import basic jquery functions -> used for sorting -->
+        <script src="{{ url_for('static', filename='jquery.min.js') }}"></script>
+        <script>
+            function isInt(str) {
+                // check if string is integer
+                return (parseInt(str) == str);
+            }
+
+            function checkNum() {
+                //check values in inputs (number)                
+                let valid = true;
+
+                var input = document.getElementById('number');
+                if (!isInt(input.value)) {
+                    valid = false;
+                }
+                else if ((input.value<1) | (input.value)>10) {
+                    valid = false;
+                }
+                
+                if (!valid) {
+                    alert('Number of nights should be number from 1 to 10!');
+                    return valid;
+                }
+
+                inputs = document.getElementsByName('number');
+                inputs.forEach((inp) => {
+                    if (!isInt(inp.value)) {
+                        valid = false;
+                    }
+                });
+                if (!valid) {
+                    alert('Number of exposure should be number!');
+                    return valid;
+                }
+                return valid;
+            }
+
+            function popup() {
+                //show info about running, not block server
+                var check=checkNum();
+                if (check) {
+                    var myDialog = document.createElement("dialog");
+                    document.body.appendChild(myDialog)
+                    var text = document.createTextNode("Scheduler is calculating. Please, wait...");
+                    myDialog.appendChild(text);
+                    myDialog.showModal();
+                }
+                return check;
+            }
+            function select_all() {
+                //select all groups
+                checkboxes = document.getElementsByName('use_group');
+                for (var i = 0; i < checkboxes.length; i++) {
+                    checkboxes[i].checked = true;
+                }
+            }
+            function select_none() {
+                //select none groups
+                checkboxes = document.getElementsByName('use_group');
+                for (var i = 0; i < checkboxes.length; i++) {
+                    checkboxes[i].checked = false;
+                }
+            }
+            function toggleTime() {
+                //show/hide on check
+                var time = document.getElementById('time');
+                var time_start = document.getElementById('time_start');
+                var time_end = document.getElementById('time_end');
+                var time_start_label = document.getElementById('time_start_label');
+                var time_end_label = document.getElementById('time_end_label');
+                time_start.style.display = time.checked ? 'inline-block' : 'none';
+                time_end.style.display = time.checked ? 'inline-block' : 'none';
+                time_start_label.style.display = time.checked ? 'inline-block' : 'none';
+                time_end_label.style.display = time.checked ? 'inline-block' : 'none';
+            }
+            function toggleNumber() {
+                //show/hide name for multiple nights
+                var number = document.getElementById('number');
+                var name = document.getElementById('name-div');
+                name.style.display = (number.value>1) ? 'flex' : 'none';
+            }
+            // Run this function on page load to check if the checkbox was checked (loading from server)
+            window.onload = function () {
+                toggleTime();
+                toggleNumber();
+            }
+        </script>
+    </head>
+
+    <body>
+        <form method="post" id="main-form">
+            <center>
+                <h1>Scheduler options</h1>
+            </center>
+            <div class="form-group">
+                <label for="night">Scheduling night:</label>
+                <input type="date" name="night" id="night" value="{{ night }}"
+                    title="Local date of beginning of night." required>
+            </div>
+            <div class="checkbox-wrapper">
+                <label for="time">Part of night:</label>
+                <input type="checkbox" id="time" name="time" value="checked"
+                    title="Specify time of night for observation." onclick="toggleTime()" {% if time %}checked{% endif
+                    %}>
+                <label for="time_start" id="time_start_label">&nbsp;&nbsp;&nbsp;from</label>
+                <input type="time" name="time_start" id="time_start" value="{{ time_start }}"
+                    style="display::{{ 'inline-block' if time else 'none' }}"
+                    title="UT time of beginning of observations. Leave empty if NO limit.">
+                <label for="time_end" id="time_end_label">&nbsp;&nbsp;&nbsp;to</label>
+                <input type="time" name="time_end" id="time_end" value="{{ time_end }}"
+                    style="display::{{ 'inline-block' if time else 'none' }}"
+                    title="UT time of end of observations. Leave empty if NO limit.">
+            </div>
+            <div class="form-group">
+                <label for="night">Number of nights </label>
+                <input type="number" name="number" id="number" value="{{ number }}" title="Number of night to schedule."
+                    pattern="\d+" min=1 max=30 onchange="toggleNumber()">
+            </div>
+            <div class="form-group" id="name-div">
+                <label for="name">Name of new schedule </label>
+                <input type="text" name="name" id="name" value="{{ name }}" title="Name prefix for generating schedule. Date added automatically. Name = prefix_YMD">
+            </div>
+
+            <!-- table with object types/groups -->
+            <div>
+                <label>Group of objects</label>
+                <table id="my_table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Group</th>
+                            <th>Number of objects</th>
+                        </tr>
+                    </thead>
+                    {% for group, obj in groups | dictsort %}
+                    <tr data-row-id="{{ loop.index0 }}">
+                        <td>
+                            <center>
+                                <input type="checkbox" name="use_group" value="{{ group }}"
+                                    title="Include group of objects to scheduler." {% if group in use_group %}checked{%
+                                    endif %}>
+                            </center>
+                        </td>
+                        <td>{{ group }}</td>
+                        <td>{{ obj }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                <br>
+                <div class="button-group">
+                    <center>
+                        <button type="button" name="all" title="Select all objects groups." onclick="select_all()">Select
+                            all</button>
+                        <button type="button" name="none" title="Deselect all groups." onclick="select_none()">Select
+                            none</button>
+                    </center>
+                </div>
+                <br>
+            </div>
+
+
+            <div class="checkbox-wrapper">
+                <label for="series">Observe series</label>
+                <input type="checkbox" name="series" id="series" value="checked" title="Observe series." {% if series
+                    %}checked{% endif %}>
+            </div>
+            <div class="form-group">
+                <label for="scheduler">Type of scheduler</label>
+                <select id="scheduler" name="scheduler">
+                    <option value="Sequential" {% if scheduler=='Sequential' %}selected{% endif %}>Sequential</option>
+                    <option value="StdPriority" {% if scheduler=='StdPriority' %}selected{% endif %}>Priority with
+                        Standards</option>
+                </select>
+            </div>
+
+            <br>
+            <center>
+                <button type="submit" name="run" title="Run scheduler" onclick="return popup()">Run scheduler</button>
+            </center>
+
+        </form>
+    </body>
+    <script>
+        // sorting table
+
+        function sortTable(f, n) {
+            // get all rows from table
+            let rows = $('#my_table tbody  tr').get();
+
+            rows.sort(function (a, b) {
+                // algorithm for sorting
+
+                let A = getVal(a);
+                let B = getVal(b);
+
+                if (A < B) {
+                    return -1 * f;
+                }
+                if (A > B) {
+                    return 1 * f;
+                }
+                return 0;
+            });
+
+            function getVal(elm) {
+                let v = $(elm).children('td').eq(n).text().toUpperCase();
+                if ($.isNumeric(v)) {
+                    v = parseFloat(v, 10);
+                }
+                return v;
+            }
+
+            $.each(rows, function (index, row) {
+                $('#my_table').children('tbody').append(row);
+            });
+        }
+        let f_sl = 1;
+
+        $(function () {
+
+            $("#my_table th").click(function () {
+                var headers = document.getElementsByTagName("th");    // get header
+                var old = -1;
+                for (var i = 0; i < headers.length; i++) {
+                    // remove symbol from old sorting col and save its index
+                    if (headers[i].innerHTML.indexOf('▼') > 0) {
+                        old = i;
+                        headers[i].innerHTML = headers[i].innerHTML.slice(0, headers[i].innerHTML.indexOf('▼') - 1);
+                        break;
+                    }
+                    if (headers[i].innerHTML.indexOf('▲') > 0) {
+                        old = i;
+                        headers[i].innerHTML = headers[i].innerHTML.slice(0, headers[i].innerHTML.indexOf('▲') - 1);
+                        break;
+                    }
+                }
+
+                let n = $(this).prevAll().length
+
+                if (old === n) {
+                    f_sl *= -1;   // resort old col
+                }
+                else {
+                    f_sl = 1;     // sorting using new col
+                }
+
+                sortTable(f_sl, n)
+
+                // add symbol to header
+                if (f_sl === -1)
+                    $(this).text($(this).text() + " ▼")
+                else
+                    $(this).text($(this).text() + " ▲")
+
+            });
+
+        });
+    </script>
+
+</html>

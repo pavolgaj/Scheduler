@@ -1,0 +1,2 @@
+index,Target,Start,End,duration (minutes),RA,DEC,configuration,Altitude,Airmass,Azimut,Priority,ExpTime,Number,Mag,_Mag,_Epoch,_Done,_Type,_MoonPhase,_DEC,_StartPhase,_Priority,_Nights,_Period,_EndPhase,_StartDate,_ExpTime,_OtherRequests,_EndDate,_Target,Remarks,_Supervisor,_RA,_Number,Position
+1,Sirius,2024-12-13 05:56:18.023,2024-12-13 05:57:38.023,1.33,6:45:08.92,-16:42:58.02,{'position': 'ew'},77.47,1.02,2.84,3,60,1,-1.46,-1.46,,0,test,,-16 42 58.02,,3,1,,,,60,,,Sirius,sim. ThAr; ,example,06 45 08.92,1,ew

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Show schedule
+        </title>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 50px;
+            }
+
+            table {
+                font-family: arial, sans-serif;
+                border-collapse: collapse;
+                width: 100%;
+            }
+
+            td,
+            th {
+                border: 1px solid black;
+                text-align: left;
+                padding: 8px;
+                white-space: nowrap;
+            }
+
+            tr:nth-child(even) {
+                background-color: #dddddd;
+            }
+
+            label {
+                margin-bottom: 8px;
+                font-weight: bold;
+            }
+
+            input {
+                padding: 10px;
+                border-radius: 5px;
+                width: 20%;
+                min-width: 100px;
+            }
+
+            button {
+                padding: 10px 20px;
+                border: none;
+                border-radius: 5px;
+                background-color: #333;
+                color: white;
+                cursor: pointer;
+            }
+
+            button:hover {
+                background-color: #555;
+            }
+
+            img {
+                cursor: pointer;
+            }
+        </style>
+        <script>
+            // check if name is given
+            function check() {
+                var name = document.getElementById('name');
+                if (!name.value) {
+                    alert('Name of schedule is missing!');
+                    return false;
+                }
+                return true;
+            }
+            //Display a base64 URL inside an iframe in another window.
+            //for chrome etc. (a href not work!)
+            function debugBase64(base64URL) {
+                var win = window.open();
+                win.document.write('<iframe src="' + base64URL + '" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>');
+            }
+
+            //This will open an image in a new window
+            function img64(data) {
+                debugBase64("data:image/png;base64," + data);
+            }   
+        </script>
+    </head>
+
+    <body>
+        <center>
+            <h1>Generated schedule</h1>
+        </center>
+        <br>
+        <div>
+            Selected objects: {{selected}}<br>
+            Observable objects: {{observable}}<br>
+            Observing targets: {{scheduled}}
+        </div>
+        <br>
+
+        <center>
+            <form method="post">
+                <label for="name">Name of scheduler</label>
+                <input type="text" name="name" id="name" title="Name of schedule to save.">
+                <button type="submit" name="save" id="save" onclick="return check()" title="Save schedule.">Save
+                    schedule</button>
+                <button type="submit" name="modify" id="modify" onclick="return check()"
+                    title="Save schedule and modify it.">Save & modify</button>
+                <button type="submit" name="download" id="download" title="Download schedule as CSV.">Download
+                    CSV</button>
+            </form>
+        </center>
+
+        <!-- table with observable obj -->
+        <center>
+            <h2>Objects for observations</h2>
+        </center>
+        <table id="my_table">
+            <thead>
+                <th></th>
+                <th>Target</th>
+                <th>RA</th>
+                <th>DEC</th>
+                <th>Mag</th>
+                <th>ExpTime</th>
+                <th>Number</th>
+                <th>Notes</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Altitude</th>
+                <th>Airmass</th>
+                <th>Azimut</th>
+                <th>Position</th>
+            </thead>
+            {% for row in schedule %}
+            <tr data-row-id="{{ loop.index0 }}">
+                <td>{{ row.index }}</td>
+                <td>{{ row.Target }}</td>
+                <td>{{ row.RA.split('.')[0] }}</td>
+                <td>{{ row.DEC.split('.')[0] }}</td>
+                <td>{% if row.Mag is number %}
+                    {{ row.Mag | round(1) }}
+                    {% else %}
+                    {{ row.Mag }}
+                    {% endif %}
+                </td>
+                <td>{{ row.ExpTime }}</td>
+                <td>{{ row.Number }}</td>
+                <td>{{ row.Remarks }}</td>
+                <td>{{ row.Start.split()[1][:row.Start.split()[1].rfind(':')] }}</td>
+                <td>{{ row.End.split()[1][:row.End.split()[1].rfind(':')] }}</td>
+                <td>{{ row.Altitude | float() | round(0) | int() }}</td>
+                <td>{{ row.Airmass | float() | round(1) }}</td>
+                <td>{{ row.Azimut | float() | round(0) | int() }}</td>
+                <td>{{ row.Position }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        <br>
+
+        <div>
+            <img width="40%" src='data:image/png;base64,{{ alt_plot }}' alt="Altitude plot"
+                onclick="img64('{{ alt_plot }}')">
+            <img width="40%" src='data:image/png;base64,{{ sky }}' alt="Sky plot" onclick="img64('{{ sky }}')">
+        </div>
+    </body>
+
+</html>

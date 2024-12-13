@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <title>Scheduler</title>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+        <style>
+            div {
+                text-align: justify;
+                text-justify: inter-word;
+                margin-bottom: 1em;
+                padding-left: 10px;
+            }
+
+            h1, h2, h3, h4, h5, h6 {
+                padding-left: 10px;
+            }
+
+            h1 {
+                padding-top: 10px;
+            }
+
+            #footer {
+                background-color: #f4f4f4;
+                text-align: center;
+                padding: 10px;
+                margin-top: 50px;
+                margin-bottom: -10px;
+                margin-left: -10px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <h1>Scheduler and objects database</h1>
+
+        <h2>Short user guide</h2>
+        <h3 style="color: red;">Most of the content of this web page is password-protected!</h3>
+        <h4>Object database</h4>
+
+        <div>The first part is dedicated to managing the database with observing targets. There are two options to add
+            the
+            object to the DB:</div>
+
+        <div>
+            <ol>
+                <li>Add object individually using a <a href="{{ url_for('new') }}" target="content_frame">form</a>.
+                    Underline parts are mandatory! Target names searchable in <a
+                        href="https://simbad.u-strasbg.fr/simbad/" target="_blank">Simbad DB</a> is preferable. <br>
+                    Coordinates and object magnitude could be obtained from Simbad if available. Coordinates have to be
+                    in
+                    the format "D M S" or "D:M:S" (or "H M S"/"H:M:S" in case of RA). <br>
+                    Magnitude should be in the V filter or the most similar to it. <br>
+                    Linear ephemeris (period and epoch) is mandatory if specific orbital phases should be observed (see
+                    below). <a href="https://www.aavso.org/vsx/index.php?view=search.top" target="_blank">AAVSO VSX</a>
+                    and
+                    <a href="https://exoplanetarchive.ipac.caltech.edu/" target="_blank">NASA Exoplanet Archive</a>
+                    could be
+                    use to obtain them. <br>
+                    Specify the number of exposures (following one by one) or check "series" to observe longer series
+                    without the number specified. All exposure will have the same instrument settings (i.e. exposure
+                    time, usage of IC, simultaneous calibration and photometry). To observe with different settings, the
+                    other
+                    object has to be added to DB! For simultaneous photometry, specify its parameters (e.g. exposure
+                    time and used filter). Write other comments related to observations in the "remarks" part. Indicate
+                    the number of requested
+                    nights (repeating of the specified observation).<br>
+                    Write the priority of the observations - lower number = higher priority. Priority "1" can be given
+                    only
+                    by DB admins on special requests. Standards (RV Standard and SpecPhot Standard) have priority lower
+                    than
+                    1. <br>
+                    Select a group of objects describing the target. Use group general enough. Preferably use one of the
+                    already available. <br>
+                    Indicate individual constraints for scheduling the observations - max. Moon phase, range of orbital
+                    phases or date interval. Leave blank if any limit is not related. The orbital phase has to be in the
+                    range of 0 to 1. If the phase range has to extend this interval, the lower limit must be higher than
+                    the
+                    upper limit (e.g. for observing around phase 0 - use a range from 0.9 to 0.1). For more separate
+                    intervals, the additional object must be added to DB! Give other related constraints to the relevant
+                    block (e.g. number of observing nights per week). <br>
+                    Write the name of the object's supervisor and contact to him/her. Give additional messages to DB
+                    admins
+                    if any.
+                </li>
+                <li>For adding multiple objects, <a href="{{ url_for('bulk') }}" target="content_frame">bulk import</a>
+                    is available. Download the CSV template and fill it out according to the instructions. Give
+                    information about the objects supervisor.</li>
+            </ol>
+            After submission, the email to DB admins and supervisor is sent. Objects will be included in the DB after
+            admins accept them.
+        </div>
+
+        <div>
+            Objects in DB can be view as <a href="{{ url_for('show_db') }}">table</a>. DB is split into 2 parts -
+            objects for observations and objects with already finished observations. Data can be downloaded as a CSV
+            file (all objects together or split according to observations status). <br>
+            <i>Note: Values are rounded to a lower number of decimal digits to shrink the table. Full given precision is
+                stored and used in all calculations.</i>
+        </div>
+
+        <div>
+            Admins have the option to modify data in DB on separate <a href="{{ url_for('admin') }}">page</a>. There are
+            two types of DB to edit. Newly added objects (waiting for acceptance) can be accepted or rejected (deleted).
+            After acceptance, they will be moved to the final DB. In the final DB, objects could be deleted or marked as
+            "done" (i.e. observations finished). All data can be modified in both parts. Follow the original format (as
+            for adding a new object)!
+        </div>
+
+        <div>Objects in the final DB (after being accepted by admins) and not marked as finished/done can be used for
+            calculating the schedule in the next part.</div>
+
+
+        <h4>Scheduling observations</h4>
+        <div>
+            Automatic <a href="{{ url_for('scheduler') }}">scheduler</a> based on <a
+                href="https://astroplan.readthedocs.io/en/stable/" target="_blank">astroplan</a> package can be used.
+            The schedule is calculated for the night beginning at a given local date. A shorter part of the night can be
+            also scheduled - the date has to be always for the night's start (also if only morning is planned). Leaving
+            the start (end) of observations empty means the usage of sunset (sunrise). Multi-night scheduling is
+            possible without repeating already scheduled targets (standards are scheduled every night). A combination of
+            scheduling the same parts of multiple nights is also possible. Objects are selected according to their
+            group. Objects marked as finished are NOT scheduled! Objects with long series requested have to be included
+            separately. All general and individual constraints are applied during the filtering of targets.<br>
+            Two types of scheduling algorithms are available. Priority scheduler takes into account individual target's
+            priority and handles better object altitude and airmass during observation. It also selects only one
+            standard (from each std. category). However, it can have poor performance in the case of a small number of
+            selected targets (comparable to the number of possibly observable ones) - making big gaps between observing
+            slots. <br>
+            The sequential scheduler places objects with the best conditions in each slot from the night's beginning
+            ignoring any priorities. It is a bit slower and can place objects also at unnecessary low altitudes. All
+            objects from standard categories can be scheduled during one night. <br>
+            <b>In general, the priority scheduler is recommended.</b><br>
+            After the scheduler calculation is finished, the schedule is shown in the form of a table and altitude and
+            sky plots. <b>Scheduler is NOT saved on this step!</b> It is possible to save the generated schedule on the
+            server or save and open it for manual modifications.
+        </div>
+
+        <div>
+            Saved schedule can be <a href="{{ url_for('modify') }}">manually modified</a>. After its loading, the
+            targets can be re-arranged (moved up/down) or deleted. The number and duration of exposure can be changed.
+            Observing notes can also be modified. The position of the telescope in east/west limits during the
+            observation is calculated and can be plotted in the diagram. <b>Changes in the schedule are applied only
+                after re-calculations! And running any other action (adding target, filtering objects, twilight
+                calculations, etc.) will annul these changes!</b> Re-calculation calculates new objects' positions and
+            times for the slewing of the telescope between them. Altitude and sky plots are also re-generated. <br>
+            Adding other targets to the schedule is possible after selecting their objects' group and filtering
+            observable objects. It is possible to disable individual constraints (Moon phase, orbital phase and date).
+            General and individual constraints are applied only if the scheduling night is specified! In such cases, the
+            times of observability are calculated and plotting individual time-altitude graphs is possible. <b>After
+                adding targets, the re-calculation is needed!</b> The schedule can be created also in a completely
+            manual way - created as a "New schedule" and filled by objects one by one.<br>
+            <b>After finishing any changes, saving the schedule is necessary to write it to the file on the server!</b>
+            Deleting old or wrong schedules is also possible. But, they are removed also automatically after two months
+            after the last modification. <br>
+            Moreover, there is an option to send a list of objects in the schedule to the automatic scheduling
+            algorithm. The sequential scheduler is used for that purpose. However, it can often provide worse
+            results than the input schedule.
+        </div>
+
+        <div>
+            During the observation, the generated schedule can be simply <a href="{{ url_for('show') }}">displayed</a>
+            as a table and altitude and sky plots. The start and end of each observing slot are given. The position of
+            the telescope in east/west limits during the observation is calculated and can be plotted in the diagram.
+        </div>
+
+        <h4>Filtering and scheduling user list of objects</h4>
+
+        <div>
+            The user can use opportunities of filtering and scheduling algorithms on their own objects list on dedicated
+            <a href="{{ url_for('user') }}">page</a>. <b>This part is available without any password for all users.</b>
+            Objects list is uploaded as a CSV file following the rules and structure of a given template. Information
+            about the observatory can be picked from available options (based on <a
+                href="http://www.astropy.org/astropy-data/coordinates/sites.json" target="_blank">astropy sites
+                list</a>) or added manually. After setting general observation constraints, camera readout time and
+            telescope slew rate, objects can be filtered based on their observability during a given time interval. A
+            list of observable targets is returned as a CSV file. The automatic scheduler (priority or sequential) can
+            be used to schedule observation.
+            <br><i>Note: Scheduling of user objects list is not available, yet!</i>
+        </div>
+
+        <h4>Observing logs</h4>
+
+        <div>
+            After finishing of observation, the observing log is generated on the PlatoSpec observing computer at La
+            Silla observatory and subsequently transferred to the server in Ondřejov. Based on them the statistics and
+            tables of this section are created. All its parts are linked together - hyperlinks in one part can be used
+            to display relevant content of the other part.
+        </div>
+
+        <div>
+            <a href="{{ url_for('stats') }}">Stastical part</a> lists observed objects grouped by target name and
+            exposure time. The number of observing nights (regardless of the number of exposures in one night) for each
+            setup is given. The last observing night is also shown.
+        </div>
+
+        <div>
+            All generated <a href="{{ url_for('logs') }}">logs</a> are listed and available to download as PDF or CSV
+            file.
+        </div>
+
+        <div>
+            For <a href="{{ url_for('search') }}">observed objects</a>, all observations can be displayed. The number of
+            exposures and used exposure time for each night are shown.
+        </div>
+
+        <!-- footer -->
+        <div id="footer">
+            &copy; 2024 Pavol Gajdoš & PlatoSpec project
+        </div>
+    </body>
+
+</html>

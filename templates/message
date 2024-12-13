@@ -1,0 +1,14 @@
+{{ supervisor }} added new object into the E152 database with following parameters:
+
+Target: {{ name }}
+Coordinates: {{ ra }}; {{ dec }}
+Magnitude: {{ mag }}
+Exposure time: {{ exp }}
+Number of exposures: {{ number }}
+Number of nights: {{ nights }}
+Priority: {{ prior }}
+Type of object: {{ group }}
+Remarks: {{ notes }}
+
+Additional comments:
+{{ message }}

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Scheduler table</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 50px;
+            }
+
+            table {
+                font-family: arial, sans-serif;
+                border-collapse: collapse;
+                width: 100%;
+            }
+
+            td,
+            th {
+                border: 1px solid black;
+                text-align: left;
+                padding: 8px;
+                white-space: nowrap;
+            }
+
+            tr:nth-child(even) {
+                background-color: #dddddd;
+            }
+
+            thead th {
+                /* fix header */
+                position: sticky;
+                top: 0;
+                /* Stick the header to the top */
+                z-index: 1;
+                /* Ensure the header stays on top */
+                background-color: white;
+            }
+
+            label {
+                margin-bottom: 8px;
+                font-weight: bold;
+            }
+
+            select {
+                padding: 10px;
+                border-radius: 5px;
+                width: 20%;
+                min-width: 100px;
+            }
+
+            button {
+                padding: 10px 20px;
+                border: none;
+                border-radius: 5px;
+                background-color: #333;
+                color: white;
+                cursor: pointer;
+            }
+
+            button:hover {
+                background-color: #555;
+            }
+
+            img {
+                cursor: pointer;
+            }
+
+            .modify-row {
+                padding: 0px;
+                width: 20px;
+                height: 20px;
+                background-color: silver;
+                border-color: black;
+                border-width: 1px;
+                border-radius: 5px;
+                margin-right: 2px;
+            }
+
+            .modify-row img {
+                height: 17px;
+                display: block;
+                margin-left: auto;
+                margin-right: auto;
+            }
+        </style>
+        <script>
+            function popup() {
+                //show info about running, not block server
+                var myDialog = document.createElement("dialog");
+                document.body.appendChild(myDialog)
+                var text = document.createTextNode(" Please, wait...");
+                myDialog.appendChild(text);
+                myDialog.showModal();
+            }
+
+            //reload page (submit form) on change of schedule
+            function update() {
+                popup();
+                document.getElementById('main-form').submit();
+            }
+            //Display a base64 URL inside an iframe in another window.
+            //for chrome etc. (a href not work!)
+            function debugBase64(base64URL) {
+                var win = window.open();
+                win.document.write('<iframe src="' + base64URL + '" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>');
+            }
+
+            //This will open an image in a new window
+            function img64(data) {
+                debugBase64("data:image/png;base64," + data);
+            }     
+        </script>
+    </head>
+
+    <body>
+        <center>
+            <form method="post" id="main-form">
+                <label for="name">Name of scheduler</label>
+                <select name="name" id="name" onchange="update()" title="Names of available schedules to modify.">
+                    {% for sch in schedules %}
+                    <option value="{{ sch }}" {% if name==sch %}selected{% endif %}>{{ sch }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" name="load" id="load" title="Load schedule." onclick="popup()">Load
+                    schedule</button>
+                <button type="submit" name="download" id="download" title="Download schedule as CSV.">Download
+                    CSV</button>
+            </form>
+        </center>
+
+        <!-- table with observable obj -->
+        <center>
+            <h2>Objects for observations</h2>
+        </center>
+        <table id="my_table">
+            <thead>
+                <th></th>
+                <th>Target</th>
+                <th>RA</th>
+                <th>DEC</th>
+                <th>Mag</th>
+                <th>ExpTime</th>
+                <th>Number</th>
+                <th>Notes</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Altitude</th>
+                <th>Airmass</th>
+                <th>Azimut</th>
+                <th>Position</th>
+            </thead>
+            {% for row in schedule %}
+            <tr data-row-id="{{ loop.index0 }}">
+                <td>{{ row.index }}</td>
+                <td>{{ row.Target }}</td>
+                <td>{{ row.RA.split('.')[0] }}</td>
+                <td>{{ row.DEC.split('.')[0] }}</td>
+                <td>{% if row.Mag is number %}
+                    {{ row.Mag | round(1) }}
+                    {% else %}
+                    {{ row.Mag }}
+                    {% endif %}
+                </td>
+                <td>{{ row.ExpTime }}</td>
+                <td>{{ row.Number }}</td>
+                <td>{{ row.Remarks }}</td>
+                <td>{{ row.Start.split()[1][:row.Start.split()[1].rfind(':')] }}</td>
+                <td>{{ row.End.split()[1][:row.End.split()[1].rfind(':')] }}</td>
+                <td>{{ row.Altitude | round(0) | int() }}</td>
+                <td>{{ row.Airmass | round(1) }}</td>
+                <td>{{ row.Azimut | round(0) | int() }}</td>
+                <td>
+                    <span style="display: inline-block; width: 30px">{{ row.Position }}</span>
+                    <button type="button" class="modify-row" name="plot" title="Plot telescope limits"
+                        onclick="window.open('{{ url_for('limits', ha0 = row.ha0, ha1 = row.ha1, dec=row.de, title=row.Target) }}', '_blank')"
+                        formtarget=”_blank”>
+                        <img src="{{ url_for('static',filename='preview.svg') }}" alt="preview">
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+        <br>
+
+        {% if alt_plot %}
+        <div>
+            <img width="40%" src='data:image/png;base64,{{ alt_plot }}' alt="Altitude plot"
+                onclick="img64('{{ alt_plot }}')">
+            <img width="40%" src='data:image/png;base64,{{ sky }}' alt="Sky plot" onclick="img64('{{ sky }}')">
+        </div>
+        {% else %}
+        <script>
+            // Run update() and generate table and image if empty page, after rendering main parts of page
+            window.onload = function () {
+                update();
+            }
+        </script>
+        {% endif %}
+
+    </body>
+
+</html>

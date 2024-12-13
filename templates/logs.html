@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <title>Observing status - Logs</title>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 50px;
+            }
+
+            form {
+                max-width: 700px;
+                margin: 0 auto;
+                padding: 20px;
+                border: 1px solid #ccc;
+                border-radius: 10px;
+                background-color: #f9f9f9;
+            }
+
+            .form-group {
+                display: flex;
+                align-items: center;
+                margin-bottom: 15px;
+            }
+
+            .form-group label {
+                flex: 2;
+            }
+
+            .form-group input {
+                flex: 1;
+                padding: 10px;
+                border-radius: 5px;
+                width: 100%;
+            }
+
+            .form-group select {
+                flex: 4;
+                padding: 10px;
+                border-radius: 5px;
+                width: 100%;
+            }
+
+            .form-group button {
+                flex: 1;
+                margin-left: 10px;
+            }
+
+            .form-group-night {
+                display: flex;
+                align-items: center;
+                margin-bottom: 15px;
+            }
+
+            .form-group-night label {
+                flex: 1;
+            }
+
+            .form-group-night input {
+                flex: 1;
+                padding: 10px;
+                border-radius: 5px;
+                width: 100%;
+            }
+
+            .form-group-night button {
+                flex: 1;
+                margin-left: 10px;
+            }
+
+            label {
+                display: block;
+                margin-bottom: 8px;
+            }
+
+            button {
+                padding: 10px 20px;
+                border: none;
+                border-radius: 5px;
+                background-color: #333;
+                color: white;
+                cursor: pointer;
+            }
+
+            button:hover {
+                background-color: #555;
+            }
+
+            .column-list {
+                /* show log files in columns */
+                column-count: 4;
+                list-style: none;
+            }
+        </style>
+        <script>
+            //reload page (submit form) on change of format or night
+            function toggleChange() {
+                document.getElementById('log-form').submit();
+            }
+        </script>
+    </head>
+
+    <body>
+        <form method="post" class="left-align" id="log-form">
+            <div>
+                <center>
+                    <h1 style="display: inline;">Observing Logs</h1>
+                </center>
+            </div>
+            <br>
+            <div class="form-group">
+                <label for="type">Select file type</label>
+                <select name="type" id="type" onchange="toggleChange()">
+                    <option value=".pdf" {% if type=='.pdf' %}selected{% endif %}>PDF</option>
+                    <option value=".csv" {% if type=='.csv' %}selected{% endif %}>CSV</option>
+                </select>
+            </div>
+            <div class="form-group-night">
+                <label for="night"><b>Night</b>
+                </label>
+                <input type="date" id="night" name="night" value="{{ night }}" onchange="toggleChange()">
+                <!-- show download button only if log exists -->
+                {% if error %}
+                <label style=" color: red;">&nbsp; &nbsp; &nbsp;{{error}}&nbsp; &nbsp; &nbsp;</label>
+                {% else %}
+                <button type="submit" name="download" title="Download">Download</button>
+                {% endif %}
+                <label>
+                </label>
+            </div>
+            <hr>
+            <ul class="column-list">
+                {% for name in files %}
+                <li><a href="{{ url_for('static',filename='logs/')}}{{name}}{{type}}"
+                        target="_blank">{{name}}{{type}}</a></li>
+                {% endfor %}
+            </ul>
+        </form>
+    </body>
+
+</html>

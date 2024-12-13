@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <title>Scheduler</title>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+        <style>
+            body {
+                display: flex;
+                flex-direction: column;
+                margin: 0;
+                padding: 0;
+                height: 100vh;
+                font-family: Arial, sans-serif;
+            }
+
+            #header {
+                background-color: #333;
+                color: white;
+                padding: 15px;
+                text-align: center;
+                font-size: 24px;
+            }
+
+            #header a {
+                display: block; /* Make the link cover the entire header */
+                text-decoration: none;
+                color: inherit;  /* Keep original text color */
+            }
+
+            #main {
+                display: flex;
+                flex-grow: 1;
+                padding-bottom: 10px;
+            }
+
+            #sidebar {
+                width: 200px;
+                background-color: #f4f4f4;
+                padding: 10px;
+                box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            }
+
+            #content {
+                flex-grow: 1;
+                padding: 0px;
+                margin-bottom: 0px;
+            }
+
+            iframe {
+                width: 100%;
+                height: 100%;
+                border: none;
+            }
+
+            .sidebar-bottom {
+                position: absolute;
+                bottom: 0;
+                left: 0;
+            }
+
+            img {
+                width: 190px;
+                margin-top: 10px;
+                margin-bottom: 10px;
+                margin-left: 15px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <!-- Header section -->
+        <div id="header">
+            <a href="{{ url_for('intro') }}" target="content_frame">Scheduler & Objects Database</a>
+        </div>
+
+        <!-- Main section with sidebar and content -->
+        <div id="main">
+            <div id="sidebar">
+                <ul style="margin-left: -10px;">
+                    <li><a href="{{ url_for('new') }}" target="content_frame">Add new object</a></li>
+                    <li><a href="{{ url_for('bulk') }}" target="content_frame">Bulk objects import</a></li>
+                    <li><a href="{{ url_for('show_db') }}" target="content_frame">Show objects DB</a></li>
+                    <li><a href="{{ url_for('admin') }}" target="content_frame">Admin objects DB</a></li>
+                    <hr>
+                    <li><a href="{{ url_for('scheduler') }}" target="content_frame">Run scheduler</a></li>
+                    <li><a href="{{ url_for('modify') }}" target="content_frame">Modify schedule</a></li>
+                    <li><a href="{{ url_for('show') }}" target="content_frame">Show schedule</a></li>
+                    <hr>
+                    <li><a href="{{ url_for('user') }}" target="content_frame">User objects</a></li>
+                    <hr>
+                    <li><a href="{{ url_for('stats') }}" target="content_frame">Observation statistics</a></li>
+                    <li><a href="{{ url_for('logs') }}" target="content_frame">Observing logs</a></li>
+                    <li><a href="{{ url_for('search') }}" target="content_frame">Observed objects</a></li>
+                </ul>
+                <div class="sidebar-bottom">
+                    <img src="{{ url_for('static',filename='logo.svg') }}" alt="logo">
+                </div>
+            </div>
+            <div id="content">
+                <iframe name="content_frame" src="{{ url_for('intro') }}"></iframe>
+            </div>
+        </div>
+    </body>
+
+</html>

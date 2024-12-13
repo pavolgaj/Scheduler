@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Admin objects DB
+        </title>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 50px;
+            }
+
+            table {
+                font-family: arial, sans-serif;
+                border-collapse: separate;
+                /* Don't collapse */
+                border-spacing: 0;
+                width: 100%;
+            }
+
+            td,
+            th {
+                border: 1px solid black;
+                text-align: left;
+                padding: 8px;
+                white-space: nowrap;
+            }
+
+            tr:nth-child(even) {
+                background-color: #dddddd;
+            }
+
+            tr:nth-child(odd) {
+                background-color: white;
+            }
+
+            thead th {
+                /* fix header */
+                position: sticky;
+                top: 0;
+                /* Stick the header to the top */
+                z-index: 1;
+                /* Ensure the header stays on top */
+                background-color: white;
+            }
+
+            .fix {
+                /* fix 1st col */
+                position: sticky;
+                left: 0;
+                z-index: 0;
+                background-color: inherit;
+            }
+
+            button {
+                padding: 10px 20px;
+                border: none;
+                border-radius: 5px;
+                background-color: #333;
+                color: white;
+                cursor: pointer;
+            }
+
+            button:hover {
+                background-color: #555;
+            }
+
+            .actions {
+                width: 45px;
+                display: table-cel;
+                font-size: 0em;
+                justify-content: left;
+            }
+
+            .modify-row {
+                padding: 0px;
+                width: 20px;
+                height: 20px;
+                background-color: silver;
+                border-color: black;
+                border-width: 1px;
+                border-radius: 5px;
+                margin-right: 2px;
+            }
+
+            .modify-row img {
+                height: 17px;
+                display: block;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            input[type="text"] {
+                width: 100%;
+                box-sizing: border-box;
+                border: none;
+                background-color: transparent;
+                /* Make background transparent */
+                font-family: inherit;
+                /* Inherit font styles from the table */
+                font-size: inherit;
+                padding: 0;
+                margin: 0;
+                min-width: 150px;
+            }
+
+            input:focus {
+                border: none;
+                outline: none;
+            }
+
+            label {
+                font-weight: bold;
+            }
+
+            select {
+                padding: 10px;
+                border-radius: 5px;
+                border: 1px solid #ccc;
+                width: 150px;
+            }
+        </style>
+        <!-- import basic jquery functions -> used for sorting -->
+        <script src="{{ url_for('static', filename='jquery.min.js') }}"></script>
+        <script>
+            //reload page (submit form) on change of db type
+            function updateDB() {
+                document.getElementById('db-form').submit();
+            }
+            // DISABLE submit form on ENTER
+            document.addEventListener('DOMContentLoaded', (event) => {
+                const form = document.querySelector('form');
+                form.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                    }
+                });
+            });
+        </script>
+    </head>
+
+    <body>
+        <form method="post" id="db-form">
+            <label for="db">Object DB to edit:</label>
+            <select id="db" name="db" onchange="updateDB()">
+                <option value="new" {% if db=='new' %}selected{% endif %}>New objects</option>
+                <option value="objects" {% if db=='objects' %}selected{% endif %}>Objects in DB</option>
+            </select>
+
+            {% if errors %}
+            <script>
+                alert("Fix problems with data format!")
+            </script>
+            {% endif %}
+
+            <!-- shows errors in data -->
+            {% if errors %}
+            <ul style="color:red;">
+                {% for error in errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+
+            <!-- Table for new objects -->
+            {% if db=='new' %}
+            <center>
+                <h1>New Objects</h1>
+                <button type="submit" name="download" title="Download">Download CSV
+                </button>
+                <button type="submit" name="accept_all" title="Accept all targets and move them to DB."
+                    onclick="return confirm('Accept all targets and move them to DB?');">Accept all
+                </button>
+                <button type="submit" name="delete_all" title="Delete all targets"
+                    onclick="return confirm('Delete all targets?');">Delete all
+                </button>
+            </center>
+            <h2 style="color: red; font-weight: bold;">Any accept/delete action also saves all modifications in table!
+            </h2>
+            <br>
+            <table id="my_table">
+                <thead>
+                    <tr>
+                        <!-- fix first 2 cols -->
+                        <th style="position: sticky; left: 0px; z-index: 2; background-color: white;"></th>
+                        <th style="display:none">id</th> <!-- id for correct sorting -->
+                        {% for val in header %}
+                        <th {% if loop.index0==0
+                            %}style="position: sticky; left: 55px; z-index: 2; background-color: white;" {% endif %}>
+                            {{ val }}
+                        </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                {% for row in data %}
+                <tr data-row-id="{{ loop.index0 }}">
+                    <!-- fix first 2 cols -->
+                    <td class="actions" style="position: sticky; left: 0px; z-index: 0; background-color: inherit;">
+                        <button type="submit" class="modify-row" name="accept_{{ loop.index0 }}"
+                            title="Accept target and move it to DB."
+                            onclick="return confirm('Accept target \'{{ row['Target'] }}\'?');">
+                            <img src="{{ url_for('static',filename='accept.svg') }}" alt="accept">
+                        </button>
+                        <button type="submit" class="modify-row" name="delete_{{ loop.index0 }}" title="Delete target"
+                            onclick="return confirm('Delete target \'{{ row['Target'] }}\'?');">
+                            <img src="{{ url_for('static',filename='delete.svg') }}" alt="delete">
+                        </button>
+                    </td>
+                    <td style="display:none">
+                        <input type="text" name="id" value="{{ loop.index0 }}"> <!-- id for correct sorting -->
+                    </td>
+                    {% for col in header %}
+                    <td {% if loop.index0==0 %}class="fix" style="left: 55px;" {% endif %}>
+                        <input type="text" name="{{ col }}" value="{{ row[col] }}">
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </table>
+            {% endif %}
+
+
+            <!-- Table for objects in final DB -->
+            {% if db=='objects' %}
+            {% if saved %}
+            <script>
+                alert("Object DB saved!")
+            </script>
+            {% endif %}
+            <center>
+                <h1>Objects in database</h1>
+                <button type="submit" name="download" title="Download">Download CSV
+                </button>
+                <button type="submit" name="save" title="Save DB">Save DB
+                </button>
+            </center>
+            <h2 style="color: red; font-weight: bold;">Any delete action also saves all modifications in table!</h2>
+            <br>
+            <table id="my_table">
+                <thead>
+                    <tr>
+                        <!-- fix first 3 cols -->
+                        <th style="position: sticky; left: 0px; z-index: 2; background-color: white;"></th>
+                        <th style="position: sticky; left: 35px; z-index: 2; background-color: white;">Done</th>
+                        <th style="display:none">id</th> <!-- id for correct sorting -->
+                        {% for val in header %}
+                        <th {% if loop.index0==0 %}
+                            style="position: sticky; left: 90px; z-index: 2; background-color: white;" {% endif %}>
+                            {{ val }}
+                        </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                {% for row in data %}
+                <tr data-row-id="{{ loop.index0 }}">
+                    <!-- fix first 3 cols -->
+                    <td class="actions" style="position: sticky; left: 0px; z-index: 0; background-color: inherit;">
+                        <button type="submit" class="modify-row" name="delete_{{ loop.index0 }}" title="Delete target"
+                            onclick="return confirm('Delete target \'{{ row['Target'] }}\'?');">
+                            <img src="{{ url_for('static',filename='delete.svg') }}" alt="delete">
+                        </button>
+                    </td>
+                    <td class="fix" style="left: 35px;">
+                        <center>
+                            <input type="checkbox" name="Done" value="{{ loop.index0 }}" title="Observations finished."
+                                {% if row['Done']=='1' %}checked{% endif %}> <!-- if checked -> value from id -->
+                        </center>
+                    </td>
+                    <td style="display:none">
+                        <input type="text" name="id" value="{{ loop.index0 }}"> <!-- id for correct sorting -->
+                    </td>
+                    {% for col in header %}
+                    <td {% if loop.index0==0 %} class="fix" style="left: 90px;" {% endif %}>
+                        <input type="text" name="{{ col }}" value="{{ row[col] }}">
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </table>
+            {% endif %}
+
+        </form>
+        <br>
+    </body>
+    <script>
+        // sorting table
+
+        function sortTable(f, n) {
+            // get all rows from table
+            let rows = $('#my_table tbody  tr').get();
+
+            rows.sort(function (a, b) {
+                // algorithm for sorting
+
+                let A = getVal(a);
+                let B = getVal(b);
+
+                if (A < B) {
+                    return -1 * f;
+                }
+                if (A > B) {
+                    return 1 * f;
+                }
+                return 0;
+            });
+
+            function getVal(elm) {
+                let v = $(elm).children('td').eq(n).find("input").val().toUpperCase();   // sort using value in input
+                {% if db == 'objects' %}
+                if (n === 3) {
+                    {% else %}
+                    if (n === 2) {
+                        {% endif %}
+                        return v;   //col with target name
+                    }
+                    if ($.isNumeric(v)) {
+                        v = parseFloat(v, 10);
+                    }
+                    else if ($.isNumeric(v.slice(0, 3))) {
+                        v = parseFloat(v.slice(0, 3), 10);    // RA/DEC -> number from 1st part
+                    }
+                    else if ($.isNumeric(v.slice(0, 2))) {
+                        v = parseFloat(v.slice(0, 2), 10);     // RA/DEC -> number from 1st part
+                    }
+                    else if (v === 'SERIES') {
+                        v = 50;                                 // number of exp.=series -> set some big number
+                    }
+                    return v;
+                }
+
+                $.each(rows, function (index, row) {
+                    $('#my_table').children('tbody').append(row);
+                });
+            }
+            let f_sl = 1;
+
+            $(function () {
+
+                $("#my_table th").click(function () {
+                    var headers = document.getElementsByTagName("th");    // get header
+                    var old = -1;
+                    for (var i = 0; i < headers.length; i++) {
+                        // remove symbol from old sorting col and save its index
+                        if (headers[i].innerHTML.indexOf('▼') > 0) {
+                            old = i;
+                            headers[i].innerHTML = headers[i].innerHTML.slice(0, headers[i].innerHTML.indexOf('▼') - 1);
+                            break;
+                        }
+                        if (headers[i].innerHTML.indexOf('▲') > 0) {
+                            old = i;
+                            headers[i].innerHTML = headers[i].innerHTML.slice(0, headers[i].innerHTML.indexOf('▲') - 1);
+                            break;
+                        }
+                    }
+
+                    let n = $(this).prevAll().length
+
+                    if (old === n) {
+                        f_sl *= -1;   // resort old col
+                    }
+                    else {
+                        f_sl = 1;     // sorting using new col
+                    }
+
+                    sortTable(f_sl, n)
+
+                    // add symbol to header
+                    if (f_sl === -1)
+                        $(this).text($(this).text() + " ▼")
+                    else
+                        $(this).text($(this).text() + " ▲")
+
+                });
+
+            });
+    </script>
+
+</html>

@@ -1,0 +1,8 @@
+[mail]
+smtp = smtp_server
+from = from@mail
+
+to =
+    admin@mail
+
+subject = Scheduler error

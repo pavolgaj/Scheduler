@@ -1,0 +1,8 @@
+astroplan
+matplotlib
+pandas
+astropy>=5.2
+astroquery>=0.4.8
+flask
+flask-caching
+waitress

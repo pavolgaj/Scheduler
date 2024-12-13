@@ -1,0 +1,9 @@
+[mail]
+smtp = smtp_server
+from = from@mail
+
+to =
+    to@mail
+
+subject = New object in E152 database
+

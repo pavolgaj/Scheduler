@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>User objects scheduling
+        </title>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 50px;
+            }
+
+            button {
+                padding: 10px 20px;
+                border: none;
+                border-radius: 5px;
+                background-color: #333;
+                color: white;
+                cursor: pointer;
+            }
+
+            button:hover {
+                background-color: #555;
+            }
+
+            form {
+                max-width: 700px;
+                margin: 0 auto;
+                padding: 20px;
+                border: 1px solid #ccc;
+                border-radius: 10px;
+                background-color: #f9f9f9;
+            }
+
+            .form-group {
+                display: flex;
+                align-items: center;
+                margin-bottom: 15px;
+            }
+
+            .form-group label {
+                flex: 1;
+                font-weight: bold;
+            }
+
+            .form-group input,
+            .form-group textarea {
+                flex: 4;
+                padding: 10px;
+                border-radius: 5px;
+                width: 100%;
+            }
+
+            .form-group textarea {
+                min-height: 100px;
+            }
+
+            label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: bold;
+            }
+
+            .error {
+                border: 2px solid red;
+            }
+
+            .normal {
+                border: 1px solid #ccc;
+            }
+        </style>
+        <script>
+            // submit form on ENTER
+            document.addEventListener('DOMContentLoaded', (event) => {
+                const form = document.querySelector('form');
+                form.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        document.querySelector('button[name="filter"]').click();
+                    }
+                });
+            });
+
+            function isFloat(str) {
+                // check if string is float
+                return (parseFloat(str) == str);
+            }
+
+            function check() {
+                //check values in inputs            
+                if (!document.getElementById('file').value) {
+                    alert('Input file is missing!');
+                    return false;
+                }
+                if (!document.getElementById('obs').value) {
+                    alert('Name of observatory is missing!');
+                    return false;
+                }
+                if (!document.getElementById('lat').value) {
+                    alert('Observatory latitude is missing!');
+                    return false;
+                }
+                if (!isFloat(document.getElementById('lat').value)) {
+                    alert('Observatory latitude should be number!');
+                    return false;
+                }
+                if (!document.getElementById('lon').value) {
+                    alert('Observatory longitude is missing!');
+                    return false;
+                }
+                if (!isFloat(document.getElementById('lon').value)) {
+                    alert('Observatory longitude should be number!');
+                    return false;
+                }
+                if (!document.getElementById('alt').value) {
+                    alert('Observatory elevation is missing!');
+                    return false;
+                }
+                if (!isFloat(document.getElementById('alt').value)) {
+                    alert('Observatory elevation should be number!');
+                    return false;
+                }
+                if (!document.getElementById('minAlt').value) {
+                    alert('Altitude limit is missing!');
+                    return false;
+                }
+                if (!isFloat(document.getElementById('minAlt').value)) {
+                    alert('Altitude limit should be number!');
+                    return false;
+                }
+                if (!document.getElementById('airmass').value) {
+                    alert('Airmass limit is missing!');
+                    return false;
+                }
+                if (!isFloat(document.getElementById('airmass').value)) {
+                    alert('Airmass limit should be number!');
+                    return false;
+                }
+                if (!document.getElementById('moon').value) {
+                    alert('Moon separation is missing!');
+                    return false;
+                }
+                if (!isFloat(document.getElementById('moon').value)) {
+                    alert('Moon separation should be number!');
+                    return false;
+                }
+                if (!document.getElementById('readout').value) {
+                    alert('Readout time is missing!');
+                    return false;
+                }
+                if (!isFloat(document.getElementById('readout').value)) {
+                    alert('Readout time should be number!');
+                    return false;
+                }
+                if (!document.getElementById('slew').value) {
+                    alert('Slew rate is missing!');
+                    return false;
+                }
+                if (!isFloat(document.getElementById('slew').value)) {
+                    alert('Slew rate should be number!');
+                    return false;
+                }
+                if (!document.getElementById('start').value) {
+                    alert('Start time is missing!');
+                    return false;
+                }
+                if (!document.getElementById('end').value) {
+                    alert('End time is missing!');
+                    return false;
+                }
+
+                return true;
+            }
+
+            function run() {
+                //make some checks before submit
+                var valid = check();
+
+                if (valid) {
+                    popup();
+                }
+                return valid;
+            }
+
+            function hidePopup() {
+                // Hide popup
+                document.getElementById("popup").remove();
+            }
+
+            function pollForDownload() {
+                // Poll the server every second to check if the file is ready
+                const interval = setInterval(() => {
+                    fetch('{{ url_for('check_output') }}')
+                        .then(response =>  {
+                            //console.log("response.status =", response.status);
+                            if (response.status === 200) {
+                                clearInterval(interval);
+                                hidePopup(); // Hide popup
+                            }
+                        });
+                }, 1000);
+            }
+
+            function popup() {
+                //show info about running, not block server
+                var myDialog = document.createElement("dialog");
+                myDialog.id = 'popup';
+                document.body.appendChild(myDialog);
+
+                var text = document.createTextNode("Please, wait...");
+                myDialog.appendChild(text);
+                myDialog.showModal();
+                
+                pollForDownload();
+            }
+            function change_obs() {
+                //update obs params after leave input with name
+                var obs = document.getElementById('obs');
+                var lat = document.getElementById('lat');
+                var lon = document.getElementById('lon');
+                var alt = document.getElementById('alt');
+
+                obsname = obs.value;
+
+                switch (obsname) {
+                    {% for obs in observatories %}
+                    case "{{ obs }}":
+                        lat.value = "{{ observatories[obs]['lat'] }}";
+                        lon.value = "{{ observatories[obs]['lon'] }}";
+                        alt.value = "{{ observatories[obs]['alt'] }}";
+                        break;
+                    {% endfor %}
+            }
+            }
+        </script>
+    </head>
+
+    <body>
+        <!-- shows errors in data -->
+        {% if errors %}
+        <ul style="color:red;">
+            {% for field, error in errors.items() %}
+            {% if field=='data' %}
+            {% for error in errors['data'] %}
+            <li>{{ error }}</li>
+            {% endfor %}
+            {% else %}
+            <li>{{ error }}</li>
+            {% endif %}
+            {% endfor %}
+        </ul>
+        {% endif %}
+        <center>
+            <h1>User objects scheduling</h1>
+        </center>
+
+        <!-- manual for data structure -->
+        <ol>
+            <li>Download CSV <a href="{{ url_for('static',filename='objects_template.csv') }}">template</a>.</li>
+            <li>Add your objects (one per line). Please, use these rules and formats:</li>
+            <ul>
+                <li><u>Target</u> - name of object (use name findable in Simbad if possible).</li>
+                <li><u>RA</u> - right accession in format "H M S" or "H:M:S".</li>
+                <li><u>DEC</u> - declination in format "D M S" or "D:M:S".</li>
+                <li>Mag - magnitude of target in V (or another close filter).</li>
+                <li>Period - orbital period in days.</li>
+                <li>Epoch - initial epoch in full JD.</li>
+                <li><u>ExpTime</u> - exposure time in seconds.</li>
+                <li>Number - number of exposure (per 1 night). Use "series" for taking a series.</li>
+                <li>Nights - number of requested observing nights.</li>
+                <li>Priority - priority of target. Lower number = bigger priority. Priorities &lt;1 are for standards
+                    only!</li>
+                <li>Type - group of objects. Select from:</li>
+                <ul>
+                    <li>Exoplanet</li>
+                    <li>Eclipsing binary</li>
+                    <li>Flaring star</li>
+                    <li>Pulsating star</li>
+                    <li>RV Standard</li>
+                    <li>SpecPhot Standard</li>
+                </ul>
+                Or write your own one.
+                <li>Remarks - all remarks to observation: usage of iodine cell (IC), parameters for simultaneous
+                    photometry (e.g. filter, exposure).</li>
+                <li>MoonPhase - Constraint on maximum acceptable Moon phase (illumination). From 0 to 1 (full Moon).
+                </li>
+                <li>StartPhase - Constraint on start orbital phase of binary star or exoplanet. From 0 to 1. Use start
+                    value bigger than end one for interval around phase 0. Leave empty if NO limit.</li>
+                <li>EndPhase - Constraint on end orbital phase of binary star or exoplanet. From 0 to 1. Use start value
+                    bigger than end one for interval around phase 1. Leave empty if NO limit.</li>
+                <li>StartDate - Constraint on start of observing period. Use format "Y-m-d"T"H:M:S" (time 00:00:00 is
+                    recommended). Leave empty if
+                    NO limit.</li>
+                <li>EndDate - Constraint on end of observing period. Use format "Y-m-d"T"H:M:S" (time 23:59:59 is
+                    recommended). Leave empty if NO
+                    limit.</li>
+                <li>OtherRequests - Other constraints and requests for observation scheduling. Leave empty if NOT
+                    aplicable.</li>
+            </ul>
+            <b>Underline items are always required! Leave other fields blank if not apply to target.</b>
+            <li>Save your list of objects as CSV file.</li>
+            <li>Upload the file.</li>
+            <li>Fill out and submit following form:</li>
+        </ol>
+
+        <!-- enctype="multipart/form-data" -> send file with form to server -->
+        <form method="post" class="left-align" id="main_form" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="file">File</label>
+                <input type="file" id="file" name="file" accept=".csv"
+                    class="{{ 'error' if errors.get('file') or errors.get('data') else 'none' }}">
+                <!-- input for file -->
+            </div>
+            <hr>
+            <div class="form-group">
+                <label for="obs">Observatory</label>
+                <input list="obs-list" type="text" id="obs" name="obs" value="{{ obs }}"
+                    class="{{ 'error' if errors.get('obs') else 'normal' }}" title="Name of observatory."
+                    onblur="change_obs()">
+                <datalist id="obs-list" name="obs-list">
+                    <!-- list of some known observatories -->
+                    {% for obs in observatories | sort %}
+                    <option value="{{ obs }}">
+                        {% endfor %}
+                </datalist>
+            </div>
+            <div class="form-group">
+                <label for="lat">Latitude</label>
+                <input type="text" id="lat" name="lat" value="{{ lat }}"
+                    class="{{ 'error' if errors.get('lat') else 'normal' }}" title="Latitude of observatory (deg).">
+                <!-- format! -->
+            </div>
+            <div class="form-group">
+                <label for="lon">Longitude</label>
+                <input type="text" id="lon" name="lon" value="{{ lon }}"
+                    class="{{ 'error' if errors.get('lon') else 'normal' }}" title="Longitude of observatory (deg).">
+                <!-- format! -->
+            </div>
+            <div class="form-group">
+                <label for="alt">Elevation</label>
+                <input type="text" id="alt" name="alt" value="{{ alt }}"
+                    class="{{ 'error' if errors.get('alt') else 'normal' }}" title="Altitude of observatory (m).">
+                <!-- format! -->
+            </div>
+            <hr>
+            <div class="form-group">
+                <label for="minAlt">Altitude limit</label>
+                <input type="text" id="minAlt" name="minAlt" value="{{ minAlt }}"
+                    class="{{ 'error' if errors.get('minAlt') else 'normal' }}" title="Altitude limit (deg).">
+                <!-- format! -->
+            </div>
+            <div class="form-group">
+                <label for="airmass">Airmass limit</label>
+                <input type="text" id="airmass" name="airmass" value="{{ airmass }}"
+                    class="{{ 'error' if errors.get('airmass') else 'normal' }}" title="Airmass limit.">
+                <!-- format! -->
+            </div>
+            <div class="form-group">
+                <label for="moon">Moon sep.</label>
+                <input type="text" id="moon" name="moon" value="{{ moon }}"
+                    class="{{ 'error' if errors.get('moon') else 'normal' }}" title="Moon separation limit (deg).">
+                <!-- format! -->
+            </div>
+            <hr>
+            <!-- ??? -->
+            <div class="form-group">
+                <label for="readout">Readout time</label>
+                <input type="text" id="readout" name="readout" value="{{ readout }}"
+                    class="{{ 'error' if errors.get('readout') else 'normal' }}" title="Readout time of camera (sec).">
+                <!-- format! -->
+            </div>
+            <div class="form-group">
+                <label for="slew">Slew rate</label>
+                <input type="text" id="slew" name="slew" value="{{ slew }}"
+                    class="{{ 'error' if errors.get('slew') else 'normal' }}" title="Slew rate of telescope (deg/min).">
+                <!-- format! -->
+            </div>
+            <hr>
+            <div class="form-group">
+                <label for="start">Start time</label>
+                <input type="datetime-local" name="start" id="start" value="{{ start }}"
+                    title="Start date and time in UTC.">
+            </div>
+            <div class="form-group">
+                <label for="end">End time</label>
+                <input type="datetime-local" name="end" id="end" value="{{ end }}" title="End date and time in UTC.">
+            </div>
+            <label style="font-weight: normal;"><i>Notes: Observability is always limited to night time (between
+                    astronomical twilights).</i></label>
+            <br>
+            <center>
+                <button type="submit" name="filter" id="filter" onclick="return run()"
+                    title="Prefilter objects.">Prefilter</button>
+            </center>
+        </form>
+
+        <!-- shows errors in data -->
+        {% if errors %}
+        <ul style="color:red;">
+            {% for field, error in errors.items() %}
+            {% if field=='data' %}
+            {% for error in errors['data'] %}
+            <li>{{ error }}</li>
+            {% endfor %}
+            {% else %}
+            <li>{{ error }}</li>
+            {% endif %}
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </body>
+
+</html>

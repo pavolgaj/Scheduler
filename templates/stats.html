@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Observation statistics
+        </title>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 50px;
+            }
+
+            table {
+                font-family: arial, sans-serif;
+                border-collapse: collapse;
+                width: 100%;
+                max-width: 1000px;
+            }
+
+            td,
+            th {
+                border: 1px solid #dddddd;
+                text-align: left;
+                padding: 8px;
+            }
+
+            thead th {
+                /* fix header */
+                position: sticky;
+                top: 0;
+                /* Stick the header to the top */
+                z-index: 1;
+                /* Ensure the header stays on top */
+                background-color: white;
+            }
+
+            tr:nth-child(even) {
+                background-color: #dddddd;
+            }
+        </style>
+        <!-- import basic jquery functions -> used for sorting -->
+        <script src="{{ url_for('static', filename='jquery.min.js') }}"></script>
+    </head>
+
+    <body>
+        <center>
+            <h1>Observation statistics</h1>
+
+            <table id="my_table">
+                <thead>
+                    <tr>
+                        <th>Object</th>
+                        <th>Exposure</th>
+                        <th>Nights</th>
+                        <th>Last</th>
+                    </tr>
+                </thead>
+                <!-- fill table with obj obs -->
+                {% for target, tmp in stats.items() %}
+                {% for exp, data in tmp.items() %}
+                {% if not exp=='name' %}
+                <tr>
+                    <!-- make href to obs obj and show obs in tab -->
+                    <td><a href="{{ url_for('search',target=tmp['name'])}}">{{ tmp['name'] }}</a></td>
+                    <td>{{ exp }}</td>
+                    <td>{{ data['n'] }}</td>
+                    <td><a href="{{ url_for('static',filename='logs/')}}{{ data['last'] }}_log.pdf"
+                            target="_blank">{{ data['last'] }}</a></td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+                {% endfor %}
+            </table>
+        </center>
+    </body>
+    <script>
+        // sorting html table
+
+        function sortTable(f, n) {
+            // get all rows from table
+            let rows = $('#my_table tbody  tr').get();
+
+            rows.sort(function (a, b) {
+                // algorithm for sorting
+
+                let A = getVal(a);
+                let B = getVal(b);
+
+                if (A < B) {
+                    return -1 * f;
+                }
+                if (A > B) {
+                    return 1 * f;
+                }
+                return 0;
+            });
+
+            function getVal(elm) {
+                // get text of "td" element
+                let v = $(elm).children('td').eq(n).text().toUpperCase();
+                // if number -> sort as numbers
+                if ($.isNumeric(v)) {
+                    v = parseFloat(v, 10);
+                }
+                return v;
+            }
+
+            $.each(rows, function (index, row) {
+                // add sorted rows back to table
+                $('#my_table').children('tbody').append(row);
+            });
+        }
+
+        let f_sl = 1;  //sorting direction
+
+        $(function () {
+
+            $("#my_table th").click(function () {
+                // get header
+                var headers = document.getElementsByTagName("th");
+                var old = -1;  // old sorting col
+                for (var i = 0; i < headers.length; i++) {
+                    // remove symbol from old sorting col and save its index
+                    if (headers[i].innerHTML.indexOf('▼') > 0) {
+                        old = i;
+                        headers[i].innerHTML = headers[i].innerHTML.slice(0, headers[i].innerHTML.indexOf('▼') - 1);
+                        break;
+                    }
+                    if (headers[i].innerHTML.indexOf('▲') > 0) {
+                        old = i;
+                        headers[i].innerHTML = headers[i].innerHTML.slice(0, headers[i].innerHTML.indexOf('▲') - 1);
+                        break;
+                    }
+                }
+
+                let n = $(this).prevAll().length   // index of new sorting col
+
+                if (old === n) {
+                    f_sl *= -1;    // resort old col
+                }
+                else if (n === 3) {
+                    f_sl = -1;    // new sorting using last night col (from latest)
+                }
+                else {
+                    f_sl = 1;     // sorting using new col
+                }
+
+                // add symbol to header
+                sortTable(f_sl, n)
+                if (f_sl === -1)
+                    $(this).text($(this).text() + " ▼")
+                else
+                    $(this).text($(this).text() + " ▲")
+            });
+        });
+    </script>
+
+</html>

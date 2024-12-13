@@ -1,0 +1,14 @@
+observatory = ondrejov
+latitude = +49d54m38s
+longitude = 14d47m01s
+elevation = 528 (meters)
+readout = 20 (seconds)
+slewrate = 30 (deg/minute)
+minAlt = 20 (deg)
+maxAlt = 90 (deg)
+maxAirmass = 5 
+moonSep = 15 (deg)
+scheduler = StdPriority (Sequential/Priority/StdPriority)
+prefilter = 1 (0/1)
+presort = 0 (0/1)
+debug = 0 (0/1)

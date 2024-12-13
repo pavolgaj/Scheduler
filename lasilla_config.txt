@@ -1,0 +1,11 @@
+observatory = lasilla
+readout = 27.57 (seconds)
+slewrate = 10 (deg/minute)
+minAlt = 20 (deg)
+maxAlt = 90 (deg)
+maxAirmass = 5 
+moonSep = 15 (deg)
+scheduler = StdPriority (Sequential/Priority/StdPriority)
+prefilter = 1 (0/1)
+presort = 0 (0/1)
+debug = 1 (0/1)
