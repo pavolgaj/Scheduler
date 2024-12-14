@@ -156,7 +156,14 @@ def new():
                 ra=''
                 dec=''
                 mag=''
-                Simbad.add_votable_fields("allfluxes")
+               
+                try:
+                    #astroquery>=0.4.8
+                    Simbad.add_votable_fields("allfluxes")
+                except KeyError:
+                    #astroquery==0.4.7
+                    Simbad.add_votable_fields("flux(V)",'flux(g)','flux(R)','flux(r)','flux(I)','flux(i)','flux(B)','flux(u)','flux(U)','flux(G)','flux(J)','flux(z)','flux(H)','flux(K)')
+                
                 result_table = Simbad.query_object(name)
                 if result_table is None:
                     Simbad.reset_votable_fields()
@@ -165,8 +172,14 @@ def new():
                     else:
                         result_table=result_table[0]
                         # format ra/dec with leading zero
-                        ra='%02d %02d %05.2f' %dms(result_table['ra']/15)
-                        dec='%02d %02d %05.2f' %dms(result_table['dec'])
+                        if 'ra' in result_table.colnames:
+                            #astroquery>=0.4.8
+                            ra='%02d %02d %05.2f' %dms(result_table['ra']/15)
+                            dec='%02d %02d %05.2f' %dms(result_table['dec'])
+                        else:
+                            #astroquery==0.4.7
+                            ra=result_table['RA']
+                            dec=result_table['DEC']
                         mag=''
                 elif len(result_table)==0:
                     Simbad.reset_votable_fields()
@@ -174,28 +187,55 @@ def new():
                     if len(result_table)==0: errors['name'] = 'Object "'+name+'" NOT found in Simbad!'
                     else:
                         result_table=result_table[0]
-                        ra='%02d %02d %05.2f' %dms(result_table['ra']/15)
-                        dec='%02d %02d %05.2f' %dms(result_table['dec'])
+                        if 'ra' in result_table.colnames:
+                            #astroquery>=0.4.8
+                            ra='%02d %02d %05.2f' %dms(result_table['ra']/15)
+                            dec='%02d %02d %05.2f' %dms(result_table['dec'])
+                        else:
+                            #astroquery==0.4.7
+                            ra=result_table['RA']
+                            dec=result_table['DEC']
                         mag=''
                 else:
                     result_table=result_table[0]
-                    ra='%02d %02d %05.2f' %dms(result_table['ra']/15)
-                    dec='%02d %02d %05.2f' %dms(result_table['dec'])
-                    #select used mag (closest to V)
-                    if not hasattr(result_table['V'],'mask'): mag=round(result_table['V'],2)
-                    elif not hasattr(result_table['g'],'mask'): mag=round(result_table['g'],2)
-                    elif not hasattr(result_table['R'],'mask'): mag=round(result_table['R'],2)
-                    elif not hasattr(result_table['r'],'mask'): mag=round(result_table['r'],2)
-                    elif not hasattr(result_table['I'],'mask'): mag=round(result_table['I'],2)
-                    elif not hasattr(result_table['i'],'mask'): mag=round(result_table['i'],2)
-                    elif not hasattr(result_table['B'],'mask'): mag=round(result_table['B'],2)
-                    elif not hasattr(result_table['u'],'mask'): mag=round(result_table['u'],2)
-                    elif not hasattr(result_table['U'],'mask'): mag=round(result_table['U'],2)
-                    elif not hasattr(result_table['G'],'mask'): mag=round(result_table['G'],2)
-                    elif not hasattr(result_table['J'],'mask'): mag=round(result_table['J'],2)
-                    elif not hasattr(result_table['z'],'mask'): mag=round(result_table['z'],2)
-                    elif not hasattr(result_table['H'],'mask'): mag=round(result_table['H'],2)
-                    elif not hasattr(result_table['K'],'mask'): mag=round(result_table['K'],2)
+                    if 'ra' in result_table.colnames:
+                        #astroquery>=0.4.8
+                        ra='%02d %02d %05.2f' %dms(result_table['ra']/15)
+                        dec='%02d %02d %05.2f' %dms(result_table['dec'])
+                        #select used mag (closest to V)
+                        if not hasattr(result_table['V'],'mask'): mag=round(result_table['V'],2)
+                        elif not hasattr(result_table['g'],'mask'): mag=round(result_table['g'],2)
+                        elif not hasattr(result_table['R'],'mask'): mag=round(result_table['R'],2)
+                        elif not hasattr(result_table['r'],'mask'): mag=round(result_table['r'],2)
+                        elif not hasattr(result_table['I'],'mask'): mag=round(result_table['I'],2)
+                        elif not hasattr(result_table['i'],'mask'): mag=round(result_table['i'],2)
+                        elif not hasattr(result_table['B'],'mask'): mag=round(result_table['B'],2)
+                        elif not hasattr(result_table['u'],'mask'): mag=round(result_table['u'],2)
+                        elif not hasattr(result_table['U'],'mask'): mag=round(result_table['U'],2)
+                        elif not hasattr(result_table['G'],'mask'): mag=round(result_table['G'],2)
+                        elif not hasattr(result_table['J'],'mask'): mag=round(result_table['J'],2)
+                        elif not hasattr(result_table['z'],'mask'): mag=round(result_table['z'],2)
+                        elif not hasattr(result_table['H'],'mask'): mag=round(result_table['H'],2)
+                        elif not hasattr(result_table['K'],'mask'): mag=round(result_table['K'],2)
+                    else:
+                        #astroquery==0.4.7
+                        ra=result_table['RA']
+                        dec=result_table['DEC']
+                        #select used mag (closest to V)
+                        if not hasattr(result_table['FLUX_V'],'mask'): mag=round(result_table['FLUX_V'],2)
+                        elif not hasattr(result_table['FLUX_g'],'mask'): mag=round(result_table['FLUX_g'],2)
+                        elif not hasattr(result_table['FLUX_R'],'mask'): mag=round(result_table['FLUX_R'],2)
+                        elif not hasattr(result_table['FLUX_r'],'mask'): mag=round(result_table['FLUX_r'],2)
+                        elif not hasattr(result_table['FLUX_I'],'mask'): mag=round(result_table['FLUX_I'],2)
+                        elif not hasattr(result_table['FLUX_i'],'mask'): mag=round(result_table['FLUX_i'],2)
+                        elif not hasattr(result_table['FLUX_B'],'mask'): mag=round(result_table['FLUX_B'],2)
+                        elif not hasattr(result_table['FLUX_u'],'mask'): mag=round(result_table['FLUX_u'],2)
+                        elif not hasattr(result_table['FLUX_U'],'mask'): mag=round(result_table['FLUX_U'],2)
+                        elif not hasattr(result_table['FLUX_G'],'mask'): mag=round(result_table['FLUX_G'],2)
+                        elif not hasattr(result_table['FLUX_J'],'mask'): mag=round(result_table['FLUX_J'],2)
+                        elif not hasattr(result_table['FLUX_z'],'mask'): mag=round(result_table['FLUX_z'],2)
+                        elif not hasattr(result_table['FLUX_H'],'mask'): mag=round(result_table['FLUX_H'],2)
+                        elif not hasattr(result_table['FLUX_K'],'mask'): mag=round(result_table['FLUX_K'],2)
             else: errors['name'] = 'Name is required.'
             return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal)
         elif 'vsx' in request.form:
@@ -524,7 +564,6 @@ def show_db():
     
     #load obj from file
     if not os.path.isfile('db/objects.csv'): return render_template('show_db.html', header=[], data=[], done=[])
-
     f=open('db/objects.csv','r')
     reader = csv.DictReader(f)
     data=[]
@@ -804,7 +843,7 @@ def scheduler():
     '''run automatic scheduler'''
     if not session.get('logged_in'):
         return redirect(url_for('login', next=request.path))    
-    
+       
     if not os.path.isfile('db/objects.csv'):
         return render_template('run_scheduler.html',night=datetime.now(timezone.utc).strftime('%Y-%m-%d'),number=1,name='',groups={},scheduler='StdPriority',use_group=[],time=False)
     objects0=load_objects('db/objects.csv',check=False)   #check in Simbad?
@@ -2094,7 +2133,6 @@ def make_stats():
     observations={}
     new=[]
     logs=list(sorted(glob.glob('static/logs/*_log.csv')))   #path to log files
-    
     if len(logs)==0: return
 
     if os.path.isfile('db/statistics.csv'):
@@ -2198,7 +2236,6 @@ def stats():
     
     if not os.path.isfile('db/statistics.csv'):
         return render_template('stats.html', stats={})
-    
     #load stats from file
     statistics={}
     f=open('db/statistics.csv','r')
@@ -2253,7 +2290,6 @@ def search():
     if not session.get('logged_in'):
         return redirect(url_for('login', next=request.path))
     make_stats()
-    
     if not os.path.isfile('db/observations.json'):
         return render_template('search.html',obj=[],target='',obs={},errors={})
     
