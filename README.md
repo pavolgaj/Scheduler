@@ -1,4 +1,8 @@
 # Scheduler
+![GitHub language count](https://img.shields.io/github/languages/count/pavolgaj/scheduler)
+![](https://img.shields.io/github/languages/top/pavolgaj/scheduler.svg?style=flat)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/e14c6767520e4f6ab4b75a106c1df862)](https://app.codacy.com/gh/pavolgaj/Scheduler/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+
 Observation scheduler for PlatoSpec (E152) and OES (Perek telescope)
 
 ## Requirements
