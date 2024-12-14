@@ -179,7 +179,7 @@ def new():
                         else:
                             #astroquery==0.4.7
                             ra=result_table['RA']
-                            dec=result_table['DEC']
+                            dec=result_table['DEC'].replace('+','')
                         mag=''
                 elif len(result_table)==0:
                     Simbad.reset_votable_fields()
@@ -194,7 +194,7 @@ def new():
                         else:
                             #astroquery==0.4.7
                             ra=result_table['RA']
-                            dec=result_table['DEC']
+                            dec=result_table['DEC'].replace('+','')
                         mag=''
                 else:
                     result_table=result_table[0]
@@ -220,7 +220,7 @@ def new():
                     else:
                         #astroquery==0.4.7
                         ra=result_table['RA']
-                        dec=result_table['DEC']
+                        dec=result_table['DEC'].replace('+','')
                         #select used mag (closest to V)
                         if not hasattr(result_table['FLUX_V'],'mask'): mag=round(result_table['FLUX_V'],2)
                         elif not hasattr(result_table['FLUX_g'],'mask'): mag=round(result_table['FLUX_g'],2)
