@@ -315,7 +315,7 @@
                     {% else %}
                     if (n === 2) {
                         {% endif %}
-                        return v;   //col with target name
+                        return v.replace(" ", "").replace("-", "").replace("_", "");   //col with target name
                     }
                     if ($.isNumeric(v)) {
                         v = parseFloat(v, 10);

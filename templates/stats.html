@@ -100,7 +100,7 @@
 
             function getVal(elm) {
                 // get text of "td" element
-                let v = $(elm).children('td').eq(n).text().toUpperCase();
+                let v = $(elm).children('td').eq(n).text().toUpperCase().replace(" ", "").replace("-", "");
                 // if number -> sort as numbers
                 if ($.isNumeric(v)) {
                     v = parseFloat(v, 10);

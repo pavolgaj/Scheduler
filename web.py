@@ -2132,6 +2132,7 @@ def make_stats():
     stats={}
     observations={}
     new=[]
+    names={}  #utilize similar objects names - spaces, lower/upper case etc.
     logs=list(sorted(glob.glob('static/logs/*_log.csv')))   #path to log files
     if len(logs)==0: return
 
@@ -2159,12 +2160,15 @@ def make_stats():
         f=open('db/observations.json','r')
         observations=json.load(f)
         f.close() 
+        
+        f=open('db/names.json','r')
+        names=json.load(f)
+        f.close()
 
         new=logs[logs.index(last)+1:]   #detect new logs (not in stats)
     else: new=logs
 
     #work only with new logs
-    names={}  #utilize similar objects names - spaces, lower/upper case etc.
     for log in new:
         f=open(log,'r')
         reader = csv.DictReader(f)
@@ -2225,6 +2229,11 @@ def make_stats():
     json.dump(observations,f)
     f.close()
     os.chmod('db/observations.json', 0o666)
+    
+    f=open('db/names.json','w')
+    json.dump(names,f)
+    f.close()
+    os.chmod('db/names.json', 0o666)
 
 
 @app.route("/scheduler/stats")
@@ -2298,7 +2307,7 @@ def search():
     obs_all=json.load(f)
     f.close()
     
-    obj=sorted(list(obs_all.keys()), key=lambda v: v.upper())  #get obj names - as list on page, sort ignoring upper/lower case
+    obj=sorted(list(obs_all.keys()), key=lambda v: v.replace('-','').replace(' ','').upper())  #get obj names - as list on page, sort ignoring upper/lower case
     
     #utilize similar objects names - spaces, lower/upper case etc.
     modif_obs={x.lower().replace('-','').replace(' ',''): obs_all[x] for x in obs_all}
