@@ -2,7 +2,7 @@ astroplan
 matplotlib
 pandas
 astropy>=5.2
-astroquery>=0.4.8
+astroquery>=0.4.7
 flask
 flask-caching
 waitress

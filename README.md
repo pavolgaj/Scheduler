@@ -9,7 +9,7 @@ Observation scheduler for PlatoSpec (E152) and OES (Perek telescope)
 
 - python3 - tested on 3.7, 3.8, 3.10 and 3.12
 - astroplan - tested on 0.10
-- astroquery >= 0.4.8
+- astroquery >= 0.4.7
 - pandas - tested on 1.3.5, 1.5.3, 2.0.3 and 2.2.2
 - matplotlib - tested on 3.5.3, 3.7.2, 3.7.5 and 3.9.0
 - astropy (autoinstallation with astroplan) - tested on 5.2.2, 5.3.4 and 6.1.1
