@@ -139,87 +139,93 @@
             {% endfor %}
             {% endif %}
         </form>
-    </body>
-    <script>
-        // sorting html table
+        {% if obj and not obs %}
+        <script>
+            // submit on 1st load
+            toggleChange();
+        </script>
+        {% endif %}
+        <script>
+            // sorting html table
 
-        function sortTable(f, n) {
-            // get all rows from table
-            let rows = $('#my_table tbody  tr').get();
+            function sortTable(f, n) {
+                // get all rows from table
+                let rows = $('#my_table tbody  tr').get();
 
-            rows.sort(function (a, b) {
-                // algorithm for sorting
+                rows.sort(function (a, b) {
+                    // algorithm for sorting
 
-                let A = getVal(a);
-                let B = getVal(b);
+                    let A = getVal(a);
+                    let B = getVal(b);
 
-                if (A < B) {
-                    return -1 * f;
+                    if (A < B) {
+                        return -1 * f;
+                    }
+                    if (A > B) {
+                        return 1 * f;
+                    }
+                    return 0;
+                });
+
+                function getVal(elm) {
+                    // get text of "td" element
+                    let v = $(elm).children('td').eq(n).text().toUpperCase();
+                    // if number -> sort as numbers
+                    if ($.isNumeric(v)) {
+                        v = parseFloat(v, 10);
+                    }
+                    return v;
                 }
-                if (A > B) {
-                    return 1 * f;
-                }
-                return 0;
-            });
 
-            function getVal(elm) {
-                // get text of "td" element
-                let v = $(elm).children('td').eq(n).text().toUpperCase();
-                // if number -> sort as numbers
-                if ($.isNumeric(v)) {
-                    v = parseFloat(v, 10);
-                }
-                return v;
+                $.each(rows, function (index, row) {
+                    // add sorted rows back to table
+                    $('#my_table').children('tbody').append(row);
+                });
             }
 
-            $.each(rows, function (index, row) {
-                // add sorted rows back to table
-                $('#my_table').children('tbody').append(row);
-            });
-        }
+            let f_sl = 1;  //sorting direction
 
-        let f_sl = 1;  //sorting direction
+            $(function () {
 
-        $(function () {
-
-            $("#my_table th").click(function () {
-                // get header
-                var headers = document.getElementsByTagName("th");
-                var old = -1;  // old sorting col
-                for (var i = 0; i < headers.length; i++) {
-                    // remove symbol from old sorting col and save its index
-                    if (headers[i].innerHTML.indexOf('▼') > 0) {
-                        old = i;
-                        headers[i].innerHTML = headers[i].innerHTML.slice(0, headers[i].innerHTML.indexOf('▼') - 1);
-                        break;
+                $("#my_table th").click(function () {
+                    // get header
+                    var headers = document.getElementsByTagName("th");
+                    var old = -1;  // old sorting col
+                    for (var i = 0; i < headers.length; i++) {
+                        // remove symbol from old sorting col and save its index
+                        if (headers[i].innerHTML.indexOf('▼') > 0) {
+                            old = i;
+                            headers[i].innerHTML = headers[i].innerHTML.slice(0, headers[i].innerHTML.indexOf('▼') - 1);
+                            break;
+                        }
+                        if (headers[i].innerHTML.indexOf('▲') > 0) {
+                            old = i;
+                            headers[i].innerHTML = headers[i].innerHTML.slice(0, headers[i].innerHTML.indexOf('▲') - 1);
+                            break;
+                        }
                     }
-                    if (headers[i].innerHTML.indexOf('▲') > 0) {
-                        old = i;
-                        headers[i].innerHTML = headers[i].innerHTML.slice(0, headers[i].innerHTML.indexOf('▲') - 1);
-                        break;
+
+                    let n = $(this).prevAll().length   // index of new sorting col
+
+                    if (old === n) {
+                        f_sl *= -1;    // resort old col
                     }
-                }
+                    else if (n === 0) {
+                        f_sl = -1;    // new sorting using night col (from latest)
+                    }
+                    else {
+                        f_sl = 1;     // sorting using new col
+                    }
 
-                let n = $(this).prevAll().length   // index of new sorting col
-
-                if (old === n) {
-                    f_sl *= -1;    // resort old col
-                }
-                else if (n === 0) {
-                    f_sl = -1;    // new sorting using night col (from latest)
-                }
-                else {
-                    f_sl = 1;     // sorting using new col
-                }
-
-                // add symbol to header
-                sortTable(f_sl, n)
-                if (f_sl === -1)
-                    $(this).text($(this).text() + " ▼")
-                else
-                    $(this).text($(this).text() + " ▲")
+                    // add symbol to header
+                    sortTable(f_sl, n)
+                    if (f_sl === -1)
+                        $(this).text($(this).text() + " ▼")
+                    else
+                        $(this).text($(this).text() + " ▲")
+                });
             });
-        });
-    </script>
+        </script>
+    </body>
 
 </html>
