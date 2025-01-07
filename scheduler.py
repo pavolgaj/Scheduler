@@ -1093,3 +1093,33 @@ class ModifMoonSeparationConstraint(MoonSeparationConstraint):
         else:
             return max_best_rescale(moon_separation, self.min, mx)
 
+class AzimutConstraint(Constraint):
+    """
+    Constrain the azimut of the target.
+
+    Parameters
+    ----------
+    min : `~astropy.units.Quantity` or `None`
+        Minimum azimut (0-360 deg) of the target (inclusive). `None` indicates no limit.
+    max : `~astropy.units.Quantity` or `None`
+        Maximum azimut (0-360 deg) of the target (inclusive). `None` indicates no limit.
+    """
+
+    def __init__(self, min=None, max=None):
+        if min is None:
+            self.min = 0*u.deg
+        else:
+            self.min = min
+        if max is None:
+            self.max = 360*u.deg
+        else:
+            self.max = max
+
+    def compute_constraint(self, times, observer, targets):
+        cached_altaz = _get_altaz(times, observer, targets)
+        azm = cached_altaz['altaz'].az
+        lowermask = self.min <= azm
+        uppermask = azm <= self.max
+
+        if self.min<self.max: return lowermask & uppermask
+        else: return lowermask | uppermask   # around 360deg
