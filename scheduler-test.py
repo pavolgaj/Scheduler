@@ -16,7 +16,8 @@ observatory=lasilla
 
 nights=1
 
-constraints = [ModifAltitudeConstraint(20*u.deg, 90*u.deg,boolean_constraint=False), AirmassConstraint(5,boolean_constraint=True), AtNightConstraint.twilight_nautical(),MoonSeparationConstraint(15*u.deg),AzimutConstraint(250*u.deg,180*u.deg)]
+limE,limW=load_limits()
+constraints = [ModifAltitudeConstraint(20*u.deg, 90*u.deg,boolean_constraint=False), AirmassConstraint(5,boolean_constraint=True), AtNightConstraint.twilight_nautical(),MoonSeparationConstraint(15*u.deg),AzimutConstraint(250*u.deg,180*u.deg),LimitConstraint(limE,limW)]
 
 read_out = 5 * u.second + 15 * u.second     #read_out time of camera + comp (with readout) + ...
 slew_rate = 30*u.deg/u.minute  #slew rate of the telescope

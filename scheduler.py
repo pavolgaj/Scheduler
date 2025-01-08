@@ -1123,3 +1123,61 @@ class AzimutConstraint(Constraint):
 
         if self.min<self.max: return lowermask & uppermask
         else: return lowermask | uppermask   # around 360deg
+
+
+class LimitConstraint(Constraint):
+    """
+    Constrain the target position in the telescope limits (permitted regions).
+
+    Parameters
+    ----------
+    limEast : `numpy.array` or `None`
+        East limits (hour angle, declination). `None` indicates no permitted possitions.
+    limWest : `numpy.array` or `None`
+        West limits (hour angle+180 deg, -declination-180 deg). `None` indicates no permitted possitions.
+    """
+
+    def __init__(self, limEast=None,limWest=None):
+       self.limEast=limEast
+       self.limWest=limWest
+
+
+    def compute_constraint(self, times, observer, targets):
+        import matplotlib.path as mplPath
+
+        if self.limEast is not None: PathE=mplPath.Path(self.limEast)
+        if self.limWest is not None: PathW=mplPath.Path(self.limWest)
+
+        ra=targets.ra
+        dec=targets.dec
+
+        lst=observer.local_sidereal_time(times).deg*u.deg
+        ha=(lst-ra)%(360*u.deg)
+        ha[ha<-90*u.deg]+=360*u.deg
+        ha[ha>270*u.deg]-=360*u.deg
+
+        haW=ha+180*u.deg
+        haW[haW>270*u.deg]-=360*u.deg
+
+        decW=-180*u.deg-dec
+
+        mask=np.zeros(ha.shape)
+        if len(mask.shape)==2:
+            for i in range(mask.shape[0]):
+                for j in range(mask.shape[1]):
+                    if self.limEast is not None and self.limWest is not None:
+                        mask[i,j]=(PathE.contains_point((ha[i,j].deg,dec[i,0].deg)) or PathW.contains_point((haW[i,j].deg,decW[i,0].deg)))
+                    elif self.limEast is not None:
+                        mask[i,j]=PathE.contains_point((ha[i,j].deg,dec[i,0].deg))
+                    elif self.limWest is not None:
+                        mask[i,j]=PathW.contains_point((haW[i,j].deg,decW[i,0].deg))
+        else:
+            for j in range(mask.shape[0]):
+                if self.limEast is not None and self.limWest is not None:
+                    mask[j]=(PathE.contains_point((ha[j].deg,dec.deg)) or PathW.contains_point((haW[j].deg,decW.deg)))
+                elif self.limEast is not None:
+                    mask[j]=PathE.contains_point((ha[j].deg,dec.deg))
+                elif self.limWest is not None:
+                    mask[j]=PathW.contains_point((haW[j].deg,decW.deg))
+
+        return mask
