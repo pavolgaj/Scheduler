@@ -31,6 +31,10 @@ observatory=config['observatory']
 constraints = [ModifAltitudeConstraint(config['minAlt'],config['maxAlt'],boolean_constraint=False), AirmassConstraint(config['airmass'],boolean_constraint=True),
                AtNightConstraint.twilight_nautical(), MoonSeparationConstraint(config['moon'])]
 #,TimeConstraint(Time('2024-08-07 06:00'), Time('2024-08-07 10:00'))
+#,AzimutConstraint(250*u.deg,180*u.deg),LimitConstraint(limE,limW)
+if observatory.name=='lasilla':
+    limE,limW=load_limits()
+    constraints.append(LimitConstraint(limE,limW))
 
 read_out = config['read_out']     #read_out time of camera + comp (with readout) + ...
 slew_rate = config['slew_rate']   #slew rate of the telescope
@@ -137,7 +141,7 @@ while nights>0:
                 if pd.isna(obj['full']['EndPhase']): end=None
                 else: end=obj['full']['EndPhase']
                 cons.append(PhaseConstraint(objPer,start,end))
-                        
+
         if obj['n_exp']=='series':
             #series -> 20 blocks with 5 exp.
             for i in range(20):
