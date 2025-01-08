@@ -33,6 +33,9 @@ for c in constraints:
     if hasattr(c,'max'):
         if c.max is not None: tmp+='max '+str(c.max)+'; '
     if hasattr(c, 'max_solar_altitude'): tmp+='max_solar_alt '+str(c.max_solar_altitude)+'; '
+    if hasattr(c,'limEast'):
+        if c.limEast is not None: tmp+='east-limit; '
+        if c.limWest is not None: tmp+='west-limit; '
     print(tmp)
 print('#######################\n')
 
