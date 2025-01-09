@@ -861,7 +861,8 @@ def scheduler():
             #get values from form
             date=request.form['night']
             nights0=int(request.form['number'])   
-            name=request.form['name']             
+            name=request.form['name']  
+            limits=request.form['position']           
             series = (request.form.get('series')=='checked')
             scheduler=request.form['scheduler']      
             if not 'use_group' in request.form:
@@ -894,10 +895,30 @@ def scheduler():
             if scheduler=='Sequential': Scheduler=SequentialScheduler
             elif scheduler=='Priority': Scheduler=PriorityScheduler
             elif scheduler=='StdPriority': Scheduler=StdPriorityScheduler
-            
+                       
             #general constraints
             constraints0 = [ModifAltitudeConstraint(config['minAlt'],config['maxAlt'],boolean_constraint=False), 
                         AirmassConstraint(config['airmass'],boolean_constraint=True),AtNightConstraint.twilight_nautical(), MoonSeparationConstraint(config['moon'])]
+            
+            #load telescope restrictions and set constraint
+            limE,limW=load_limits()
+            if limits=='both': constraints0.append(LimitConstraint(limE,limW))
+            elif limits=='east': constraints0.append(LimitConstraint(limEast=limE))
+            elif limits=='west': constraints0.append(LimitConstraint(limWest=limW))
+            
+            #set azimuth constr.
+            if (request.form.get('azm')=='checked'):
+                azm0=None
+                if request.form['azm_start']: 
+                    azm0=float(request.form['azm_start'])*u.deg
+                    if azm0<0*u.deg: azm0+=360*u.deg
+                    if azm0>360*u.deg: azm0-=360*u.deg
+                azm1=None
+                if request.form['azm_end']: 
+                    azm1=float(request.form['azm_end'])*u.deg
+                    if azm1<0*u.deg: azm1+=360*u.deg
+                    if azm1>360*u.deg: azm1-=360*u.deg
+                constraints0.append(AzimuthConstraint(azm0,azm1))
                     
             plantime=Time(date+' '+str(12-int(round(observatory.longitude.value/15))).rjust(2,'0')+':00:00')    #approx. local noon (in UTC)
             
@@ -1040,8 +1061,7 @@ def scheduler():
                 return render_template('multi_schedule.html', names=out_names, selected=n_selected, observable=n_obs, scheduled=n_sch)
     
     
-    #return "<p>Run scheduler...</p><p>Filter: obj. type, supervisor, series</p>"
-    return render_template('run_scheduler.html',night=datetime.now(timezone.utc).strftime('%Y-%m-%d'),number=1,name='',groups=groups,scheduler='StdPriority',use_group=['RV Standard'],time=False)
+    return render_template('run_scheduler.html',night=datetime.now(timezone.utc).strftime('%Y-%m-%d'),number=1,name='',groups=groups,scheduler='StdPriority',use_group=['RV Standard'],time=False,azm=False,position='both')
 
 
 @app.route("/scheduler/new_schedule", methods=['GET','POST'])
@@ -2150,12 +2170,15 @@ def make_stats():
         for l in lines[1:]:
             tmp=l.strip().split(',')
             target=tmp[0]
-            exp=float(tmp[1])
-            n=int(tmp[2])
-            last0=tmp[3]
+            inst=tmp[1]
+            exp=float(tmp[2])
+            n=int(tmp[3])
+            last0=tmp[4]
             if target in stats:
-                stats[target][exp]={'n':n,'last':last0}
-            else: stats[target]={exp:{'n':n,'last':last0}}
+                if inst in stats[target]:
+                    stats[target][inst][exp]={'n':n,'last':last0}
+                else: stats[target][inst]={exp:{'n':n,'last':last0}}
+            else: stats[target]={inst:{exp:{'n':n,'last':last0}}}
             
         f=open('db/observations.json','r')
         observations=json.load(f)
@@ -2191,14 +2214,17 @@ def make_stats():
             if not target.lower().replace('-','').replace(' ','') in names: names[target.lower().replace('-','').replace(' ','')]=target
             target=names[target.lower().replace('-','').replace(' ','')]
             exp=float(obs['exposure'])
+            inst=obs['instrument']
             #add obj to stats -> for specific exp. time
             if target in stats:
-                if exp in stats[target]:
-                    if stats[target][exp]['last']==last: continue
-                    stats[target][exp]['n']+=1
-                    stats[target][exp]['last']=last
-                else: stats[target][exp]={'n':1,'last':last}
-            else: stats[target]={exp:{'n':1,'last':last}}
+                if inst in stats[target]:
+                    if exp in stats[target][inst]:
+                        if stats[target][inst][exp]['last']==last: continue
+                        stats[target][inst][exp]['n']+=1
+                        stats[target][inst][exp]['last']=last
+                    else: stats[target][inst][exp]={'n':1,'last':last}
+                else: stats[target][inst]={exp:{'n':1,'last':last}}
+            else: stats[target]={inst:{exp:{'n':1,'last':last}}}
             
             if target in observations:
                 if not last in observations[target]: 
@@ -2214,13 +2240,15 @@ def make_stats():
 
     #last night observations (for stats page)
     f=open('db/statistics.csv','w')
-    f.write('object,exposure,nights,last\n')
+    f.write('object,instrument,exposure,nights,last\n')
     for target in sorted(stats):
-        for exp in sorted(stats[target]):
-            f.write(target+',')
-            f.write(str(exp)+',')
-            f.write(str(stats[target][exp]['n'])+',')
-            f.write(stats[target][exp]['last']+'\n')
+        for inst in sorted(stats[target]):
+            for exp in sorted(stats[target][inst]):
+                f.write(target+',')
+                f.write(inst+',')
+                f.write(str(exp)+',')
+                f.write(str(stats[target][inst][exp]['n'])+',')
+                f.write(stats[target][inst][exp]['last']+'\n')
     f.close()
     os.chmod('db/statistics.csv', 0o666)
     
@@ -2253,13 +2281,17 @@ def stats():
     for l in lines[1:]:
         tmp=l.strip().split(',')
         target=tmp[0]
-        exp=float(tmp[1])
-        n=int(tmp[2])
-        last=tmp[3]
+        inst=tmp[1]
+        exp=float(tmp[2])
+        n=int(tmp[3])
+        last=tmp[4]
         #utilize similar objects names - spaces, lower/upper case etc.
-        if target.lower().replace('-','').replace(' ','') in statistics:
-            statistics[target.lower().replace('-','').replace(' ','')][exp]={'n':n,'last':last}
-        else: statistics[target.lower().replace('-','').replace(' ','')]={exp:{'n':n,'last':last}, 'name': target}
+        tr=target.lower().replace('-','').replace(' ','')
+        if tr in statistics:
+            if inst in statistics[tr]:
+                statistics[tr][inst][exp]={'n':n,'last':last}
+            else: statistics[tr][inst]={exp:{'n':n,'last':last}}
+        else: statistics[tr]={inst:{exp:{'n':n,'last':last}}, 'name': target}
             
     return render_template('stats.html', stats={x: statistics[x] for x in sorted(list(statistics.keys()), key=lambda v: v.upper())})
 
@@ -2337,8 +2369,11 @@ def search():
                 #utilize similar objects names - spaces, lower/upper case etc.
                 if target.lower().replace('-','').replace(' ','')==row['object'].replace('?','').replace('ttarget-','').replace('ttarget_','').replace('_',' ').strip().lower().replace('-','').replace(' ',''):
                     exp=row['exposure']
-                    if exp in obs[night]: obs[night][exp]+=1
-                    else: obs[night][exp]=1
+                    inst=row['instrument']
+                    if inst in obs[night]:
+                        if exp in obs[night][inst]: obs[night][inst][exp]+=1
+                        else: obs[night][inst][exp]=1
+                    else: obs[night][inst]={exp: 1}
             f.close()        
         
         return render_template('search.html',obj=obj,target=target,obs=obs,errors={})

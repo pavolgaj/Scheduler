@@ -53,23 +53,27 @@
                 <thead>
                     <tr>
                         <th>Object</th>
+                        <th>Instrument</th>
                         <th>Exposure</th>
                         <th>Nights</th>
                         <th>Last</th>
                     </tr>
                 </thead>
                 <!-- fill table with obj obs -->
-                {% for target, tmp in stats.items() %}
-                {% for exp, data in tmp.items() %}
-                {% if not exp=='name' %}
+                {% for target, vals in stats.items() %}
+                {% for inst, tmp in vals.items() %}
+                {% if not inst=='name' %}
+                {% for exp, data in tmp.items() %}                
                 <tr>
                     <!-- make href to obs obj and show obs in tab -->
-                    <td><a href="{{ url_for('search',target=tmp['name'])}}">{{ tmp['name'] }}</a></td>
+                    <td><a href="{{ url_for('search',target=vals['name'])}}">{{ vals['name'] }}</a></td>
+                    <td>{{ inst }}</td>
                     <td>{{ exp }}</td>
                     <td>{{ data['n'] }}</td>
                     <td><a href="{{ url_for('static',filename='logs/')}}{{ data['last'] }}_log.pdf"
                             target="_blank">{{ data['last'] }}</a></td>
-                </tr>
+                </tr>                
+                {% endfor %}
                 {% endif %}
                 {% endfor %}
                 {% endfor %}
@@ -141,7 +145,7 @@
                 if (old === n) {
                     f_sl *= -1;    // resort old col
                 }
-                else if (n === 3) {
+                else if (n === 4) {
                     f_sl = -1;    // new sorting using last night col (from latest)
                 }
                 else {

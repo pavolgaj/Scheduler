@@ -31,7 +31,7 @@ observatory=config['observatory']
 constraints = [ModifAltitudeConstraint(config['minAlt'],config['maxAlt'],boolean_constraint=False), AirmassConstraint(config['airmass'],boolean_constraint=True),
                AtNightConstraint.twilight_nautical(), MoonSeparationConstraint(config['moon'])]
 #,TimeConstraint(Time('2024-08-07 06:00'), Time('2024-08-07 10:00'))
-#,AzimutConstraint(250*u.deg,180*u.deg),LimitConstraint(limE,limW)
+#,AzimuthConstraint(250*u.deg,180*u.deg),LimitConstraint(limE,limW)
 if observatory.name=='lasilla':
     limE,limW=load_limits()
     constraints.append(LimitConstraint(limE,limW))

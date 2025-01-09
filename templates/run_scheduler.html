@@ -120,13 +120,17 @@
             }
 
             #time_start_label,
-            #time_end_label {
+            #time_end_label,
+            #azm_start_label,
+            #azm_end_label {
                 font-weight: normal;
             }
 
             /* additional input field */
             #time_start,
-            #time_end {
+            #time_end,
+            #azm_start,
+            #azm_end {
                 margin-left: 10px;
                 margin-right: 10px;
                 padding: 5px;
@@ -211,6 +215,19 @@
                 time_start_label.style.display = time.checked ? 'inline-block' : 'none';
                 time_end_label.style.display = time.checked ? 'inline-block' : 'none';
             }
+
+            function toggleAzm() {
+                //show/hide on check
+                var azm = document.getElementById('azm');
+                var azm_start = document.getElementById('azm_start');
+                var azm_end = document.getElementById('azm_end');
+                var azm_start_label = document.getElementById('azm_start_label');
+                var azm_end_label = document.getElementById('azm_end_label');
+                azm_start.style.display = azm.checked ? 'inline-block' : 'none';
+                azm_end.style.display = azm.checked ? 'inline-block' : 'none';
+                azm_start_label.style.display = azm.checked ? 'inline-block' : 'none';
+                azm_end_label.style.display = azm.checked ? 'inline-block' : 'none';
+            }
             function toggleNumber() {
                 //show/hide name for multiple nights
                 var number = document.getElementById('number');
@@ -220,6 +237,7 @@
             // Run this function on page load to check if the checkbox was checked (loading from server)
             window.onload = function () {
                 toggleTime();
+                toggleAzm();
                 toggleNumber();
             }
         </script>
@@ -257,6 +275,30 @@
             <div class="form-group" id="name-div">
                 <label for="name">Name of new schedule </label>
                 <input type="text" name="name" id="name" value="{{ name }}" title="Name prefix for generating schedule. Date added automatically. Name = prefix_YMD">
+            </div>
+
+            <div class="form-group">
+                <label for="position">Telescope position</label>
+                <select id="position" name="position">
+                    <option value="both" {% if position=='both' %}selected{% endif %}>Both (East+West)</option>
+                    <option value="east" {% if position=='east' %}selected{% endif %}>Only East</option>
+                    <option value="west" {% if position=='west' %}selected{% endif %}>Only West</option>
+                </select>
+            </div>
+
+            <div class="checkbox-wrapper">
+                <label for="time">Azimuth constraints:</label>
+                <input type="checkbox" id="azm" name="azm" value="checked"
+                    title="Specify limits for azimuth constraint (from 0 to 360 deg)." onclick="toggleAzm()" {% if azm %}checked{% endif
+                    %}>
+                <label for="azm_start" id="azm_start_label">&nbsp;&nbsp;&nbsp;from</label>
+                <input type="text" name="azm_start" id="azm_start" value="{{ azm_start }}"
+                    style="display::{{ 'inline-block' if azm else 'none' }}"
+                    title="Lower azimuth limit (i.e. start of permitted slot). Leave empty if NO limit.">
+                <label for="azm_end" id="azm_end_label">&nbsp;&nbsp;&nbsp;to</label>
+                <input type="text" name="azm_end" id="azm_end" value="{{ azm_end }}"
+                    style="display::{{ 'inline-block' if azm else 'none' }}"
+                    title="Upper azimuth limit (i.e. end of permitted slot). Leave empty if NO limit.">
             </div>
 
             <!-- table with object types/groups -->

@@ -114,21 +114,25 @@
                 <thead>
                     <tr>
                         <th>Night</th>
+                        <th>Instrument</th>
                         <th>Exposure</th>
                         <th>Number</th>
                     </tr>
                 </thead>
                 <!-- fill table with obj obs -->
-                {% for night, tmp in obs.items() %}
+                {% for night, vals in obs.items() %}
+                {% for inst, tmp in vals.items() %}
                 {% for exp, number in tmp.items() %}
                 <tr>
                     <td>
                         <a href="{{ url_for('static',filename='logs/')}}{{night}}_log.pdf"
                             target="_blank">{{ night }}</a>
                     </td>
+                    <td>{{ inst }}</td>
                     <td>{{ exp }}</td>
                     <td>{{ number }}</td>
                 </tr>
+                {% endfor %}
                 {% endfor %}
                 {% endfor %}
             </table>
