@@ -1258,7 +1258,7 @@ def modify():
                 objects=[]
                 obs=[]
             
-            startF=list(df.Start)[0].split()[1].split('.')[0]
+            startF=start.strftime('%H:%M') 
             dfW=df.to_dict('records')
         
         if 'filter' in request.form:
