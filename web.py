@@ -1686,7 +1686,7 @@ def modify():
                 obs=[]
             
             dfW=df.to_dict('records')
-            startF=start.strftime('%H:%M:%S')    
+            startF=start.strftime('%H:%M')    
             
         if 'run' in request.form:
             #re-schedule        
@@ -1839,7 +1839,7 @@ def modify():
                 objects=[]   
                 obs=[]        
             
-            startF=start.strftime('%H:%M:%S')            
+            startF=start.strftime('%H:%M')            
         
         if 'save' in request.form:
             #save scheduler on server

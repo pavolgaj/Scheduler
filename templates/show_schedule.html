@@ -172,8 +172,8 @@
                 <td>{{ row.Altitude | round(0) | int() }}</td>
                 <td>{{ row.Airmass | round(1) }}</td>
                 <td>{{ row.Azimut | round(0) | int() }}</td>
-                <td>
-                    <span style="display: inline-block; width: 30px">{{ row.Position }}</span>
+                <td {% if row.Position=='-' %}style="background-color: red; "{% endif %}>
+                    <span style="display: inline-block; width: 30px;">{{ row.Position }}</span>
                     <button type="button" class="modify-row" name="plot" title="Plot telescope limits"
                         onclick="window.open('{{ url_for('limits', ha0 = row.ha0, ha1 = row.ha1, dec=row.de, title=row.Target) }}', '_blank')"
                         formtarget=”_blank”>

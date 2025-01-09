@@ -151,7 +151,7 @@
                 <td>{{ row.Altitude | float() | round(0) | int() }}</td>
                 <td>{{ row.Airmass | float() | round(1) }}</td>
                 <td>{{ row.Azimut | float() | round(0) | int() }}</td>
-                <td>{{ row.Position }}</td>
+                <td {% if row.Position=='-' %}style="background-color: red; "{% endif %}>{{ row.Position }}</td>
             </tr>
             {% endfor %}
         </table>

@@ -592,7 +592,7 @@
                         {{ row.Azimut | float() | round(0) | int() }}
                         {% endif %}
                     </td>
-                    <td>
+                    <td {% if row.Position=='-' %}style="background-color: red; "{% endif %}>
                         <span style="display: inline-block; width: 30px">{{ row.Position }}</span>
                         {% if row.Position %}
                         <button type="button" class="modify-row" name="plot" title="Plot telescope limits"
