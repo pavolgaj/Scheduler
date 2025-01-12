@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <title>Telescope Limits</title>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 50px;
+            }
+
+            form {
+                max-width: 700px;
+                margin: 0 auto;
+                padding: 20px;
+                border: 1px solid #ccc;
+                border-radius: 10px;
+                background-color: #f9f9f9;
+            }
+
+            input {
+                padding: 10px;
+                border-radius: 5px;
+                height: 10px;
+                margin-bottom: 15px;
+            }
+
+            label {
+                display: inline;
+                margin-bottom: 8px;
+                font-weight: bold;
+                font-size: 16px;
+                line-height: 2;
+            }
+
+            button {
+                padding: 10px 20px;
+                border: none;
+                border-radius: 5px;
+                background-color: #333;
+                color: white;
+                cursor: pointer;
+            }
+
+            button:hover {
+                background-color: #555;
+            }
+
+            .warning {
+                border: 5px solid orange;
+                background-color: yellow;
+            }
+
+            .limit {
+                border: 5px solid red;
+                background-color: yellow;
+            }
+        </style>
+        <script>
+            //Display a base64 URL inside an iframe in another window.
+            //for chrome etc. (a href not work!)
+            function debugBase64(base64URL) {
+                var win = window.open();
+                win.document.write('<iframe src="' + base64URL + '" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>');
+            }
+
+            //This will open an image in a new window
+            function img64(data) {
+                debugBase64("data:image/png;base64," + data);
+            }
+
+            function now() {
+                var date = document.getElementById('date');
+                var time = document.getElementById('time');
+
+                var now = new Date;
+
+                date.value = now.toISOString().slice(0, 10);
+                time.value = now.toISOString().slice(11, 16);
+            }
+        </script>
+    </head>
+
+    <body>
+        <form method="post" class="left-align" id="mainForm">
+            <div>
+                <h1 style="display: inline;">Telescope Limits</h1>
+                <img style="display: inline; float: right; width: 190px;
+                margin-top: -10px" src="{{ url_for('static',filename='logo.svg') }}" alt="logo">
+            </div>
+            <br>
+
+            <label for="date">Date</label>
+            <input type="date" id="date" name="date" value="{{ date }}">
+
+            &nbsp;
+            <label for="time">UTC Time</label>
+            <input type="time" id="time" name="time" value="{{ time }}">
+
+            &nbsp;&nbsp;
+            <button type="button" onclick="now()">Now</button>
+            <br>
+
+            <label for="ra">RA</label>
+            <input type="text" id="ra" name="ra" pattern="\d+[\s:]\d+[\s:]\d+(\.\d+)?"
+                title='RA in format "H M S" or "H:M:S".' value="{{ ra }}">
+            <br>
+
+            <label for="dec">DEC</label>
+            <input type="text" id="dec" name="dec" pattern="-?\d+[\s:]\d+[\s:]\d+(\.\d+)?"
+                title='Dec in format "D M S" or "D:M:S".' value="{{ dec }}">
+            <br>
+
+            <center>
+                <button type="submit">Show</button>
+            </center>
+
+
+            <br>
+
+            {% if plot %}
+            <label>Track distance - EAST</label>
+            <span {% if east<0.5 %}class="limit" {% elif east<0.75 %}class="warning" {% endif %}>{{ east | round(1) }}
+                hours
+            </span>
+            <br>
+            <label>Track distance - WEST</label>
+            <span {% if west<0.5 %}class="limit" {% elif west<0.75 %}class="warning" {% endif %}>{{ west | round(1) }}
+                hours
+            </span>
+            <br>
+            <br>
+
+            <div style="max-width: 600px; margin: 0 auto;">
+                <center>
+                    <img width="80%" style="cursor: pointer; margin-top: 0px" src='data:image/png;base64,{{ plot }}'
+                        alt="Telescope limits" onclick="img64('{{ plot }}')">
+                </center>
+            </div>
+            {% else %}
+            <script>
+                window.onload = function () {
+                    now();
+                }
+            </script>
+            {% endif %}
+        </form>
+    </body>
+
+</html>

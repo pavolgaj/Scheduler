@@ -16,6 +16,7 @@ import re
 import uuid
 import base64
 from datetime import datetime,timezone,timedelta
+import matplotlib.path as mplPath
 from scheduler import *
 
 import logging
@@ -32,6 +33,7 @@ cache = Cache(app,config={'CACHE_TYPE': 'SimpleCache',"CACHE_DEFAULT_TIMEOUT": 3
 #md5 hash of passwords
 adminPassword = '21232f297a57a5a743894a0e4a801fc3'  # admin - CHANGE!
 password='ee11cbb19052e40b07aac0ca060c23ee'         # user - CHANGE!
+obs_lon=-70.739     #longitude of observatory
 
 #configure for logger
 logHandler=logging.FileHandler('errors.log')
@@ -2379,6 +2381,67 @@ def search():
         return render_template('search.html',obj=obj,target=target,obs=obs,errors={})
     
     return render_template('search.html',obj=obj,target='',obs={},errors={})
+
+@app.route('/scheduler/test_limits',methods=['GET','POST'])
+def test_limits():
+    if request.method == 'POST':
+        date=request.form['date']
+        time=request.form['time']
+        
+        sign = lambda x: -1 if x < 0 else 1
+        ra=[float(x) for x in request.form['ra'].replace(':',' ').split()]
+        ra=sign(ra[0])*(abs(ra[0])+ra[1]/60+ra[2]/3600)*15
+        
+        dec=[float(x) for x in request.form['dec'].replace(':',' ').split()]
+        dec=sign(dec[0])*(abs(dec[0])+dec[1]/60+dec[2]/3600)
+        
+        dt=Time(date+' '+time)
+        
+        lst=dt.sidereal_time('mean',obs_lon*u.deg).degree
+        
+        ha=(lst-ra)%(360)
+        
+        if ha<-90: ha+=360
+        if ha>270: ha-=360
+            
+        haW=ha+180
+        if haW>270: haW-=360
+        decW=-180-dec
+        
+        eastLim, westLim = load_limits()
+        PathE=mplPath.Path(eastLim)
+        PathW=mplPath.Path(westLim)
+        
+        if PathE.contains_point((ha,dec)):
+            i=np.where(eastLim[:,0]>ha)[0]
+            j=np.argmin(np.abs(eastLim[i,1]-dec))
+            try:
+                f = interpolate.interp1d(eastLim[i,1],eastLim[i,0])
+                east=float((f(dec)-ha)/15)
+            except: east=(eastLim[i[j],0]-ha)/15
+        else: east=0
+        
+        if PathW.contains_point((haW,decW)):
+            i=np.where(westLim[:,0]>haW)[0]
+            j=np.argmin(np.abs(westLim[i,1]-decW))
+            try:
+                f = interpolate.interp1d(westLim[i,1],westLim[i,0])
+                west=float((f(decW)-haW)/15)
+            except: west=(westLim[i[j],0]-haW)/15   
+        else: west=0     
+        
+        buf=io.BytesIO()
+        fig=plot_limits(ha*u.deg,ha*u.deg,dec*u.deg)
+        plt.savefig(buf,format='png',dpi=150)
+        plt.close()
+        buf.seek(0)
+        #load result from buffer to html output
+        plot = base64.b64encode(buf.getvalue()).decode('utf8')
+        buf.close()
+        
+        return render_template('limits.html',ra=request.form['ra'],dec=request.form['dec'],date=date,time=time,plot=plot,east=east,west=west)
+    
+    return render_template('limits.html',ra='',dec='',date='',time='')
 
 if __name__ == '__main__':
    app.run('0.0.0.0',5000)
