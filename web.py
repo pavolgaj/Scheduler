@@ -16,6 +16,10 @@ import re
 import uuid
 import base64
 from datetime import datetime,timezone,timedelta
+
+import matplotlib
+matplotlib.use('Agg')
+
 import matplotlib.path as mplPath
 from scheduler import *
 
