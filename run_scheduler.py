@@ -211,7 +211,7 @@ while nights>0:
     if not 'Remarks' in tab.colnames: tab['Remarks']=''
 
     if 'Position' in tab.colnames: tab1=tab[['index']+list(cols.values())+['configuration']]
-    else: tab1=tab[['index']+list(cols.values())[-1]+['configuration']]
+    else: tab1=tab[['index']+list(cols.values())[:-1]+['configuration']]
 
     #tab.pprint_all()
     f=open(outname+'_schedule_full.txt','w')

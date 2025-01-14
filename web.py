@@ -21,6 +21,8 @@ import matplotlib
 matplotlib.use('Agg')
 
 import matplotlib.path as mplPath
+
+from scipy import interpolate
 from scheduler import *
 
 import logging
@@ -1073,7 +1075,7 @@ def scheduler():
 @app.route("/scheduler/new_schedule", methods=['GET','POST'])
 def new_schedule():
     '''show new scheduler'''
-    if not session.get('logged_in'):
+    if not (session.get('logged_in') or request.args.get('user')):
         return redirect(url_for('login', next=request.path))
     
     #get unique hash code -> load data from cache
@@ -1091,6 +1093,8 @@ def new_schedule():
     
     #cols to save in CSV
     cols={'target':'Target', 'ra':'RA', 'dec':'DEC', 'mag':'Mag','exposure (seconds)':'ExpTime', 'number exposures':'Number','_Remarks':'Remarks', 'start time (UTC)':'Start', 'end time (UTC)':'End','altitude':'Altitude', 'airmass':'Airmass', 'azimut':'Azimut','position':'Position','priority':'Priority'}
+  
+    if not 'position' in df.columns: del(cols['position'])
     
     df=df.rename(columns=cols)
     
@@ -1122,7 +1126,7 @@ def new_schedule():
                          
     alt_plot,sky_plot=web_plot(schedule)
     
-    return render_template('schedule.html', selected=request.args.get('selected'),observable=request.args.get('observable'),scheduled=len(df),schedule=df.to_dict('records'), alt_plot=alt_plot,sky=sky_plot)
+    return render_template('schedule.html', selected=request.args.get('selected'),observable=request.args.get('observable'),scheduled=len(df),schedule=df.to_dict('records'), alt_plot=alt_plot,sky=sky_plot,user=request.args.get('user'))
 
 def web_plot(schedule):
     '''make output plots for web'''      
@@ -1136,6 +1140,7 @@ def web_plot(schedule):
     buf.seek(0)
     #load result from buffer to html output
     alt_plot = base64.b64encode(buf.getvalue()).decode('utf8')
+    buf.close()
     
     #make sky plot
     plt.Figure()
@@ -1147,6 +1152,7 @@ def web_plot(schedule):
     buf.seek(0)
     #load result from buffer to html output
     sky_plot = base64.b64encode(buf.getvalue()).decode('utf8')
+    buf.close()
     
     return alt_plot,sky_plot
 
@@ -1506,6 +1512,7 @@ def modify():
             buf.seek(0)
             #load result from buffer to html output
             prev_plot = base64.b64encode(buf.getvalue()).decode('utf8')
+            buf.close()
             
             return render_template('image.html',image=prev_plot)            
         
@@ -1893,6 +1900,8 @@ def limits():
     buf.seek(0)
     #load result from buffer to html output
     plot = base64.b64encode(buf.getvalue()).decode('utf8')
+    buf.close()
+    
     return render_template('image.html',image=plot) 
     
 
@@ -2016,92 +2025,91 @@ def user():
     if request.method=='POST':
         session['output_ready']=False
         
+        obs=request.form['obs']
+        lat=float(request.form['lat'])*u.deg
+        lon=float(request.form['lon'])*u.deg
+        ele=float(request.form['alt'])*u.m
+        
+        minAlt=float(request.form['minAlt'])*u.deg
+        airmass=float(request.form['airmass'])
+        moon=float(request.form['moon'])*u.deg
+        
+        readout=request.form['readout']
+        slew=request.form['slew']
+        
+        time_start=request.form['start']
+        time_end=request.form['end']
+        
+        scheduler=request.form['scheduler']     
+        
+        if not(time_start): errors['start']='Start time is missing.'
+        if not(time_end): errors['end']='End time is missing.' 
+        if time_start and time_end:
+            if Time(time_end)<Time(time_start): errors['times']='End time is smaller than Start time.'       
+        
+        #get file with obj
+        if 'file' not in request.files:
+            errors['file']="No file part."
+        file = request.files['file']
+        if file.filename == '':
+            errors['file']="No selected file."
+            
+        if errors:
+            return render_template('user.html',obs=obs,lat=lat.value,lon=lon.value,alt=ele.value,minAlt=minAlt.value,airmass=airmass,moon=moon.value,readout=readout,slew=slew,start=time_start, end=time_end, errors=errors,observatories=observatories,scheduler=scheduler)
+        
+        output = io.StringIO()   # create "file-like" output for writing
+        errors['data']=[]
+        if file:
+            #read data from input file and save them in list
+            file_content = [x.decode() for x in file.readlines()]
+            csvreader = csv.DictReader(file_content)
+            csvwriter = csv.DictWriter(output,fieldnames=csvreader.fieldnames)
+            csvwriter.writeheader()
+            for row in csvreader:
+                #check inputs!!! 
+                if len(row['Target'])==0:
+                    errors['data'].append('Missing name of target.')
+                    continue
+                
+                row,err=check(row)
+                errors['data']+=err                   
+                csvwriter.writerow(row)
+                
+        if len(errors['data'])==0: del(errors['data'])
+
+        if errors:
+            return render_template('user.html',obs=obs,lat=lat.value,lon=lon.value,alt=ele.value,minAlt=minAlt.value,airmass=airmass,moon=moon.value,readout=readout,slew=slew,start=start, end=end, errors=errors,observatories=observatories,scheduler=scheduler,azm_start=request.form['azm_start'], azm_end=request.form['azm_end'],azm=(request.form.get('azm')=='checked'))
+        
+        output.seek(0)
+        objects0=load_objects(output,check=False)            
+        
+        #define observatory
+        observatory=Observer(name=obs,longitude=lon,latitude=lat,elevation=ele)
+        #general constraints
+        constraints = [ModifAltitudeConstraint(min=minAlt,max=90*u.deg,boolean_constraint=False), 
+                    AirmassConstraint(max=airmass,boolean_constraint=True),AtNightConstraint.twilight_nautical(), MoonSeparationConstraint(moon),TimeConstraint(Time(time_start),Time(time_end))]
+            
+        #set azimuth constr.
+        if (request.form.get('azm')=='checked'):
+            azm0=None
+            if request.form['azm_start']: 
+                azm0=float(request.form['azm_start'])*u.deg
+                if azm0<0*u.deg: azm0+=360*u.deg
+                if azm0>360*u.deg: azm0-=360*u.deg
+            azm1=None
+            if request.form['azm_end']: 
+                azm1=float(request.form['azm_end'])*u.deg
+                if azm1<0*u.deg: azm1+=360*u.deg
+                if azm1>360*u.deg: azm1-=360*u.deg
+            constraints.append(AzimuthConstraint(azm0,azm1))
+        
+        suns=observatory.sun_set_time(Time(time_start),n_grid_points=10, which='nearest')-1*u.hour
+        sunr=observatory.sun_rise_time(Time(time_end),n_grid_points=10, which='nearest')+1*u.hour
+        
+        obstime=Time(time_start)+np.arange((Time(time_end)-Time(time_start)).value,step=10/1440)   #step 10 minutes     
+    
         if 'filter' in request.form:
-            session['output_ready']=False
-            
-            obs=request.form['obs']
-            lat=float(request.form['lat'])*u.deg
-            lon=float(request.form['lon'])*u.deg
-            ele=float(request.form['alt'])*u.m
-            
-            minAlt=float(request.form['minAlt'])*u.deg
-            airmass=float(request.form['airmass'])
-            moon=float(request.form['moon'])*u.deg
-            
-            readout=request.form['readout']
-            slew=request.form['slew']
-            
-            start=request.form['start']
-            end=request.form['end']
-            
-            if not(start): errors['start']='Start time is missing.'
-            if not(end): errors['end']='End time is missing.' 
-            if start and end:
-                if Time(end)<Time(start): errors['times']='End time is smaller than Start time.'       
-            
-            #get file with obj
-            if 'file' not in request.files:
-                errors['file']="No file part."
-            file = request.files['file']
-            if file.filename == '':
-                errors['file']="No selected file."
-                
-            if errors:
-                return render_template('user.html',obs=obs,lat=lat.value,lon=lon.value,alt=ele.value,minAlt=minAlt.value,airmass=airmass,moon=moon.value,readout=readout,slew=slew,start=start, end=end, errors=errors,observatories=observatories)
-                
-            output = io.StringIO()   # create "file-like" output for writing
-            errors['data']=[]
-            if file:
-                #read data from input file and save them in list
-                file_content = [x.decode() for x in file.readlines()]
-                csvreader = csv.DictReader(file_content)
-                csvwriter = csv.DictWriter(output,fieldnames=csvreader.fieldnames)
-                csvwriter.writeheader()
-                for row in csvreader:
-                    #check inputs!!! 
-                    if len(row['Target'])==0:
-                        errors['data'].append('Missing name of target.')
-                        continue
-                    
-                    row,err=check(row)
-                    errors['data']+=err                   
-                    csvwriter.writerow(row)
-                    
-            if len(errors['data'])==0: del(errors['data'])
-
-            if errors:
-                return render_template('user.html',obs=obs,lat=lat.value,lon=lon.value,alt=ele.value,minAlt=minAlt.value,airmass=airmass,moon=moon.value,readout=readout,slew=slew,start=start, end=end, errors=errors,observatories=observatories)
-            
-            output.seek(0)
-            objects0=load_objects(output,check=False)
-                
-            
-            #define observatory
-            observatory=Observer(name=obs,longitude=lon,latitude=lat,elevation=ele)
-            #general constraints
-            constraints = [AltitudeConstraint(min=minAlt), 
-                        AirmassConstraint(max=airmass),AtNightConstraint.twilight_nautical(), MoonSeparationConstraint(moon)]
-            read_out = readout     #read_out time of camera + comp (with readout) + ...
-            slew_rate = slew   #slew rate of the telescope
-            
-            # plantime=Time(date+' '+str(12-int(round(observatory.longitude.value/15))).rjust(2,'0')+':00:00')    #approx. local noon (in UTC)
-                        
-            # #calculate sunset, sunrise and midnight times + set some time ranges
-
-            # #sunrise/sunset calculation with 1 hour extend -> for scheduling intervals and plots
-            # #could be modified for speed up -> add horizon=-12*u.deg (nautical twilight) or -18 (astronomical) and remove additional hour.
-            # midnight=observatory.midnight(plantime,n_grid_points=10, which='next')
-            # suns=observatory.sun_set_time(midnight,n_grid_points=10, which='nearest')-1*u.hour
-            # sunr=observatory.sun_rise_time(midnight,n_grid_points=10, which='nearest')+1*u.hour
-
-            # night=sunr-suns
-            # obstime=suns+night*np.linspace(0, 1, 100)    #range of observing scheduling
-            
-            obstime=Time(start)+np.arange((Time(end)-Time(start)).value,step=10/1440)   #step 10 minutes
-            
-            # Prefiltering
-            #only general constraints
-            #objects=prefilter({i:obj for i,obj in enumerate(objects0)},constraints,observatory,obstime)
+            session['output_ready']=False   
             
             #apply individual const.
             objects=[]
@@ -2109,12 +2117,12 @@ def user():
                 cons=list(constraints)                        
                 
                 if not pd.isna(obj['full']['StartDate']) or not pd.isna(obj['full']['EndDate']):
-                    #constraint on obs date
-                    try: start=Time(obj['full']['StartDate'])
-                    except: start=None
-                    try: end=Time(obj['full']['EndDate'])
-                    except: end=None
-                    cons.append(TimeConstraint(start,end))
+                        #constraint on obs date
+                        try: start=Time(obj['full']['StartDate'])
+                        except: start=None
+                        try: end=Time(obj['full']['EndDate'])
+                        except: end=None
+                        cons.append(TimeConstraint(start,end))
                 if not pd.isna(obj['full']['MoonPhase']):
                     #constraint on Moon phase
                     cons.append(MoonIlluminationConstraint(0,obj['full']['MoonPhase']))
@@ -2128,8 +2136,8 @@ def user():
                     cons.append(PhaseConstraint(objPer,start,end))
                     
                 if is_observable(cons, observatory, obj['target'], obstime): 
-                    objects.append(obj)                
-            
+                    objects.append(obj)           
+                            
             si = io.StringIO()  # create "file-like" output for writing
             
             tab=[x['full'] for x in objects]
@@ -2150,8 +2158,88 @@ def user():
             
             session['output_ready']=True
             return output 
+        
+        if 'scheduler' in request.form:
+            session['output_ready']=False    
+            
+            read_out = float(readout)*u.second     #read_out time of camera + comp (with readout) + ...
+            slew_rate = slew*u.deg/u.minute   #slew rate of the telescope
+            
+            #set used scheduler: SequentialScheduler / PriorityScheduler -> select on web
+            if scheduler=='Sequential': Scheduler=SequentialScheduler
+            elif scheduler=='Priority': Scheduler=PriorityScheduler
+            
+            objects1={}
+            for obj in objects0:
+                objects1[str(uuid.uuid4())]=obj
+            
+            # Prefiltering
+            #only general constraints
+            objects=prefilter(objects1,constraints,observatory,obstime)
+            
+            # presort needed mainly for Seq. scheduler
+            if scheduler=='Sequential':
+                objects=presort(objects, observatory, Time(time_start)+(Time(time_end)-Time(time_start))/2,key='meridian')     #meridian/set/rise
+                
+            n_selected=len(objects0)
+            n_obs=len(objects)
+
+            #fill blocks
+            blocks=[]
+            names={}
+            for obj in objects:
+                cons=[]
+                if not pd.isna(obj['full']['StartDate']) or not pd.isna(obj['full']['EndDate']):
+                    #constraint on obs date
+                    try: start=Time(obj['full']['StartDate'])
+                    except: start=None
+                    try: end=Time(obj['full']['EndDate'])
+                    except: end=None
+                    cons.append(TimeConstraint(start,end))
+                if not pd.isna(obj['full']['MoonPhase']):
+                    #constraint on Moon phase
+                    cons.append(MoonIlluminationConstraint(0,obj['full']['MoonPhase']))
+                    #TODO remove later?
+                if not pd.isna(obj['full']['StartPhase']) or not pd.isna(obj['full']['EndPhase']):
+                    #phase constraint for EB or exoplanets
+                    objPer=PeriodicEvent(epoch=Time(obj['full']['Epoch'],format='jd'),period=obj['full']['Period']*u.day)
+                    if pd.isna(obj['full']['StartPhase']): start=None
+                    else: start=obj['full']['StartPhase']
+                    if pd.isna(obj['full']['EndPhase']): end=None
+                    else: end=obj['full']['EndPhase']
+                    cons.append(PhaseConstraint(objPer,start,end))
+                
+                if obj['n_exp']=='series':
+                    #series -> 20 blocks with 5 exp.
+                    for i in range(20):
+                        if obj['target'].name in names:  #repeating objects -> NOT replace debug plots
+                            names[obj['target'].name]+=1
+                            name1=obj['target'].name+'_s'+str(names[obj['target'].name])
+                        else:
+                            names[obj['target'].name]=0
+                            name1=obj['target'].name
+                        blocks.append(ObservingBlock.from_exposures(FixedTarget(name=name1, coord=obj['target'].coord),obj['priority'],obj['exp']*u.second,5,read_out,constraints=cons))
+                else:
+                    if obj['target'].name in names:  #repeating objects -> NOT replace debug plots
+                        names[obj['target'].name]+=1
+                        name1=obj['target'].name+'_s'+str(names[obj['target'].name])
+                    else:
+                        names[obj['target'].name]=0
+                        name1=obj['target'].name
+                    blocks.append(ObservingBlock.from_exposures(FixedTarget(name=name1, coord=obj['target'].coord),obj['priority'],obj['exp']*u.second,obj['n_exp'],read_out,constraints=cons))
+            
+            transitioner = Transitioner(slew_rate)
+            scheduler = Scheduler(constraints = constraints,observer = observatory,transitioner = transitioner)
+            schedule = Schedule(suns,sunr)     #start and end of scheduling interval
+            scheduler(blocks, schedule)
+            
+            code=str(uuid.uuid4())    #unique hash for different users
+            cache.set(code,[schedule,objects1])    #save in cache
+                
+            return redirect(url_for('new_schedule', selected=n_selected, observable=n_obs,code=code,user=True))
+           
     
-    return render_template('user.html',obs='Ondrejov',lat=49.910555556,lon=14.783611111,alt=528,minAlt=20,airmass=5,moon=15,readout=30,slew=20,start= datetime.now(timezone.utc).strftime('%Y-%m-%d')+'T18:00', end=(datetime.now(timezone.utc)+timedelta(days=1)).strftime('%Y-%m-%d')+'T06:00', errors={},observatories=observatories)
+    return render_template('user.html',obs='Ondrejov',lat=49.910555556,lon=14.783611111,alt=528,minAlt=20,airmass=5,moon=15,readout=30,slew=20,start= datetime.now(timezone.utc).strftime('%Y-%m-%d')+'T18:00', end=(datetime.now(timezone.utc)+timedelta(days=1)).strftime('%Y-%m-%d')+'T06:00', errors={},observatories=observatories,scheduler='Priority')
 
 def make_stats():
     '''make statistics of observations'''
