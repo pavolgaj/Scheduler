@@ -109,6 +109,10 @@
                 {% endif %}
                 <button type="submit" name="download" id="download" title="Download schedule as CSV.">Download
                     CSV</button>
+                <button type="submit" name="json" id="json" title="Download schedule as JSON.">Download
+                    JSON</button>
+                <button type="submit" name="batch" id="batch" title="Download schedule as JSON for Batch.">Download
+                    Batch</button>
             </form>
         </center>
 
@@ -153,7 +157,7 @@
                 <td>{{ row.Altitude | float() | round(0) | int() }}</td>
                 <td>{{ row.Airmass | float() | round(1) }}</td>
                 <td>{{ row.Azimut | float() | round(0) | int() }}</td>
-                <td {% if row.Position=='-' %}style="background-color: red; "{% endif %}>{{ row.Position }}</td>
+                <td {% if row.Position=='-' %}style="background-color: red; " {% endif %}>{{ row.Position }}</td>
             </tr>
             {% endfor %}
         </table>

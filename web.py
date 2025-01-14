@@ -1109,6 +1109,47 @@ def new_schedule():
             output.headers["Content-type"] = "text/csv"
             return output 
         
+        if 'json' in request.form:
+            #download json
+            si = io.StringIO()    # create "file-like" output for writing
+            
+            df[cols.values()].to_json(si,orient='records',index=False)
+            output = make_response(si.getvalue())
+            output.headers["Content-Disposition"] = "attachment; filename=schedule.json"
+            output.headers["Content-type"] = "text/json"
+            return output 
+        
+        if 'batch' in request.form:
+            #download batch
+            si = io.StringIO()    # create "file-like" output for writing
+            
+            df1=pd.DataFrame()
+            df1['Target']=df['Target']
+            df1['Object']='target'
+            df1['Count repeat']=[int(x) for x in df['Number']]
+            df1['Exposure length']=[int(x) for x in df['ExpTime']]
+            tmp=[x.replace(':','').replace(' ','') for x in df['RA']]
+            df1['RA']=[x if '.' in x else x+'.0' for x in tmp]
+            tmp=[x.replace(':','').replace(' ','') for x in df['DEC']]
+            df1['DEC']=[x if '.' in x else x+'.0' for x in tmp]
+            df1['TelPos']="east"
+            df1['Tracking']="on"
+            df1['Sleep']=1
+            df1['CamPos']=0
+            df1['FocPos']=0
+            df1['Filter']="same"
+            df1['Grating angle']=""
+            df1['Spectral filter']="same"
+            df1['Count of pulses']=0.0
+            df1['Iodine cell']=[('IC' in x) for x in df['Remarks']]
+            df1['Enable']=True
+            
+            df1.to_json(si,orient='records',index=False)
+            output = make_response(si.getvalue())
+            output.headers["Content-Disposition"] = "attachment; filename=schedule_batch.json"
+            output.headers["Content-type"] = "text/json"
+            return output 
+        
         if 'save' in request.form:
             #save scheduler on server
             name=request.form['name'].replace('/','_').replace('\\','_')
@@ -1877,6 +1918,49 @@ def modify():
             output.headers["Content-type"] = "text/csv"
             return output 
         
+        if 'json' in request.form:
+            #download json
+            df=cache.get(code)[0]
+            si = io.StringIO()    # create "file-like" output for writing
+            
+            df[cols.values()].to_json(si,orient='records',index=False)
+            output = make_response(si.getvalue())
+            output.headers["Content-Disposition"] = "attachment; filename=schedule.json"
+            output.headers["Content-type"] = "text/json"
+            return output 
+        
+        if 'batch' in request.form:
+            #download batch
+            df=cache.get(code)[0]
+            si = io.StringIO()    # create "file-like" output for writing
+            
+            df1=pd.DataFrame()
+            df1['Target']=df['Target']
+            df1['Object']='target'
+            df1['Count repeat']=[int(x) for x in df['Number']]
+            df1['Exposure length']=[int(x) for x in df['ExpTime']]
+            tmp=[x.replace(':','').replace(' ','') for x in df['RA']]
+            df1['RA']=[x if '.' in x else x+'.0' for x in tmp]
+            tmp=[x.replace(':','').replace(' ','') for x in df['DEC']]
+            df1['DEC']=[x if '.' in x else x+'.0' for x in tmp]
+            df1['TelPos']=['east' if 'e' in x else 'western' for x in df['Position']]
+            df1['Tracking']="on"
+            df1['Sleep']=1
+            df1['CamPos']=0
+            df1['FocPos']=0
+            df1['Filter']="same"
+            df1['Grating angle']=""
+            df1['Spectral filter']="same"
+            df1['Count of pulses']=0.0
+            df1['Iodine cell']=[('IC' in x) for x in df['Remarks']]
+            df1['Enable']=True
+            
+            df1.to_json(si,orient='records',index=False)
+            output = make_response(si.getvalue())
+            output.headers["Content-Disposition"] = "attachment; filename=schedule_batch.json"
+            output.headers["Content-type"] = "text/json"
+            return output 
+        
         return render_template('modify.html', schedules=schedules,name=name,schedule=dfW,code=code, codeF=codeF,alt_plot=alt_plot,sky=sky_plot,start=startF,night=nightF,groups=groups,use_group=use_group,objects=objects,obs=obs,indiv=indiv)
     
     
@@ -1933,7 +2017,48 @@ def show():
             output = make_response(si.getvalue())
             output.headers["Content-Disposition"] = "attachment; filename="+name+".csv"
             output.headers["Content-type"] = "text/csv"
-            return output    
+            return output   
+        
+        if 'json' in request.form:
+            #download json
+            si = io.StringIO()    # create "file-like" output for writing
+            
+            df[cols].to_json(si,orient='records',index=False)
+            output = make_response(si.getvalue())
+            output.headers["Content-Disposition"] = "attachment; filename=schedule.json"
+            output.headers["Content-type"] = "text/json"
+            return output 
+        
+        if 'batch' in request.form:
+            #download batch
+            si = io.StringIO()    # create "file-like" output for writing
+            
+            df1=pd.DataFrame()
+            df1['Target']=df['Target']
+            df1['Object']='target'
+            df1['Count repeat']=[int(x) for x in df['Number']]
+            df1['Exposure length']=[int(x) for x in df['ExpTime']]
+            tmp=[x.replace(':','').replace(' ','') for x in df['RA']]
+            df1['RA']=[x if '.' in x else x+'.0' for x in tmp]
+            tmp=[x.replace(':','').replace(' ','') for x in df['DEC']]
+            df1['DEC']=[x if '.' in x else x+'.0' for x in tmp]
+            df1['TelPos']=['east' if 'e' in x else 'western' for x in df['Position']]
+            df1['Tracking']="on"
+            df1['Sleep']=1
+            df1['CamPos']=0
+            df1['FocPos']=0
+            df1['Filter']="same"
+            df1['Grating angle']=""
+            df1['Spectral filter']="same"
+            df1['Count of pulses']=0.0
+            df1['Iodine cell']=[('IC' in x) for x in df['Remarks']]
+            df1['Enable']=True
+            
+            df1.to_json(si,orient='records',index=False)
+            output = make_response(si.getvalue())
+            output.headers["Content-Disposition"] = "attachment; filename=schedule_batch.json"
+            output.headers["Content-type"] = "text/json"
+            return output  
         
         #load config - based on observatory!
         config=load_config('lasilla_config.txt')

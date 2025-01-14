@@ -487,6 +487,12 @@
                     <button type="submit" name="download" id="download" title="Download schedule as CSV." {% if not code
                         %}disabled style="background-color:gray; color: black; cursor: default;" {% endif %}>Download
                         CSV</button>
+                    <button type="submit" name="json" id="json" title="Download schedule as JSON." {% if not code
+                        %}disabled style="background-color:gray; color: black; cursor: default;" {% endif %}>Download
+                        JSON</button>
+                    <button type="submit" name="batch" id="batch" title="Download schedule as JSON for Batch." {% if not code
+                        %}disabled style="background-color:gray; color: black; cursor: default;" {% endif %}>Download
+                        Batch</button>
                 </center>
             </div>
 
@@ -592,7 +598,7 @@
                         {{ row.Azimut | float() | round(0) | int() }}
                         {% endif %}
                     </td>
-                    <td {% if row.Position=='-' %}style="background-color: red; "{% endif %}>
+                    <td {% if row.Position=='-' %}style="background-color: red; " {% endif %}>
                         <span style="display: inline-block; width: 30px">{{ row.Position }}</span>
                         {% if row.Position %}
                         <button type="button" class="modify-row" name="plot" title="Plot telescope limits"

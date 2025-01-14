@@ -128,6 +128,10 @@
                     schedule</button>
                 <button type="submit" name="download" id="download" title="Download schedule as CSV.">Download
                     CSV</button>
+                <button type="submit" name="json" id="json" title="Download schedule as JSON.">Download
+                    JSON</button>
+                <button type="submit" name="batch" id="batch" title="Download schedule as JSON for Batch.">Download
+                    Batch</button>
             </form>
         </center>
 
@@ -172,7 +176,7 @@
                 <td>{{ row.Altitude | round(0) | int() }}</td>
                 <td>{{ row.Airmass | round(1) }}</td>
                 <td>{{ row.Azimut | round(0) | int() }}</td>
-                <td {% if row.Position=='-' %}style="background-color: red; "{% endif %}>
+                <td {% if row.Position=='-' %}style="background-color: red; " {% endif %}>
                     <span style="display: inline-block; width: 30px;">{{ row.Position }}</span>
                     <button type="button" class="modify-row" name="plot" title="Plot telescope limits"
                         onclick="window.open('{{ url_for('limits', ha0 = row.ha0, ha1 = row.ha1, dec=row.de, title=row.Target) }}', '_blank')"
