@@ -796,28 +796,29 @@ def batch(schedule,objects0={}):
     for slot in schedule.slots:
         if hasattr(slot.block, 'target'):
             tmp={}
-            tmp['name']=slot.block.target.name
-            if slot.block.target.name in objects0: tmp['v_mag']=objects0[slot.block.target.name]['mag']
-            else: tmp['v_mag']=None
-            tmp['note']=''     #TODO!
-            tmp['ra']=str(slot.block.target.ra/15).replace('d',':').replace('m',':').replace('s','').split('.')[0]
-            tmp['de']=str(slot.block.target.dec).replace('d',':').replace('m',':').replace('s','').split('.')[0]
-            tmp['type']='target'
-            tmp['exptime']=str(int(round(slot.block.time_per_exposure.value)))
-            tmp['caltime']='360'
-            tmp['iodinecell']=False
-            tmp['count_repeat']=str(int(slot.block.number_exposures))
-            tmp['count_of_pulses']=None
-            tmp['fiber']=0
-            tmp['spectral_range']=None
-            tmp['ga_sf']=None
-            tmp['start']=slot.block.start_time.strftime('%H:%M')
-            altaz0=slot.block.observer.altaz(slot.block.start_time, slot.block.target)
-            altaz1=slot.block.observer.altaz(slot.block.end_time, slot.block.target)
-            tmp['ha']=str(slot.block.observer.target_hour_angle(slot.block.start_time, slot.block.target).hour.round(1))+'-'+str(slot.block.observer.target_hour_angle(slot.block.end_time, slot.block.target).hour.round(1))
-            tmp['alt']=str(int(round(altaz0.alt.degree)))+'-'+str(int(round(altaz1.alt.degree)))
+            tmp['Target']=objects0[slot.block.target.name]['full']['Target']
+            tmp['Object']='target'
+            tmp['Count repeat']=int(slot.block.number_exposures)
+            tmp['Exposure length']=int(round(slot.block.time_per_exposure.value))
+            tmp['RA']=str(slot.block.target.ra/15).replace('d','').replace('m','').replace('s','')
+            if not '.' in tmp['RA']: tmp['RA']+='.0'
+            tmp['DEC']=str(slot.block.target.dec).replace('d',':').replace('m',':').replace('s','')
+            if not '.' in tmp['DEC']: tmp['DEC']+='.0'
+            tmp['TelPos']="east"
+            tmp['Tracking']="on"
+            tmp['Sleep']=1
+            tmp['CamPos']=0
+            tmp['FocPos']=0
+            tmp['Filter']="same"
+            tmp['Grating angle']=""
+            tmp['Spectral filter']="same"
+            tmp['Count of pulses']=0.0
+            tmp['Iodine cell']=False
+            tmp['Enable']=True
             output.append(tmp)
     return output
+
+
 
 
 
