@@ -1678,12 +1678,12 @@ def modify():
             #sunrise/sunset calculation with 1 hour extend -> for scheduling intervals and plots
             #could be modified for speed up -> add horizon=-12*u.deg (nautical twilight) or -18 (astronomical) and remove additional hour.
             midnight=observatory.midnight(plantime,n_grid_points=10, which='next')
-            suns=observatory.sun_set_time(midnight,n_grid_points=10, which='nearest')-1*u.hour
-            sunr=observatory.sun_rise_time(midnight,n_grid_points=10, which='nearest')+1*u.hour
+            suns=observatory.sun_set_time(midnight,n_grid_points=10, which='previous')-1*u.hour
+            sunr=observatory.sun_rise_time(midnight,n_grid_points=10, which='next')+1*u.hour
             
             if start<suns+1*u.hour:
                 if (start+1*u.day)>suns and (start+1*u.day)<sunr: start+=1*u.day  #obs. start after UT midnight
-                else: start=observatory.sun_set_time(midnight,n_grid_points=10, which='nearest',horizon=-12*u.deg)  #time is before sunset -> set begining of astro twilight
+                else: start=observatory.sun_set_time(midnight,n_grid_points=10, which='previous',horizon=-12*u.deg)  #time is before sunset -> set begining of astro twilight
             
             #add targets to schedule
             schedule=Schedule(suns,sunr)
@@ -1778,12 +1778,12 @@ def modify():
             #sunrise/sunset calculation with 1 hour extend -> for scheduling intervals and plots
             #could be modified for speed up -> add horizon=-12*u.deg (nautical twilight) or -18 (astronomical) and remove additional hour.
             midnight=observatory.midnight(plantime,n_grid_points=10, which='next')
-            suns=observatory.sun_set_time(midnight,n_grid_points=10, which='nearest')-1*u.hour
-            sunr=observatory.sun_rise_time(midnight,n_grid_points=10, which='nearest')+1*u.hour
+            suns=observatory.sun_set_time(midnight,n_grid_points=10, which='previous')-1*u.hour
+            sunr=observatory.sun_rise_time(midnight,n_grid_points=10, which='next')+1*u.hour
             
             if start<suns+1*u.hour:
                 if (start+1*u.day)>suns and (start+1*u.day)<sunr: start+=1*u.day  #obs. start after UT midnight
-                else: start=observatory.sun_set_time(midnight,n_grid_points=10, which='nearest',horizon=-12*u.deg)  #time is before sunset -> set begining of astro twilight
+                else: start=observatory.sun_set_time(midnight,n_grid_points=10, which='previous',horizon=-12*u.deg)  #time is before sunset -> set begining of astro twilight
                 
             night=sunr-suns
             obstime=suns+night*np.linspace(0, 1, 100)    #range of observing scheduling   
@@ -2630,7 +2630,7 @@ def test_limits():
         PathW=mplPath.Path(westLim)
         
         if PathE.contains_point((ha,dec)):
-            i=np.where(eastLim[:,0]>ha)[0]
+            i=np.where((eastLim[:,0]>ha)*(eastLim[:,0]>5))[0]   #use only right part of limit
             j=np.argmin(np.abs(eastLim[i,1]-dec))
             try:
                 f = interpolate.interp1d(eastLim[i,1],eastLim[i,0])
@@ -2639,7 +2639,7 @@ def test_limits():
         else: east=0
         
         if PathW.contains_point((haW,decW)):
-            i=np.where(westLim[:,0]>haW)[0]
+            i=np.where((westLim[:,0]>haW)*(westLim[:,0]>180))[0]    #use only right part of limit
             j=np.argmin(np.abs(westLim[i,1]-decW))
             try:
                 f = interpolate.interp1d(westLim[i,1],westLim[i,0])
