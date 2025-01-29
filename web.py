@@ -1015,6 +1015,8 @@ def scheduler():
                             name1=obj['target'].name
                         blocks.append(ObservingBlock.from_exposures(FixedTarget(name=name1, coord=obj['target'].coord),obj['priority'],obj['exp']*u.second,obj['n_exp'],read_out,constraints=cons))
             
+                if len(blocks)==0:
+                    return '<p>Schedule is EMPTY!</p>'+'<p>Selected objects: '+str(n_selected[0])+'<br>'+'Observable objects: '+str(n_obs[0])+'</p>'                    
             
                 #run scheduler        
                 constraintsM=[]
