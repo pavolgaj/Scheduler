@@ -378,6 +378,7 @@ def new():
             send=SendMail(email)
             
             #update message
+            if series: number='series'
             send.message=render_template('message',supervisor=supervis.replace('"',''),name=name.replace('"',''),ra=ra,dec=dec,mag=mag,exp=exp,number=number,night=night,prior=prior,group=group.replace('"',''),notes=notes.replace('"',''),message=mess)
             
             try:
@@ -1711,7 +1712,7 @@ def modify():
                     if tr is not None: 
                         #changing object
                         schedule.insert_slot(schedule.scheduled_blocks[-1].end_time,tr)
-                        t0=schedule.scheduled_blocks[-1].end_time+30*u.second  #add additional time to centering object ?   
+                        t0=schedule.scheduled_blocks[-1].end_time#+30*u.second  #add additional time to centering object ?   
                     else: t0=schedule.scheduled_blocks[-1].end_time
                 else: t0=start   
                 schedule.insert_slot(t0, b)   

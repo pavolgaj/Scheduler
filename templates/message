@@ -5,7 +5,7 @@ Coordinates: {{ ra }}; {{ dec }}
 Magnitude: {{ mag }}
 Exposure time: {{ exp }}
 Number of exposures: {{ number }}
-Number of nights: {{ nights }}
+Number of nights: {{ night }}
 Priority: {{ prior }}
 Type of object: {{ group }}
 Remarks: {{ notes }}
