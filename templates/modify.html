@@ -149,6 +149,9 @@
                 if (previousRow && previousRow.tagName === 'TR') {
                     row.parentNode.insertBefore(row, previousRow);
                 }
+
+                var calc=document.getElementById('calc_test');
+                calc.value=0;
             }
 
             // Function to move a row down
@@ -158,15 +161,21 @@
                 if (nextRow && nextRow.tagName === 'TR') {
                     row.parentNode.insertBefore(nextRow, row);
                 }
+
+                var calc=document.getElementById('calc_test');
+                calc.value=0;
             }
 
             // Function to delete a row
             function deleteRow(btn) {
                 var row = btn.parentNode.parentNode;
                 row.parentNode.removeChild(row);
+
+                var calc=document.getElementById('calc_test');
+                calc.value=0;                
             }
 
-            // check if obj. group is seledted
+            // check if obj. group is selected
             function checkGroup() {
                 const checkboxes = document.querySelectorAll('input[type="checkbox"]');
                 let isChecked = false;
@@ -188,6 +197,13 @@
 
             // check if name is given
             function checkSave() {
+                var calc=document.getElementById('calc_test');
+                
+                if (calc.value==0) {
+                    alert('Recalculate schedule!');
+                    return false;
+                }
+
                 var name = document.getElementById('save-name');
                 if (!name.value) {
                     alert('Name of schedule is missing!');
@@ -272,6 +288,38 @@
                 return (check && valid);
             }
 
+            function recalc() {
+                //check allocated time before recalc
+                var allocTime=0;
+
+                exps = document.getElementsByName('exp');
+                nums = document.getElementsByName('number');
+                for (var i = 0; i < exps.length; i++) {
+                    allocTime+=exps[i].value*nums[i].value;
+                }
+
+                var totTime=document.getElementById('total_time').value;
+
+                if (totTime==16) {
+                    if (confirm('Total allocated time is '+Math.round(allocTime/3600).toFixed(2)+' hours. Run calculation only if you have available enough time!') == false) {
+                        return false;
+                    }
+                }
+
+                if (allocTime>totTime*3600) {
+                    alert('Schedule is too long! Total allocated time is longer than available.');
+                    return false;    
+                }
+
+                return rerun();
+            }
+
+            function modify() {
+                //on input change -> need recalc
+                var calc=document.getElementById('calc_test');
+                calc.value=0;    
+            }
+
             function select_all() {
                 //select all groups
                 checkboxes = document.getElementsByName('use_group');
@@ -327,6 +375,8 @@
 
     <body>
         <form method="post" id="main-form">
+            <input type="hidden" name="calc_test" id="calc_test" value="{{ calc }}">
+            <input type="hidden" name="total_time" id="total_time" value="{{ total_time }}">
             <div>
                 <center>
                     <label for="name">Name of scheduler</label>
@@ -469,9 +519,9 @@
             <div>
                 <label for="night">Scheduling night:</label>
                 <input type="date" name="night" id="night" value="{{ night }}"
-                    title="Local date of beginning of night.">&nbsp;&nbsp;&nbsp;&nbsp;
+                    title="Local date of beginning of night." onchange="modify()">&nbsp;&nbsp;&nbsp;&nbsp;
                 <label for="start">Observation start</label>
-                <input type="time" name="start" id="start" value="{{ start }}" title="Time for observations start.">
+                <input type="time" name="start" id="start" value="{{ start }}" title="Time for observations start." onchange="modify()">
                 <button type="submit" name="twilight" id="twilight" title="Set time to astronomical twilight."
                     onclick="return checkTwilight()">Astronomical twilight</button>
             </div>
@@ -551,15 +601,15 @@
                     <!-- exptime, number, remarks editable -->
                     <td>
                         <input type="text" name="exp" value="{{ row.ExpTime }}" class="tab-input"
-                            title="Exposure time in seconds.">
+                            title="Exposure time in seconds." onchange="modify()">
                     </td>
                     <td>
                         <input type="text" name="number" value="{{ row.Number }}" class="tab-input"
-                            title="Number of exposures.">
+                            title="Number of exposures." onchange="modify()">
                     </td>
                     <td>
                         <input type="text" name="notes" value="{{ row.Remarks }}" class="tab-input"
-                            title="Notes to observation (e.g. IC, photometry).">
+                            title="Notes to observation (e.g. IC, photometry)." onchange="modify()">
                     </td>
                     <!-- using td text to allow select and copy whole tab
                      inputs to store data -->
@@ -613,7 +663,7 @@
             </table>
             <br>
             <center>
-                <button type="submit" name="calc" id="calc" onclick="return rerun()" {% if not code %}disabled
+                <button type="submit" name="calc" id="calc" onclick="return recalc()" {% if not code %}disabled
                     style="background-color:gray; color: black; cursor: default;" {% endif %}
                     title="Re-calculate observing times and possitions of targets.">Re-calculate</button>
                 <button type="submit" name="run" id="run" onclick="return rerun()" {% if not code %}disabled

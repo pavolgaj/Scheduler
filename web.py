@@ -1239,7 +1239,7 @@ def modify():
         if 'name' in request.args:
             name=request.args['name']
         
-            return render_template('modify.html', schedules=schedules,name=name,schedule=[],code='',codeF='', alt_plot='',sky='',start='',night='',groups=groups,use_group=[],objects=[],obs=[],prev_plot='',indiv=True,modify=True)
+            return render_template('modify.html', schedules=schedules,name=name,schedule=[],code='',codeF='', alt_plot='',sky='',start='',night='',groups=groups,use_group=[],objects=[],obs=[],prev_plot='',indiv=True,modify=True, calc=1,total_time=16)
         
     
     if request.method=='POST':
@@ -1249,6 +1249,9 @@ def modify():
         name=request.form['name'] 
         nightF=request.form['night']
         startF=request.form['start']
+        
+        calc=request.form['calc_test']
+        total_time=request.form['total_time']
         
         #regex add row and preview buttons 
         r_add = re.compile("add_*")
@@ -1284,6 +1287,7 @@ def modify():
             ha0=[]
             ha1=[]
             de=[]
+            t00=0
             for i,obj in df.iterrows():
                 ra='{}h{}m{}s'.format(*obj.RA.replace(':',' ').replace(',','.').split())
                 dec='{}d{}m{}s'.format(*obj.DEC.replace(':',' ').replace(',','.').split())
@@ -1291,6 +1295,7 @@ def modify():
                 b=ObservingBlock.from_exposures(FixedTarget(name=obj.Target, coord=coordinates), obj.Priority, obj.ExpTime*u.second,obj.Number, read_out)
                 b.observer = observatory
                 t0=Time(obj.Start)
+                if t00==0: t00=t0
                 if len(schedule.scheduled_blocks)>0:
                     tr=TransitionBlock.from_duration((t0-schedule.scheduled_blocks[-1].end_time).value*86400*u.second)             
                     schedule.insert_slot(schedule.scheduled_blocks[-1].end_time,tr)                    
@@ -1301,6 +1306,8 @@ def modify():
                 lst1=observatory.local_sidereal_time(schedule.scheduled_blocks[-1].end_time).deg*u.deg
                 ha1.append((lst1-b.target.ra)%(360*u.deg)) 
                 de.append(b.target.dec)
+             
+            total_time=(sunr-t00).sec/3600
                 
             df['ha0']=ha0
             df['ha1']=ha1
@@ -1316,6 +1323,8 @@ def modify():
             
             startF=start.strftime('%H:%M') 
             dfW=df.to_dict('records')
+            
+            calc=1
         
         if 'filter' in request.form:
             #filter objects by type and observability
@@ -1607,6 +1616,8 @@ def modify():
             cache.set(code,[pd.DataFrame(df),alt_plot,sky_plot])    #save in cache
             
             dfW=df.to_dict('records')
+            
+            calc=0
         
         if 'delete' in request.form:
             #delete schedule
@@ -1641,7 +1652,10 @@ def modify():
             if codeF: objects,obs=cache.get(codeF)
             else: 
                 objects=[]   
-                obs=[]        
+                obs=[]      
+                
+            calc=0  
+            total_time=16
            
         
         if 'calc' in request.form:
@@ -1651,7 +1665,7 @@ def modify():
                 if codeF: objects=cache.get(codeF)
                 else: objects=[]
             
-                return render_template('modify.html', schedules=schedules,name=name,schedule=[],code='', codeF=codeF, alt_plot='',sky='',start=request.form['start'],night=request.form['night'],groups=groups,use_group=use_group,objects=objects)
+                return render_template('modify.html', schedules=schedules,name=name,schedule=[],code='', codeF=codeF, alt_plot='',sky='',start=request.form['start'],night=request.form['night'],groups=groups,use_group=use_group,objects=objects,calc=0,total_time=16)
             else: ids=[int(i) for i in request.form.to_dict(flat=False)['id']]          
 
             df0=pd.DataFrame(cache.get(code)[0])
@@ -1699,6 +1713,7 @@ def modify():
             ha0=[]
             ha1=[]
             de=[]
+            t00=0
             for i,obj in df.iterrows():  
                 objects0[str(obj['index'])]={'full':orig[orig['index']==obj['index']].squeeze(),'mag':obj['Mag']}    #save all values     
                 ra='{}h{}m{}s'.format(*obj.RA.replace(':',' ').replace(',','.').split())
@@ -1715,6 +1730,7 @@ def modify():
                         t0=schedule.scheduled_blocks[-1].end_time#+30*u.second  #add additional time to centering object ?   
                     else: t0=schedule.scheduled_blocks[-1].end_time
                 else: t0=start   
+                if t00==0: t00=t0
                 schedule.insert_slot(t0, b)   
                 
                 lst0=observatory.local_sidereal_time(t0).deg*u.deg
@@ -1722,6 +1738,8 @@ def modify():
                 lst1=observatory.local_sidereal_time(schedule.scheduled_blocks[-1].end_time).deg*u.deg
                 ha1.append((lst1-b.target.ra)%(360*u.deg)) 
                 de.append(b.target.dec)
+            
+            total_time=(sunr-t00).sec/3600
                 
             #calculate positions
             check_limits(schedule)
@@ -1743,7 +1761,9 @@ def modify():
                 obs=[]
             
             dfW=df.to_dict('records')
-            startF=start.strftime('%H:%M')    
+            startF=start.strftime('%H:%M')  
+            
+            calc=1  
             
         if 'run' in request.form:
             #re-schedule        
@@ -1881,7 +1901,7 @@ def modify():
             #set obs. start from astro. twilight
             plantime=Time(request.form['night']+' '+str(12-int(round(observatory.longitude.value/15))).rjust(2,'0')+':00:00')    #approx. local noon (in UTC)
             midnight=observatory.midnight(plantime,n_grid_points=10, which='next')
-            start=observatory.sun_set_time(midnight,n_grid_points=10, which='nearest',horizon=-12*u.deg)
+            start=observatory.sun_set_time(midnight,n_grid_points=10, which='previous',horizon=-12*u.deg)
             
             if code: 
                 df,alt_plot,sky_plot=cache.get(code)
@@ -1896,7 +1916,10 @@ def modify():
                 objects=[]   
                 obs=[]        
             
-            startF=start.strftime('%H:%M')            
+            startF=start.strftime('%H:%M')        
+            
+            calc=0             
+            total_time=(observatory.sun_rise_time(midnight,n_grid_points=10, which='next')+1*u.hour-start).sec/3600  
         
         if 'save' in request.form:
             #save scheduler on server
@@ -1964,10 +1987,10 @@ def modify():
             output.headers["Content-type"] = "text/json"
             return output 
         
-        return render_template('modify.html', schedules=schedules,name=name,schedule=dfW,code=code, codeF=codeF,alt_plot=alt_plot,sky=sky_plot,start=startF,night=nightF,groups=groups,use_group=use_group,objects=objects,obs=obs,indiv=indiv)
+        return render_template('modify.html', schedules=schedules,name=name,schedule=dfW,code=code, codeF=codeF,alt_plot=alt_plot,sky=sky_plot,start=startF,night=nightF,groups=groups,use_group=use_group,objects=objects,obs=obs,indiv=indiv,calc=calc,total_time=total_time)
     
     
-    return render_template('modify.html', schedules=schedules,name='',schedule=[],code='',codeF='', alt_plot='',sky='',start='',night='',groups=groups,use_group=[],objects=[],obs=[],indiv=True)
+    return render_template('modify.html', schedules=schedules,name='',schedule=[],code='',codeF='', alt_plot='',sky='',start='',night='',groups=groups,use_group=[],objects=[],obs=[],indiv=True,calc=0,total_time=16)
 
 @app.route("/scheduler/limits", methods=['GET'])
 def limits():
