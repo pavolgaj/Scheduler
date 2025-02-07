@@ -150,8 +150,8 @@
                     row.parentNode.insertBefore(row, previousRow);
                 }
 
-                var calc=document.getElementById('calc_test');
-                calc.value=0;
+                var calc = document.getElementById('calc_test');
+                calc.value = 0;
             }
 
             // Function to move a row down
@@ -162,8 +162,8 @@
                     row.parentNode.insertBefore(nextRow, row);
                 }
 
-                var calc=document.getElementById('calc_test');
-                calc.value=0;
+                var calc = document.getElementById('calc_test');
+                calc.value = 0;
             }
 
             // Function to delete a row
@@ -171,8 +171,8 @@
                 var row = btn.parentNode.parentNode;
                 row.parentNode.removeChild(row);
 
-                var calc=document.getElementById('calc_test');
-                calc.value=0;                
+                var calc = document.getElementById('calc_test');
+                calc.value = 0;
             }
 
             // check if obj. group is selected
@@ -197,9 +197,9 @@
 
             // check if name is given
             function checkSave() {
-                var calc=document.getElementById('calc_test');
-                
-                if (calc.value==0) {
+                var calc = document.getElementById('calc_test');
+
+                if (calc.value == 0) {
                     alert('Recalculate schedule!');
                     return false;
                 }
@@ -290,25 +290,25 @@
 
             function recalc() {
                 //check allocated time before recalc
-                var allocTime=0;
+                var allocTime = 0;
 
                 exps = document.getElementsByName('exp');
                 nums = document.getElementsByName('number');
                 for (var i = 0; i < exps.length; i++) {
-                    allocTime+=exps[i].value*nums[i].value;
+                    allocTime += exps[i].value * nums[i].value;
                 }
 
-                var totTime=document.getElementById('total_time').value;
+                var totTime = document.getElementById('total_time').value;
 
-                if (totTime==16) {
-                    if (confirm('Total allocated time is '+Math.round(allocTime/3600).toFixed(2)+' hours. Run calculation only if you have available enough time!') == false) {
+                if (totTime == 16) {
+                    if (confirm('Total allocated time is ' + Math.round(allocTime / 3600).toFixed(2) + ' hours. Run calculation only if you have available enough time!') == false) {
                         return false;
                     }
                 }
 
-                if (allocTime>totTime*3600) {
+                if (allocTime > totTime * 3600) {
                     alert('Schedule is too long! Total allocated time is longer than available.');
-                    return false;    
+                    return false;
                 }
 
                 return rerun();
@@ -316,8 +316,8 @@
 
             function modify() {
                 //on input change -> need recalc
-                var calc=document.getElementById('calc_test');
-                calc.value=0;    
+                var calc = document.getElementById('calc_test');
+                calc.value = 0;
             }
 
             function select_all() {
@@ -379,7 +379,7 @@
             <input type="hidden" name="total_time" id="total_time" value="{{ total_time }}">
             <div>
                 <center>
-                    <label for="name">Name of scheduler</label>
+                    <label for="name">Name of schedule</label>
                     <select name="name" id="name" title="Names of available schedules to modify.">
                         {% for sch in schedules %}
                         <option value="{{ sch }}" {% if name==sch %}selected{% endif %}>{{ sch }}</option>
@@ -398,6 +398,7 @@
                     <!-- store cache uuid for reload df -->
                     <input type="hidden" name="codeF" id="codeF" value="{{ codeF }}">
                     <!-- store cache uuid for reload filter obj. -->
+                    <input type="hidden" name="codeObj" id="codeObj" value="{{ codeObj }}">
                 </center>
             </div>
             <br>
@@ -512,24 +513,38 @@
                     </tr>
                 </table>
 
+
+                <br>
+                <label>Individual target</label>
+                <select name="obj" id="obj" title="List of all targets. Observability NOT checked!">
+                    {% for obj in all_obj %}
+                    <option value="{{ obj[0] }}" {% if indObj==obj[0] %}selected{% endif %}>{{ obj[1]['name'] }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <button type="submit" name="indiv" {% if not codeObj %}disabled
+                    style="background-color:gray; color: black; cursor: default;" {% endif %}
+                    title="Add selected target to the schedule.">Add</button>
             </div>
             <br>
 
-
             <div>
                 <label for="night">Scheduling night:</label>
-                <input type="date" name="night" id="night" value="{{ night }}"
-                    title="Local date of beginning of night." onchange="modify()">&nbsp;&nbsp;&nbsp;&nbsp;
+                <input type="date" name="night" id="night" value="{{ night }}" title="Local date of beginning of night."
+                    onchange="modify()">&nbsp;&nbsp;&nbsp;&nbsp;
                 <label for="start">Observation start</label>
-                <input type="time" name="start" id="start" value="{{ start }}" title="Time for observations start." onchange="modify()">
+                <input type="time" name="start" id="start" value="{{ start }}" title="Time for observations start."
+                    onchange="modify()">
                 <button type="submit" name="twilight" id="twilight" title="Set time to astronomical twilight."
                     onclick="return checkTwilight()">Astronomical twilight</button>
             </div>
 
             <br>
+            <hr>
+            <br>
             <div>
                 <center>
-                    <label for="save-name">Name of scheduler</label>
+                    <label for="save-name">Name of schedule</label>
                     <input type="text" name="save-name" id="save-name" title="Name of schedule to save.">
                     <button type="submit" name="save" id="save" onclick="return checkSave()" title="Save schedule." {%
                         if not code %}disabled style="background-color:gray; color: black; cursor: default;" {% endif
@@ -540,8 +555,9 @@
                     <button type="submit" name="json" id="json" title="Download schedule as JSON." {% if not code
                         %}disabled style="background-color:gray; color: black; cursor: default;" {% endif %}>Download
                         JSON</button>
-                    <button type="submit" name="batch" id="batch" title="Download schedule as JSON for Batch." {% if not code
-                        %}disabled style="background-color:gray; color: black; cursor: default;" {% endif %}>Download
+                    <button type="submit" name="batch" id="batch" title="Download schedule as JSON for Batch." {% if not
+                        code %}disabled style="background-color:gray; color: black; cursor: default;" {% endif
+                        %}>Download
                         Batch</button>
                 </center>
             </div>

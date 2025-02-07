@@ -118,7 +118,7 @@
     <body>
         <center>
             <form method="post" id="main-form">
-                <label for="name">Name of scheduler</label>
+                <label for="name">Name of schedule</label>
                 <select name="name" id="name" onchange="update()" title="Names of available schedules to modify.">
                     {% for sch in schedules %}
                     <option value="{{ sch }}" {% if name==sch %}selected{% endif %}>{{ sch }}</option>

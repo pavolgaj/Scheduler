@@ -1209,16 +1209,18 @@ def modify():
     schedules=[os.path.splitext(os.path.basename(x))[0] for x in  sorted(glob.glob('schedules/*.csv'), key=os.path.getmtime)][::-1]  
     
     if not os.path.isfile('db/objects.csv'):
-        return render_template('modify.html', schedules=schedules,name='',schedule=[],code='',codeF='', alt_plot='',sky='',start='',night='',groups={},use_group=[],objects=[],obs=[],indiv=True)
+        return render_template('modify.html', schedules=schedules,name='',schedule=[],code='',codeF='', alt_plot='',sky='',start='',night='',groups={},use_group=[],objects=[],obs=[],indiv=True, calc=0,total_time=16,all_obj=[],codeObj='',indObj='')
     objects0=load_objects('db/objects.csv',check=False)   #check in Simbad?
     
     groups={}
+    all_obj0={}
     for obj in objects0:
         if obj['full']['Done']==1: continue  #remove al
         group=obj['full']['Type']
         if pd.isna(group): group='None'
         if group in groups: groups[group]+=1
         else: groups[group]=1
+        all_obj0[str(uuid.uuid4())]={'name':obj['full']['Target'],'obj':obj}
     
     #cols to save in CSV
     cols={'target':'Target', 'ra':'RA', 'dec':'DEC', 'mag':'Mag','exposure (seconds)':'ExpTime', 'number exposures':'Number','_Remarks':'Remarks', 'start time (UTC)':'Start', 'end time (UTC)':'End','altitude':'Altitude', 'airmass':'Airmass', 'azimut':'Azimut','position':'Position','priority':'Priority'}
@@ -1238,13 +1240,36 @@ def modify():
         #modify schedule after save&modify        
         if 'name' in request.args:
             name=request.args['name']
+            
+            codeObj=str(uuid.uuid4())
+            
+            cache.set(codeObj,dict(all_obj0))
+            if len(all_obj)==0: codeObj=''
         
-            return render_template('modify.html', schedules=schedules,name=name,schedule=[],code='',codeF='', alt_plot='',sky='',start='',night='',groups=groups,use_group=[],objects=[],obs=[],prev_plot='',indiv=True,modify=True, calc=1,total_time=16)
+            return render_template('modify.html', schedules=schedules,name=name,schedule=[],code='',codeF='', alt_plot='',sky='',start='',night='',groups=groups,use_group=[],objects=[],obs=[],prev_plot='',indiv=True,modify=True, calc=1,total_time=16,all_obj=sorted(all_obj0.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj='')
         
     
     if request.method=='POST':
         code=request.form['code'] 
-        codeF=request.form['codeF']         
+        codeF=request.form['codeF']   
+        codeObj=request.form['codeObj']  
+        
+        idObj=request.form['obj'] 
+        
+        if codeObj:
+            all_obj=cache.get(codeObj)   
+        else:
+            codeObj=str(uuid.uuid4())     
+            all_obj=all_obj0       
+            cache.set(codeObj,dict(all_obj0))  
+        
+        if all_obj is None:
+            codeObj=str(uuid.uuid4())     
+            all_obj=all_obj0       
+            cache.set(codeObj,dict(all_obj0))
+            
+        if len(all_obj)==0: codeObj=''
+            
             
         name=request.form['name'] 
         nightF=request.form['night']
@@ -1618,6 +1643,58 @@ def modify():
             dfW=df.to_dict('records')
             
             calc=0
+            
+        if 'indiv' in request.form:
+            #add individual target           
+            obj=all_obj[idObj]['obj']['full'].to_dict()
+
+            #get data
+            if code: 
+                df,alt_plot,sky_plot=cache.get(code)
+                data=df.to_dict('index')
+            else: 
+                code=str(uuid.uuid4())    #unique hash for different users     
+                data={}
+                alt_plot=''
+                sky_plot=''
+            
+            if len(data)>0: last=list(sorted(data.keys()))[-1]
+            else: last=-1
+            
+            new_obj={'_'+x: obj[x] if not pd.isna(obj[x]) else '' for x in obj}
+            new_obj['index']=last+2
+            new_obj['Target']=new_obj['_Target']
+            new_obj['RA']=new_obj['_RA']
+            new_obj['DEC']=new_obj['_DEC']
+            new_obj['Mag']=new_obj['_Mag']
+            new_obj['duration (minutes)']=''
+            new_obj['Start']=''
+            new_obj['End']=''
+            new_obj['configuration']=''
+            new_obj['Altitude']=''
+            new_obj['Airmass']=''
+            new_obj['Azimut']=''
+            new_obj['Priority']=obj['Priority']
+            new_obj['ExpTime']=obj['ExpTime']
+            if obj['Number']=='series': new_obj['Number']=5
+            else: new_obj['Number']=obj['Number']
+            new_obj['Position']=''
+            new_obj['Remarks']=new_obj['_Remarks']
+            del(new_obj['_Remarks'])
+            
+            data[last+1]=new_obj            
+            df=pd.DataFrame().from_dict(data,'index')
+            
+            cache.set(code,[pd.DataFrame(df),alt_plot,sky_plot])    #save in cache
+            
+            dfW=df.to_dict('records')
+            
+            calc=0
+            
+            if codeF: objects,obs=cache.get(codeF)
+            else: 
+                objects=[]
+                obs=[]
         
         if 'delete' in request.form:
             #delete schedule
@@ -1637,6 +1714,7 @@ def modify():
                 dfW=[]
                 alt_plot=''
                 sky_plot=''
+                
                   
         
         if 'new' in request.form:  
@@ -1665,7 +1743,7 @@ def modify():
                 if codeF: objects=cache.get(codeF)
                 else: objects=[]
             
-                return render_template('modify.html', schedules=schedules,name=name,schedule=[],code='', codeF=codeF, alt_plot='',sky='',start=request.form['start'],night=request.form['night'],groups=groups,use_group=use_group,objects=objects,calc=0,total_time=16)
+                return render_template('modify.html', schedules=schedules,name=name,schedule=[],code='', codeF=codeF, alt_plot='',sky='',start=request.form['start'],night=request.form['night'],groups=groups,use_group=use_group,objects=objects,calc=0,total_time=16,all_obj=sorted(all_obj.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj=idObj)
             else: ids=[int(i) for i in request.form.to_dict(flat=False)['id']]          
 
             df0=pd.DataFrame(cache.get(code)[0])
@@ -1771,7 +1849,7 @@ def modify():
                 if codeF: objects=cache.get(codeF)
                 else: objects=[]
             
-                return render_template('modify.html', schedules=schedules,name=name,schedule=[],code='', codeF=codeF, alt_plot='',sky='',start=request.form['start'],night=request.form['night'],groups=groups,use_group=use_group,objects=objects)
+                return render_template('modify.html', schedules=schedules,name=name,schedule=[],code='', codeF=codeF, alt_plot='',sky='',start=request.form['start'],night=request.form['night'],groups=groups,use_group=use_group,objects=objects,all_obj=sorted(all_obj.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj=idObj)
             else: ids=[int(i) for i in request.form.to_dict(flat=False)['id']]          
 
             df0=pd.DataFrame(cache.get(code)[0])
@@ -1987,10 +2065,16 @@ def modify():
             output.headers["Content-type"] = "text/json"
             return output 
         
-        return render_template('modify.html', schedules=schedules,name=name,schedule=dfW,code=code, codeF=codeF,alt_plot=alt_plot,sky=sky_plot,start=startF,night=nightF,groups=groups,use_group=use_group,objects=objects,obs=obs,indiv=indiv,calc=calc,total_time=total_time)
+        return render_template('modify.html', schedules=schedules,name=name,schedule=dfW,code=code, codeF=codeF,alt_plot=alt_plot,sky=sky_plot,start=startF,night=nightF,groups=groups,use_group=use_group,objects=objects,obs=obs,indiv=indiv,calc=calc,total_time=total_time,all_obj=sorted(all_obj.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj=idObj)
+    else:
+        all_obj=all_obj0
+        
+        codeObj=str(uuid.uuid4())
+        cache.set(codeObj,dict(all_obj0))
+        if len(all_obj)==0: codeObj=''
     
     
-    return render_template('modify.html', schedules=schedules,name='',schedule=[],code='',codeF='', alt_plot='',sky='',start='',night='',groups=groups,use_group=[],objects=[],obs=[],indiv=True,calc=0,total_time=16)
+    return render_template('modify.html', schedules=schedules,name='',schedule=[],code='',codeF='', alt_plot='',sky='',start='',night='',groups=groups,use_group=[],objects=[],obs=[],indiv=True,calc=0,total_time=16,all_obj=sorted(all_obj.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj='')
 
 @app.route("/scheduler/limits", methods=['GET'])
 def limits():
