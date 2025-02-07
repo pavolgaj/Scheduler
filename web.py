@@ -1244,7 +1244,7 @@ def modify():
             codeObj=str(uuid.uuid4())
             
             cache.set(codeObj,dict(all_obj0))
-            if len(all_obj)==0: codeObj=''
+            if len(all_obj0)==0: codeObj=''
         
             return render_template('modify.html', schedules=schedules,name=name,schedule=[],code='',codeF='', alt_plot='',sky='',start='',night='',groups=groups,use_group=[],objects=[],obs=[],prev_plot='',indiv=True,modify=True, calc=1,total_time=16,all_obj=sorted(all_obj0.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj='')
         
