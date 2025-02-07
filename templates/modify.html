@@ -6,6 +6,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Modify schedule</title>
         <script src="{{ url_for('static', filename='jquery.min.js') }}"></script>
+        <link href="{{ url_for('static', filename='select2.min.css') }}" rel="stylesheet" />
+        <script src="{{ url_for('static', filename='select2.min.js') }}"></script>
         <style>
             body {
                 font-family: Arial, sans-serif;
@@ -29,7 +31,7 @@
             }
 
             tr:nth-child(even) {
-                background-color: #dddddd;
+                background-color: #dddddd;  
             }
 
             label {
@@ -702,6 +704,11 @@
             document.getElementById("load").click();
         </script>
         {% endif %}
+
+        <script>
+            //change selectbox to selectize mode to be searchable
+            $("select#obj").select2();
+        </script>
 
         <script>
             // sorting groups table
