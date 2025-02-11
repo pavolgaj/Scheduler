@@ -547,7 +547,7 @@
             <div>
                 <center>
                     <label for="save-name">Name of schedule</label>
-                    <input type="text" name="save-name" id="save-name" title="Name of schedule to save.">
+                    <input type="text" name="save-name" id="save-name" title="Name of schedule to save on server." placeholder="Name of schedule to save">
                     <button type="submit" name="save" id="save" onclick="return checkSave()" title="Save schedule." {%
                         if not code %}disabled style="background-color:gray; color: black; cursor: default;" {% endif
                         %}>Save schedule</button>

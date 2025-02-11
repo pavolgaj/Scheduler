@@ -71,9 +71,63 @@
             button:hover {
                 background-color: #555;
             }
+
+            input {
+                padding: 10px;
+                border-radius: 5px;
+                width: 20%;
+                min-width: 100px;
+                max-width: 200px;
+                margin-bottom: 10px;
+            }
         </style>
         <!-- import basic jquery functions -> used for sorting -->
         <script src="{{ url_for('static', filename='jquery.min.js') }}"></script>
+
+        <script>
+            function searchTab() {
+                // filter in tables
+                var input, filter, table, tr, td, cell, i, j;
+                input = document.getElementById("searchInput");
+                filter = input.value.toUpperCase();
+                table = document.getElementById("my_table");
+                tr = table.getElementsByTagName("tr");
+                for (i = 1; i < tr.length; i++) {
+                    // Hide the row initially.
+                    tr[i].style.display = "none";
+
+                    td = tr[i].getElementsByTagName("td");
+                    for (var j = 0; j < td.length; j++) {
+                        cell = tr[i].getElementsByTagName("td")[j];
+                        if (cell) {
+                            if (cell.innerHTML.toUpperCase().indexOf(filter) > -1) {
+                                tr[i].style.display = "";
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                table = document.getElementById("done_table");
+                tr = table.getElementsByTagName("tr");
+                for (i = 1; i < tr.length; i++) {
+                    // Hide the row initially.
+                    tr[i].style.display = "none";
+
+                    td = tr[i].getElementsByTagName("td");
+                    for (var j = 0; j < td.length; j++) {
+                        cell = tr[i].getElementsByTagName("td")[j];
+                        if (cell) {
+                            if (cell.innerHTML.toUpperCase().indexOf(filter) > -1) {
+                                tr[i].style.display = "";
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        </script>
+
     </head>
 
     <body>
@@ -91,6 +145,8 @@
         </center>
         <br>
 
+        <input type="text" id="searchInput" onkeyup="searchTab()" placeholder="Search for target.."
+            title="Search for target in DB.">
         <!-- table with observable obj -->
         <center>
             <h2>Objects for observations</h2>

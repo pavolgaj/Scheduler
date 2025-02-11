@@ -391,7 +391,7 @@
                 <label for="obs">Observatory</label>
                 <input list="obs-list" type="text" id="obs" name="obs" value="{{ obs }}"
                     class="{{ 'error' if errors.get('obs') else 'normal' }}" title="Name of observatory."
-                    onblur="change_obs()">
+                    onblur="change_obs()" placeholder="Name of observatory">
                 <datalist id="obs-list" name="obs-list">
                     <!-- list of some known observatories -->
                     {% for obs in observatories | sort %}
@@ -402,38 +402,38 @@
             <div class="form-group">
                 <label for="lat">Latitude</label>
                 <input type="text" id="lat" name="lat" value="{{ lat }}"
-                    class="{{ 'error' if errors.get('lat') else 'normal' }}" title="Latitude of observatory (deg).">
+                    class="{{ 'error' if errors.get('lat') else 'normal' }}" title="Latitude of observatory (deg)." placeholder="Latitude of observatory (deg)">
                 <!-- format! -->
             </div>
             <div class="form-group">
                 <label for="lon">Longitude</label>
                 <input type="text" id="lon" name="lon" value="{{ lon }}"
-                    class="{{ 'error' if errors.get('lon') else 'normal' }}" title="Longitude of observatory (deg).">
+                    class="{{ 'error' if errors.get('lon') else 'normal' }}" title="Longitude of observatory (deg)." placeholder="Longitude of observatory (deg)">
                 <!-- format! -->
             </div>
             <div class="form-group">
                 <label for="alt">Elevation</label>
                 <input type="text" id="alt" name="alt" value="{{ alt }}"
-                    class="{{ 'error' if errors.get('alt') else 'normal' }}" title="Altitude of observatory (m).">
+                    class="{{ 'error' if errors.get('alt') else 'normal' }}" title="Altitude of observatory (m)." placeholder="Altitude of observatory (m)">
                 <!-- format! -->
             </div>
             <hr>
             <div class="form-group">
                 <label for="minAlt">Altitude limit</label>
                 <input type="text" id="minAlt" name="minAlt" value="{{ minAlt }}"
-                    class="{{ 'error' if errors.get('minAlt') else 'normal' }}" title="Altitude limit (deg).">
+                    class="{{ 'error' if errors.get('minAlt') else 'normal' }}" title="Altitude limit (deg)." placeholder="Altitude limit (deg)">
                 <!-- format! -->
             </div>
             <div class="form-group">
                 <label for="airmass">Airmass limit</label>
                 <input type="text" id="airmass" name="airmass" value="{{ airmass }}"
-                    class="{{ 'error' if errors.get('airmass') else 'normal' }}" title="Airmass limit.">
+                    class="{{ 'error' if errors.get('airmass') else 'normal' }}" title="Airmass limit." placeholder="Airmass limit">
                 <!-- format! -->
             </div>
             <div class="form-group">
                 <label for="moon">Moon sep.</label>
                 <input type="text" id="moon" name="moon" value="{{ moon }}"
-                    class="{{ 'error' if errors.get('moon') else 'normal' }}" title="Moon separation limit (deg).">
+                    class="{{ 'error' if errors.get('moon') else 'normal' }}" title="Moon separation limit (deg)." placeholder="Moon separation limit (deg)">
                 <!-- format! -->
             </div>
             <div class="checkbox-wrapper">
@@ -444,23 +444,23 @@
                 <label for="azm_start" id="azm_start_label">&nbsp;&nbsp;&nbsp;from</label>
                 <input type="text" name="azm_start" id="azm_start" value="{{ azm_start }}"
                     style="display::{{ 'inline-block' if azm else 'none' }}"
-                    title="Lower azimuth limit (i.e. start of permitted slot). Leave empty if NO limit.">
+                    title="Lower azimuth limit (i.e. start of permitted slot). Leave empty if NO limit." placeholder="Lower azimuth limit">
                 <label for="azm_end" id="azm_end_label">&nbsp;&nbsp;&nbsp;to</label>
                 <input type="text" name="azm_end" id="azm_end" value="{{ azm_end }}"
                     style="display::{{ 'inline-block' if azm else 'none' }}"
-                    title="Upper azimuth limit (i.e. end of permitted slot). Leave empty if NO limit.">
+                    title="Upper azimuth limit (i.e. end of permitted slot). Leave empty if NO limit." placeholder="Upper azimuth limit">
             </div>
             <hr>
             <div class="form-group">
                 <label for="readout">Readout time</label>
                 <input type="text" id="readout" name="readout" value="{{ readout }}"
-                    class="{{ 'error' if errors.get('readout') else 'normal' }}" title="Readout time of camera (sec).">
+                    class="{{ 'error' if errors.get('readout') else 'normal' }}" title="Readout time of camera (sec)." placeholder="Readout time of camera (sec)">
                 <!-- format! -->
             </div>
             <div class="form-group">
                 <label for="slew">Slew rate</label>
                 <input type="text" id="slew" name="slew" value="{{ slew }}"
-                    class="{{ 'error' if errors.get('slew') else 'normal' }}" title="Slew rate of telescope (deg/min).">
+                    class="{{ 'error' if errors.get('slew') else 'normal' }}" title="Slew rate of telescope (deg/min)." placeholder="Slew rate of telescope (deg/min)">
                 <!-- format! -->
             </div>
             <hr>

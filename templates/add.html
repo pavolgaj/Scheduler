@@ -223,7 +223,7 @@
                 </label>
                 <!-- required for all buttons   -->
                 <input type="text" id="name" name="name" value="{{ name }}"
-                    class="{{ 'error' if errors.get('name') else 'normal' }}" required title="Target name.">
+                    class="{{ 'error' if errors.get('name') else 'normal' }}" required title="Target name." placeholder="Target name.">
                 <button type="submit" name="simbad" title="Look for coordinates and magnitude in Simbad.">Search in
                     Simbad
                 </button>
@@ -236,7 +236,7 @@
                 <!--  check only after submit -> in code        -->
                 <input type="text" id="ra" name="ra" value="{{ ra }}"
                     class="{{ 'error' if errors.get('ra') else 'normal' }}" pattern="\d+[\s:]\d+[\s:]\d+(\.\d+)?"
-                    title='RA in format "H M S" or "H:M:S".'>
+                    title='RA in format "H M S" or "H:M:S".' placeholder='RA in format "H M S" or "H:M:S"'>
                 <!-- regex format pattern -->
             </div>
             <div class="form-group">
@@ -244,12 +244,12 @@
                 </label>
                 <input type="text" id="dec" name="dec" value="{{ dec }}"
                     class="{{ 'error' if errors.get('dec') else 'normal' }}" pattern="-?\d+[\s:]\d+[\s:]\d+(\.\d+)?"
-                    title='Dec in format "D M S" or "D:M:S".'> <!-- regex format pattern -->
+                    title='Dec in format "D M S" or "D:M:S".' placeholder='Dec in format "D M S" or "D:M:S"'> <!-- regex format pattern -->
             </div>
             <div class="form-group">
                 <label for="mag">Mag
                 </label>
-                <input type="text" id="mag" name="mag" value="{{ mag }}" class="normal" title="Object magnitude.">
+                <input type="text" id="mag" name="mag" value="{{ mag }}" class="normal" title="Object magnitude." placeholder="Object magnitude">
             </div>
             <div class="button-group">
                 <label>Search Period in</label>
@@ -260,12 +260,12 @@
             <div class="form-group">
                 <label for="per">Period</label>
                 <input type="text" id="per" name="per" value="{{ per }}" pattern="\d+(\.\d+)?$"
-                    class="{{ 'error' if errors.get('per') else 'normal' }}" title="Orbital period (in days).">
+                    class="{{ 'error' if errors.get('per') else 'normal' }}" title="Orbital period (in days)." placeholder="Orbital period (in days)">
             </div>
             <div class="form-group">
                 <label for="t0">Epoch</label>
                 <input type="text" id="t0" name="t0" value="{{ t0 }}" pattern="\d+(\.\d+)?$"
-                    title="Initial epoch in full JD." class="{{ 'error' if errors.get('t0') else 'normal' }}">
+                    title="Initial epoch in full JD." class="{{ 'error' if errors.get('t0') else 'normal' }}" placeholder="Initial epoch in full JD">
             </div>
             <hr>
 
@@ -273,7 +273,7 @@
                 <label for="exp"><u>Exp. time</u>
                 </label>
                 <input type="text" id="exp" name="exp" value="{{ exp }}" pattern="\d+"
-                    class="{{ 'error' if errors.get('exp') else 'normal' }}" title="Exposure time in seconds.">
+                    class="{{ 'error' if errors.get('exp') else 'normal' }}" title="Exposure time in seconds." placeholder="Exposure time in seconds">
             </div>
             <div class="checkbox-wrapper">
                 <label for="series">Series
@@ -316,12 +316,12 @@
                     onclick="togglePhot()" {% if phot %}checked{% endif %}>
                 <input type="text" name="phot_input" id="phot_input" value="{{ phot_input }}"
                     class="{{ 'error' if errors.get('phot') else 'normal' }}"
-                    title="Parameters for photometry (e.g. filter, exposure).">
+                    title="Parameters for photometry (e.g. filter, exposure)." placeholder="Parameters for photometry (e.g. filter, exposure)">
             </div>
             <div class="form-group">
                 <label for="remarks">Remarks</label>
                 <input type="text" id="remarks" name="remarks" value="{{ remarks }}"
-                    title="Other remarks and comments related to observation.">
+                    title="Other remarks and comments related to observation." placeholder="Other remarks and comments related to observation">
             </div>
             <hr>
 
@@ -335,7 +335,7 @@
                 <label for="group">Group of objects
                 </label>
                 <input list="group-list" id="group" name="group" class='normal' value="{{ group }}"
-                    title="Type of object.">
+                    title="Type of object." placeholder="Type of object">
                 <datalist id="group-list" name="group-list">
                     <!-- list of some obj types, write own possible -->
                     <option value="Exoplanet">
@@ -358,7 +358,7 @@
                 <input type="text" name="moon_input" id="moon_input" value="{{ moon_input }}"
                     style="display::{{ 'inline-block' if moon else 'none' }}"
                     title="Maximum acceptable phase of Moon. From 0 to 1 (full Moon)." pattern="^0\.\d+"
-                    class="{{ 'error' if errors.get('moon') else 'normal' }}">
+                    class="{{ 'error' if errors.get('moon') else 'normal' }}" placeholder="Maximum acceptable phase of Moon (0 to 1)">
             </div>
             <div class="checkbox-wrapper">
                 <label for="phase">Orbital phase</label>
@@ -369,12 +369,12 @@
                 <input type="text" name="phase_start" id="phase_start" value="{{ phase_start }}"
                     style="display::{{ 'inline-block' if phase else 'none' }}"
                     title="Start phase. From 0 to 1. Use start value bigger than end one for interval around phase 0. Leave empty if NO limit."
-                    pattern="^0(\.\d+)?" class="{{ 'error' if errors.get('phase') else 'normal' }}">
+                    pattern="^0(\.\d+)?" class="{{ 'error' if errors.get('phase') else 'normal' }}" placeholder="Start orbital phase (0 to 1)">
                 <label for="phase_end" id="phase_end_label">&nbsp;&nbsp;&nbsp;to</label>
                 <input type="text" name="phase_end" id="phase_end" value="{{ phase_end }}"
                     style="display::{{ 'inline-block' if phase else 'none' }}"
                     title="End phase. From 0 to 1. Use start value bigger than end one for interval around phase 1. Leave empty if NO limit."
-                    pattern="^0(\.\d+)?" class="{{ 'error' if errors.get('phase') else 'normal' }}">
+                    pattern="^0(\.\d+)?" class="{{ 'error' if errors.get('phase') else 'normal' }}" placeholder="End orbital phase (0 to 1)">
             </div>
             <div class="checkbox-wrapper">
                 <label for="time">Obs. date
@@ -396,7 +396,7 @@
             <div class="form-group">
                 <label for="other">Other constr.</label>
                 <input type="text" id="other" name="other" value="{{ other }}"
-                    title="Other constraints and requests for observation scheduling.">
+                    title="Other constraints and requests for observation scheduling." placeholder="Other constraints and requests for observation scheduling">
             </div>
             <hr>
 
@@ -404,19 +404,19 @@
                 <label for="supervis"><u>Supervisor</u>
                 </label>
                 <input type="text" id="supervis" name="supervis" value="{{ supervis }}"
-                    class="{{ 'error' if errors.get('supervis') else 'normal' }}" title="Name of target supervisor.">
+                    class="{{ 'error' if errors.get('supervis') else 'normal' }}" title="Name of target supervisor." placeholder="Name of target supervisor">
             </div>
             <div class="form-group">
                 <label for="email"><u>Email</u>
                 </label>
                 <input type="email" id="email" name="email" value="{{ email }}"
-                    class="{{ 'error' if errors.get('email') else 'normal' }}" title="E-mail address of supervisor.">
+                    class="{{ 'error' if errors.get('email') else 'normal' }}" title="E-mail address of supervisor." placeholder="E-mail address of supervisor">
             </div>
             <div class="form-group">
                 <label for="mess">Message to admin
                 </label>
                 <textarea id="mess" name="mess" class="normal"
-                    title="Additional information for database admins (e.g. ask for higher priority).">{{ mess if mess else '' }}</textarea>
+                    title="Additional information for database admins (e.g. ask for higher priority)." placeholder="Additional information for database admins">{{ mess if mess else '' }}</textarea>
             </div>
             <br>
             <center>

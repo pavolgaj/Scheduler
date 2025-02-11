@@ -167,19 +167,19 @@
                 <label for="supervis"><u>Supervisor</u>
                 </label>
                 <input type="text" id="supervis" name="supervis" value="{{ supervis }}"
-                    class="{{ 'error' if errors.get('supervis') else 'normal' }}" title="Name of target supervisor."  required>
+                    class="{{ 'error' if errors.get('supervis') else 'normal' }}" title="Name of target supervisor." placeholder="Name of target supervisor" required>
             </div>
             <div class="form-group">
                 <label for="email"><u>Email</u>
                 </label>
                 <input type="email" id="email" name="email" value="{{ email }}"
-                    class="{{ 'error' if errors.get('email') else 'normal' }}" title="E-mail address of supervisor." required>
+                    class="{{ 'error' if errors.get('email') else 'normal' }}" title="E-mail address of supervisor." placeholder="E-mail address of supervisor" required>
             </div>
             <div class="form-group">
                 <label for="mess">Message to admin
                 </label>
                 <textarea id="mess" name="mess" class="normal"
-                    title="Additional information for database admins (e.g. ask for higher priority).">{{ mess if mess else '' }}</textarea>
+                    title="Additional information for database admins (e.g. ask for higher priority)." placeholder="Additional information for database admins">{{ mess if mess else '' }}</textarea>
             </div>
             <br>
             <center>

@@ -79,6 +79,8 @@
         </style>
         <!-- import basic jquery functions -> used for sorting -->
         <script src="{{ url_for('static', filename='jquery.min.js') }}"></script>
+        <link href="{{ url_for('static', filename='select2.min.css') }}" rel="stylesheet" />
+        <script src="{{ url_for('static', filename='select2.min.js') }}"></script>
         <script>
             //reload page (submit form) on change of obj
             function toggleChange() {
@@ -149,6 +151,10 @@
             toggleChange();
         </script>
         {% endif %}
+        <script>
+            //change selectbox to selectize mode to be searchable
+            $("select").select2();
+        </script>
         <script>
             // sorting html table
 

@@ -274,7 +274,7 @@
             </div>
             <div class="form-group" id="name-div">
                 <label for="name">Name of new schedule </label>
-                <input type="text" name="name" id="name" value="{{ name }}" title="Name prefix for generating schedule. Date added automatically. Name = prefix_YMD">
+                <input type="text" name="name" id="name" value="{{ name }}" title="Name prefix for generating schedules. Date added automatically. Name = prefix_YMD" placeholder="Name prefix for generating schedules">
             </div>
 
             <div class="form-group">
@@ -294,11 +294,11 @@
                 <label for="azm_start" id="azm_start_label">&nbsp;&nbsp;&nbsp;from</label>
                 <input type="text" name="azm_start" id="azm_start" value="{{ azm_start }}"
                     style="display::{{ 'inline-block' if azm else 'none' }}"
-                    title="Lower azimuth limit (i.e. start of permitted slot). Leave empty if NO limit.">
+                    title="Lower azimuth limit (i.e. start of permitted slot). Leave empty if NO limit." placeholder="Lower azimuth limit in deg">
                 <label for="azm_end" id="azm_end_label">&nbsp;&nbsp;&nbsp;to</label>
                 <input type="text" name="azm_end" id="azm_end" value="{{ azm_end }}"
                     style="display::{{ 'inline-block' if azm else 'none' }}"
-                    title="Upper azimuth limit (i.e. end of permitted slot). Leave empty if NO limit.">
+                    title="Upper azimuth limit (i.e. end of permitted slot). Leave empty if NO limit." placeholder="Upper azimuth limit in deg">
             </div>
 
             <!-- table with object types/groups -->
