@@ -156,7 +156,7 @@ while nights>0:
     for c in tab.colnames:
         if c in cols: tab[c].name=cols[c]
         elif c[0]=='_':
-            if c=='_index' or c=='_configuration': tab.remove_column(c)
+            if c=='_index' or c=='_configuration' or c[1]=='_': tab.remove_column(c)
             elif not c[1:] in cols.values(): tab[c].name=c[1:]
             elif not (c+'_orig' in tab.colnames or c[1:]+'_orig' in tab.colnames): tab[c].name=c[1:]+'_orig'
             else: tab.remove_column(c)

@@ -251,10 +251,14 @@ def plot_limits(ha0,ha1,dec,title=None):
     ax1 = fig.add_subplot(111)
     ax1.plot(eastLim[:,0],eastLim[:,1],'b-')
     ax1.plot(westLim[:,0],westLim[:,1],'r-')
-    ax1.plot(ha0,dec,'b<')
-    ax1.plot(ha0W,decW,'r<')
-    ax1.plot(ha1,dec,'b>')
-    ax1.plot(ha1W,decW,'r>')
+    if ha0==ha1:
+        ax1.plot(ha0,dec,'bo')
+        ax1.plot(ha0W,decW,'ro')
+    else: 
+        ax1.plot(ha0,dec,'b<')
+        ax1.plot(ha0W,decW,'r<')
+        ax1.plot(ha1,dec,'b>')
+        ax1.plot(ha1W,decW,'r>')
     ax1.set_xlim(-90,270)
     ax1.set_ylim(-240,60)
     ax1.hlines(-90, -90, 270, colors='k',linestyles=':')
