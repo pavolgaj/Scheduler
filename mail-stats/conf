@@ -1,0 +1,8 @@
+[mail]
+smtp = smtp_server
+from = from@mail
+
+to =
+    to@mail
+
+subject = E152 Observing statistics

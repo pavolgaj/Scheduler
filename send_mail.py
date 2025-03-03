@@ -23,11 +23,26 @@ from email import encoders
 
 class SendMail:
 
-    def __init__(self,cc):
-        self.load_cfg()
-        self.mail["cc"]=cc
+    def __init__(self,cc,directory=None,check=False):
         self.attachments = {}
         self.message=""
+            
+        if directory is None: 
+            self.load_cfg()            
+        else:
+            self.load_cfg(directory+'/conf')
+            self.load_message(directory+'/message')
+            for name in os.listdir(directory+'/attachments'):
+                self.load_attachments(directory+'/attachments/'+name)
+            
+        self.mail["cc"]=cc
+        
+        if check:
+            print("Only check")
+            self.check()
+            print("\nSUCCESS")
+            sys.exit()       
+        
 
     def load_cfg(self,filename = "mail/conf"):       
         if not os.path.isfile(filename):
@@ -80,6 +95,7 @@ class SendMail:
         msg["Cc"] = self.mail["cc"]
         msg["Subject"] = Header(subject, "utf-8")
         msg["Date"] = formatdate(localtime=True)
+        msg['reply-to'] = self.mail["to"]+', '+self.mail["cc"]
 
         plain_text = MIMEText(text, "plain", "utf-8")
         msg.attach(plain_text)
@@ -114,7 +130,7 @@ def main():
     if argv_len == 3:
         check = True
 
-    send_mail = SendMail(directory, check)
+    send_mail = SendMail(cc='',directory=directory,check=check)
 
     try:
         send_mail.run()

@@ -17,6 +17,8 @@ import uuid
 import base64
 from datetime import datetime,timezone,timedelta
 
+from make_stats import make_stats
+
 import matplotlib
 matplotlib.use('Agg')
 
@@ -2475,122 +2477,6 @@ def user():
            
     
     return render_template('user.html',obs='Ondrejov',lat=49.910555556,lon=14.783611111,alt=528,minAlt=20,airmass=5,moon=15,readout=30,slew=20,start= datetime.now(timezone.utc).strftime('%Y-%m-%d')+'T18:00', end=(datetime.now(timezone.utc)+timedelta(days=1)).strftime('%Y-%m-%d')+'T06:00', errors={},observatories=observatories,scheduler='Priority')
-
-def make_stats():
-    '''make statistics of observations'''
-    stats={}
-    observations={}
-    new=[]
-    names={}  #utilize similar objects names - spaces, lower/upper case etc.
-    logs=list(sorted(glob.glob('static/logs/*_log.csv')))   #path to log files
-    if len(logs)==0: return
-
-    if os.path.isfile('db/statistics.csv'):
-        # read old stats
-        f=open('db/last','r')
-        last=f.readline().strip()   #last file in made stats
-        f.close()        
-        if logs[-1]==last: return   #no new logs -> nothing to do...
-        
-        #loads old stats
-        f=open('db/statistics.csv','r')
-        lines=f.readlines()
-        f.close()
-        for l in lines[1:]:
-            tmp=l.strip().split(',')
-            target=tmp[0]
-            inst=tmp[1]
-            exp=float(tmp[2])
-            n=int(tmp[3])
-            last0=tmp[4]
-            if target in stats:
-                if inst in stats[target]:
-                    stats[target][inst][exp]={'n':n,'last':last0}
-                else: stats[target][inst]={exp:{'n':n,'last':last0}}
-            else: stats[target]={inst:{exp:{'n':n,'last':last0}}}
-            
-        f=open('db/observations.json','r')
-        observations=json.load(f)
-        f.close() 
-        
-        f=open('db/names.json','r')
-        names=json.load(f)
-        f.close()
-
-        new=logs[logs.index(last)+1:]   #detect new logs (not in stats)
-    else: new=logs
-
-    #work only with new logs
-    for log in new:
-        f=open(log,'r')
-        reader = csv.DictReader(f)
-        last=os.path.basename(log)[:10]
-        for obs in reader:
-            target=obs['object'].replace('?','').replace('ttarget-','').replace('ttarget_','').replace('_',' ').strip()
-            #remove calibrations and tests
-            if target.lower() in ['bias','flat','comp','test','zero','thar','','dark','pokus','neco','xx','calibration','djdj','rtjhrstjh','shgdfz','shs','shswh','ttt','yflju','t','twst']: continue
-            if 'test' in target.lower(): continue
-            if 'thar' in target.lower(): continue
-            if 'flat' in target.lower(): continue
-            if 'dark' in target.lower(): continue
-            if 'dome' in target.lower(): continue
-            if 'pok' in target.lower(): continue
-            if 'front' in target.lower(): continue
-            if 'spektrum' in target.lower(): continue
-            if 'comp' in target.lower(): continue
-            
-            #utilize similar objects names - spaces, lower/upper case etc.
-            if not target.lower().replace('-','').replace(' ','') in names: names[target.lower().replace('-','').replace(' ','')]=target
-            target=names[target.lower().replace('-','').replace(' ','')]
-            exp=float(obs['exposure'])
-            inst=obs['instrument']
-            #add obj to stats -> for specific exp. time
-            if target in stats:
-                if inst in stats[target]:
-                    if exp in stats[target][inst]:
-                        if stats[target][inst][exp]['last']==last: continue
-                        stats[target][inst][exp]['n']+=1
-                        stats[target][inst][exp]['last']=last
-                    else: stats[target][inst][exp]={'n':1,'last':last}
-                else: stats[target][inst]={exp:{'n':1,'last':last}}
-            else: stats[target]={inst:{exp:{'n':1,'last':last}}}
-            
-            if target in observations:
-                if not last in observations[target]: 
-                    observations[target].append(last)
-            else: observations[target]=[last]
-        f.close()
-
-    #save stats + name of last log
-    f=open('db/last','w')
-    f.write(new[-1])
-    f.close()
-    os.chmod('db/last', 0o666)
-
-    #last night observations (for stats page)
-    f=open('db/statistics.csv','w')
-    f.write('object,instrument,exposure,nights,last\n')
-    for target in sorted(stats):
-        for inst in sorted(stats[target]):
-            for exp in sorted(stats[target][inst]):
-                f.write(target+',')
-                f.write(inst+',')
-                f.write(str(exp)+',')
-                f.write(str(stats[target][inst][exp]['n'])+',')
-                f.write(stats[target][inst][exp]['last']+'\n')
-    f.close()
-    os.chmod('db/statistics.csv', 0o666)
-    
-    #all obs (for search page)
-    f=open('db/observations.json','w')
-    json.dump(observations,f)
-    f.close()
-    os.chmod('db/observations.json', 0o666)
-    
-    f=open('db/names.json','w')
-    json.dump(names,f)
-    f.close()
-    os.chmod('db/names.json', 0o666)
 
 
 @app.route("/scheduler/stats")

@@ -91,9 +91,11 @@ else: read_out=0
 #add targets to schedule
 schedule=Schedule(suns,sunr)
 schedule.observer = observatory
+blocks=[]
 for obj in objects.values():
     b=ObservingBlock.from_exposures(obj['target'],1,obj['exp']*u.second,obj['n_exp'],read_out)
     b.observer = observatory
+    blocks.append(b)
     #print(obj['target'].name)
     t0=obj['start']
     if len(schedule.scheduled_blocks)>0 and transitions:
@@ -208,6 +210,33 @@ plt.savefig(outname+'_sky.png',dpi=150)
 plt.figure()
 ax=plot_timeline(schedule,night,objects0=objects)
 plt.savefig(outname+'_time.png',dpi=150)
+
+if config['debug']:
+    constraints = [ModifAltitudeConstraint(config['minAlt'],config['maxAlt'],boolean_constraint=False), AirmassConstraint(config['airmass'],boolean_constraint=True),
+               AtNightConstraint.twilight_nautical(), MoonSeparationConstraint(config['moon'])]
+    
+    if not os.path.isdir('debug'): os.mkdir('debug')
+    if not os.path.isdir('debug/constraints'): os.mkdir('debug/constraints')
+    if not os.path.isdir('debug/'+objlist[:objlist.rfind(('.'))]): os.mkdir('debug/'+objlist[:objlist.rfind(('.'))])   
+    if not os.path.isdir('debug/constraints/'+objlist[:objlist.rfind(('.'))]): os.mkdir('debug/constraints/'+objlist[:objlist.rfind(('.'))])
+
+    plt.figure()
+    ax,scores=plot_score(blocks, schedule, constraints,objects0=objects)
+    plt.savefig(outname.replace('schedule/','debug/')+'_score.png',dpi=150)
+    plt.savefig(outname.replace('schedule/','debug/')+'_score.pdf',dpi=150,bbox_inches="tight")
+    plt.close()
+
+    #scores.pprint_all()
+    f=open(outname.replace('schedule/','debug/')+'_score.txt','w')
+    f.writelines('\n'.join(scores.pformat_all()))
+    f.close()
+
+    for star in list(objects.values()):
+        plt.figure()
+        plot_constraints(constraints,observatory,star['target'],obstime)
+        plt.savefig(outname.replace('schedule/','debug/constraints/')+'_'+star['full']['Target'].replace(' ','_').replace('/','_')+'.png',dpi=150)
+        plt.savefig(outname.replace('schedule/','debug/constraints/')+'_'+star['full']['Target'].replace(' ','_').replace('/','_')+'.pdf',dpi=150)
+        plt.close()
 
 #plt.show()
 print('#######################\nPlots generated!\n#######################\n')
