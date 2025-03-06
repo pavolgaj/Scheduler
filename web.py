@@ -29,6 +29,8 @@ from scheduler import *
 
 import logging
 
+import gc
+
 # main file for web interface for platospec E152 scheduler and objects DB
 # (c) Pavol Gajdos, 2024
 
@@ -68,16 +70,20 @@ def health():
             return 'Path not found!', 555
     except:
         return 'Path not found!', 555
+    
+    gc.collect()
     return 'OK'
 
 @app.route("/scheduler")
 def main():
     '''index page -> just frames for subpages'''
+    gc.collect()
     return render_template('index.html')
 
 @app.route('/scheduler/intro')
 def intro():
     '''some introduction (first page)'''
+    gc.collect()
     return render_template('intro.html')
 
 @app.route('/scheduler/login', methods=['GET', 'POST'])
@@ -101,6 +107,7 @@ def login():
         else:
             flash('Incorrect password. Please try again.')
 
+    gc.collect()
     return render_template('login.html')
 
 def dms(dd):
@@ -247,6 +254,8 @@ def new():
                         elif not hasattr(result_table['FLUX_H'],'mask'): mag=round(result_table['FLUX_H'],2)
                         elif not hasattr(result_table['FLUX_K'],'mask'): mag=round(result_table['FLUX_K'],2)
             else: errors['name'] = 'Name is required.'
+            
+            gc.collect()
             return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal)
         elif 'vsx' in request.form:
             #search P,t0 in VSX cat
@@ -267,6 +276,8 @@ def new():
                     else: t0=float(rV[0][0]['_tab1_15'])
                     if str(t0)=='nan': t0=''
             else: errors['name'] = 'Name is required.'
+            
+            gc.collect()
             return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors,remarks=remarks, simcal=simcal)
         elif 'exoarch' in request.form:
             #search P,t0 in exoplanet archive
@@ -285,6 +296,8 @@ def new():
                     else: t0=float(ea[0]['pl_tranmid'].value)
                     if str(t0)=='nan': t0=''
             else: errors['name'] = 'Name is required.'
+            
+            gc.collect()
             return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal)
 
 
@@ -320,6 +333,8 @@ def new():
 
 
             if errors:
+                gc.collect()
+                
                 return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal)
 
             #set priority for standards
@@ -390,14 +405,18 @@ def new():
                 send.mail['cc']=''
                 send.send_mail("ERROR: exception", traceback.format_exc())
 
+            gc.collect()
             return redirect(url_for('success'))
 
+    gc.collect()
     return render_template('add.html', name='', ra='', dec='', mag='', per='', t0='', exp='', number=1, night=1, series=False, ic=False, phot=False, phot_input='', prior=3, group='', moon=False, moon_input='', phase=False, phase_start='', phase_end='', time=False, time_start='', time_end='', other='', supervis = '', email='', mess='', errors={}, remarks='', simcal='off')
 
 
 # Route for the success page
 @app.route('/scheduler/success')
 def success():
+    gc.collect()
+    
     return "Form submitted successfully!"
 
 
@@ -511,6 +530,8 @@ def bulk():
                 errors['email'] = 'Email is required.'
 
             if errors:
+                gc.collect()
+                
                 return render_template('import.html', supervis = supervis, email=email, mess=mess, errors=errors)
 
             output = io.StringIO()   # create "file-like" output for writing
@@ -538,6 +559,8 @@ def bulk():
             if len(errors['data'])==0: del(errors['data'])
 
             if errors:
+                gc.collect()
+                
                 return render_template('import.html', supervis = supervis, email=email, mess=mess, errors=errors)
 
             # save the data to a database
@@ -562,9 +585,10 @@ def bulk():
                 send.mail['cc']=''
                 send.send_mail("ERROR: exception", traceback.format_exc())
 
+            gc.collect()
             return redirect(url_for('success'))
 
-
+    gc.collect()
     return render_template('import.html', supervis = '', email='', mess='', errors={} )
 
 @app.route("/scheduler/db", methods=['GET', 'POST'])
@@ -617,6 +641,7 @@ def show_db():
             output.headers["Content-type"] = "text/csv"
             return output    
     
+    gc.collect()
     return render_template('show_db.html', header=header.strip().split(','), data=data, done=done)
 
 
@@ -847,6 +872,7 @@ def admin():
     for i,obj in enumerate(reader):
         data.append(obj)
     
+    gc.collect()
     return render_template('admin_db.html', db=db, header=header.strip().split(','), data=data, saved=saved, errors=errors)
 
 @app.route("/scheduler/run", methods=['GET','POST'])
@@ -1064,7 +1090,8 @@ def scheduler():
 
                 nights-=1
                 plantime+=1*u.day             
-                               
+            
+            gc.collect()                   
             if nights0==1: 
                 code=str(uuid.uuid4())    #unique hash for different users
                 cache.set(code,[schedule,objects1])    #save in cache
@@ -1073,13 +1100,15 @@ def scheduler():
             else:
                 return render_template('multi_schedule.html', names=out_names, selected=n_selected, observable=n_obs, scheduled=n_sch)
     
-    
+    gc.collect()
     return render_template('run_scheduler.html',night=datetime.now(timezone.utc).strftime('%Y-%m-%d'),number=1,name='',groups=groups,scheduler='StdPriority',use_group=['RV Standard'],time=False,azm=False,position='both')
 
 
 @app.route("/scheduler/new_schedule", methods=['GET','POST'])
 def new_schedule():
     '''show new scheduler'''
+    gc.collect()
+    
     if not (session.get('logged_in') or request.args.get('user')):
         return redirect(url_for('login', next=request.path))
     
@@ -1172,6 +1201,7 @@ def new_schedule():
                          
     alt_plot,sky_plot=web_plot(schedule)
     
+    gc.collect()
     return render_template('schedule.html', selected=request.args.get('selected'),observable=request.args.get('observable'),scheduled=len(df),schedule=df.to_dict('records'), alt_plot=alt_plot,sky=sky_plot,user=request.args.get('user'))
 
 def web_plot(schedule):
@@ -1205,6 +1235,8 @@ def web_plot(schedule):
 @app.route("/scheduler/modify", methods=['GET','POST'])
 def modify():
     '''make schedule manually or modify created one'''
+    gc.collect()
+    
     if not session.get('logged_in'):
         return redirect(url_for('login', next=request.path))
     
@@ -2075,6 +2107,7 @@ def modify():
         cache.set(codeObj,dict(all_obj0))
         if len(all_obj)==0: codeObj=''
     
+    gc.collect()
     
     return render_template('modify.html', schedules=schedules,name='',schedule=[],code='',codeF='', alt_plot='',sky='',start='',night='',groups=groups,use_group=[],objects=[],obs=[],indiv=True,calc=0,total_time=16,all_obj=sorted(all_obj.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj='')
 
@@ -2104,6 +2137,8 @@ def limits():
 @app.route("/scheduler/show", methods=['GET','POST'])
 def show():
     '''show created scheduler'''
+    gc.collect()
+    
     if not session.get('logged_in'):
         return redirect(url_for('login', next=request.path))
     
@@ -2222,6 +2257,8 @@ def show():
               
         alt_plot,sky_plot=web_plot(schedule)
         
+        gc.collect()
+        
         return render_template('show_schedule.html', schedules=schedules,name=name,schedule=df.to_dict('records'), alt_plot=alt_plot,sky=sky_plot)
         
     name=schedules[0]   
@@ -2241,6 +2278,7 @@ def check_output():
 @app.route("/scheduler/user", methods=['GET','POST'])
 def user():
     '''import user objects and prefilter them (+schedule?)'''
+    gc.collect()
     session['output_ready']=False
     
     #load observatories
@@ -2482,6 +2520,7 @@ def user():
 @app.route("/scheduler/stats")
 def stats():
     '''display stats of obs'''
+    gc.collect()
     if not session.get('logged_in'):
         return redirect(url_for('login', next=request.path))
     make_stats()
@@ -2513,6 +2552,7 @@ def stats():
 @app.route('/scheduler/logs', methods=['GET', 'POST'])
 def logs():
     '''show log files'''
+    gc.collect()
     if not session.get('logged_in'):
         return redirect(url_for('login', next=request.path))
     directory = "static/logs"   #path to logs
@@ -2543,6 +2583,7 @@ def logs():
 @app.route("/scheduler/search", methods=['GET', 'POST'])
 def search():
     '''search for obs of obj'''
+    gc.collect()
     if not session.get('logged_in'):
         return redirect(url_for('login', next=request.path))
     make_stats()
