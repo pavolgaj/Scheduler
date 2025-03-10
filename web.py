@@ -465,6 +465,14 @@ def check(row):
     else:
         try: float(row['Priority'])
         except: errors.append(row['Target']+': priority has to be number.')
+    
+    #set priority for standards
+    if row['Type']=='RV Standard': 
+        row['Priority']='0.1'
+        if 'IC' in row['Remarks']: row['Priority']='0.2'
+    elif row['Type']=='SpecPhot Standard': 
+        row['Priority']='0.5'
+        if 'IC' in row['Remarks']: row['Priority']='0.6'
 
     if len(row['MoonPhase'])>0:
         try:
