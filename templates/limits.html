@@ -93,11 +93,11 @@
             <br>
 
             <label for="date">Date</label>
-            <input type="date" id="date" name="date" value="{{ date }}">
+            <input type="date" id="date" name="date" value="{{ date }}" required>
 
             &nbsp;
             <label for="time">UTC Time</label>
-            <input type="time" id="time" name="time" value="{{ time }}">
+            <input type="time" id="time" name="time" value="{{ time }}" required>
 
             &nbsp;&nbsp;
             <button type="button" onclick="now()">Now</button>
@@ -105,12 +105,12 @@
 
             <label for="ra">RA</label>
             <input type="text" id="ra" name="ra" pattern="\d+[\s:]\d+[\s:]\d+(\.\d+)?"
-                title='RA in format "H M S" or "H:M:S".' value="{{ ra }}" placeholder='RA in format "H M S" or "H:M:S"'>
+                title='RA in format "H M S" or "H:M:S".' value="{{ ra }}" placeholder='RA in format "H M S" or "H:M:S"' required>
             <br>
 
             <label for="dec">DEC</label>
             <input type="text" id="dec" name="dec" pattern="-?\d+[\s:]\d+[\s:]\d+(\.\d+)?"
-                title='Dec in format "D M S" or "D:M:S".' value="{{ dec }}" placeholder='Dec in format "D M S" or "D:M:S"'>
+                title='Dec in format "D M S" or "D:M:S".' value="{{ dec }}" placeholder='Dec in format "D M S" or "D:M:S"' required>
             <br>
 
             <center>

@@ -2124,10 +2124,13 @@ def limits():
     '''plot object in telescope limits'''
     from astropy.coordinates import Angle
     
-    ha0=Angle(request.args.get('ha0'))
-    ha1=Angle(request.args.get('ha1'))
-    dec=Angle(request.args.get('dec'))
-    title=request.args.get('title')
+    try:
+        ha0=Angle(request.args.get('ha0'))
+        ha1=Angle(request.args.get('ha1'))
+        dec=Angle(request.args.get('dec'))
+        title=request.args.get('title')
+    except TypeError:
+        return 'Incorrect format of input parameters!'
     
     fig=plot_limits(ha0,ha1,dec,title)
     #save to "buffer" file
