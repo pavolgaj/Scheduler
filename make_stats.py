@@ -20,6 +20,7 @@ def make_stats():
     observations={}
     new=[]
     names={}  #utilize similar objects names - spaces, lower/upper case etc.
+    all_names={}  # all used name for same target
     logs=list(sorted(glob.glob('static/logs/*_log.csv')))   #path to log files
     if len(logs)==0: return
 
@@ -54,6 +55,10 @@ def make_stats():
         f=open('db/names.json','r')
         names=json.load(f)
         f.close()
+        
+        f=open('db/all_names.json','r')
+        all_names=json.load(f)
+        f.close()
 
         new=logs[logs.index(last)+1:]   #detect new logs (not in stats)
     else: new=logs
@@ -81,7 +86,11 @@ def make_stats():
             if 'comb' in target.lower(): continue
 
             #utilize similar objects names - spaces, lower/upper case etc.
-            if not target.lower().replace('-','').replace(' ','') in names: names[target.lower().replace('-','').replace(' ','')]=target
+            if not target.lower().replace('-','').replace(' ','') in names: 
+                names[target.lower().replace('-','').replace(' ','')]=target
+                all_names[target.lower().replace('-','').replace(' ','')]=[target.replace(' ','_')]
+            elif not target.replace(' ','_') in all_names[target.lower().replace('-','').replace(' ','')]:
+                all_names[target.lower().replace('-','').replace(' ','')].append(target.replace(' ','_'))
             target=names[target.lower().replace('-','').replace(' ','')]
             exp=float(obs['exposure'])
             inst=obs['instrument']
@@ -132,6 +141,11 @@ def make_stats():
     json.dump(names,f)
     f.close()
     os.chmod('db/names.json', 0o666)
+    
+    f=open('db/all_names.json','w')
+    json.dump(all_names,f)
+    f.close()
+    os.chmod('db/all_names.json', 0o666)
 
 def night_time(date):
     '''get lenght of night for given day in hours'''
