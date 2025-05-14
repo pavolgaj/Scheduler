@@ -2599,7 +2599,7 @@ def search():
         return redirect(url_for('login', next=request.path))
     make_stats()
     if not os.path.isfile('db/observations.json'):
-        return render_template('search.html',obj=[],target='',obs={},errors={})
+        return render_template('search.html',obj=[],target='',obs={},errors={},obs_plot={},t0='',P='')
     
     #load stats
     f=open('db/observations.json','r')
@@ -2622,9 +2622,24 @@ def search():
         if not target.lower().replace('-','').replace(' ','') in modif_obs:
             #NOT-observed target - shouldn't be, but for sure...
             error={'target':target+' not observed!'}
-            return render_template('search.html',obj=obj,target=target,obs={},errors=error)
+            return render_template('search.html',obj=obj,target=target,obs={},errors=error,obs_plot={},t0='',P='')
+            
+        #load DB and get P,t0
+        P=''
+        t0=''
+        f=open('db/objects.csv','r')
+        reader = csv.DictReader(f)
+        name=target.lower().replace('-','').replace(' ','').replace('_','')
+        for row in reader:
+            if name==row['Target'].lower().replace('-','').replace(' ','').replace('_',''):
+                if len(row['Period'])>0: 
+                    P=row['Period']
+                    t0=row['Epoch']
+                    break
+        f.close()
             
         obs={}
+        obs_plot={'t':[],'exp':[],'snr':[]}
         #list all obs of selected obj
         for night in sorted(modif_obs[target.lower().replace('-','').replace(' ','')])[::-1]:
             obs[night]={}
@@ -2641,11 +2656,17 @@ def search():
                         if exp in obs[night][inst]: obs[night][inst][exp]+=1
                         else: obs[night][inst][exp]=1
                     else: obs[night][inst]={exp: 1}
+                    obs_plot['t'].append(row['date']+' '+row['time'])
+                    obs_plot['exp'].append(float(row['exposure']))
+                    if 'snr' in row:
+                        if len(row['snr'])>0: obs_plot['snr'].append(float(row['snr']))
+                        else: obs_plot['snr'].append(1)
+                    else: obs_plot['snr'].append(1)
             f.close()        
         
-        return render_template('search.html',obj=obj,target=target,obs=obs,errors={})
+        return render_template('search.html',obj=obj,target=target,obs=obs,errors={},obs_plot=obs_plot,t0=t0,P=P)
     
-    return render_template('search.html',obj=obj,target='',obs={},errors={})
+    return render_template('search.html',obj=obj,target='',obs={},errors={},obs_plot={},t0='',P='')
 
 @app.route('/scheduler/test_limits',methods=['GET','POST'])
 def test_limits():

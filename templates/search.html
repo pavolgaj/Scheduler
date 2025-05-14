@@ -73,18 +73,58 @@
                 font-weight: bold;
             }
 
+            input {
+                border-radius: 5px;
+                display: inline;
+                padding: 8px;
+            }
+
+            button {
+                padding: 10px;
+                border: none;
+                border-radius: 5px;
+                background-color: #333;
+                color: white;
+                cursor: pointer;
+            }
+
             .error {
                 border: 2px solid red;
+            }
+
+            details {
+                margin: 20px 0;
+                padding: 10px;
+                background-color: #fff;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+            }
+
+            details summary {
+                font-size: 1.2em;
+                font-weight: bold;
+                cursor: pointer;
+                outline: none;
+            }
+
+            details summary:hover {
+                color: blue;
             }
         </style>
         <!-- import basic jquery functions -> used for sorting -->
         <script src="{{ url_for('static', filename='jquery.min.js') }}"></script>
         <link href="{{ url_for('static', filename='select2.min.css') }}" rel="stylesheet" />
         <script src="{{ url_for('static', filename='select2.min.js') }}"></script>
+        <script src="{{ url_for('static',filename='plotly.min.js' ) }}"></script>
         <script>
             //reload page (submit form) on change of obj
             function toggleChange() {
                 document.getElementById('obs-form').submit();
+            }
+
+            function isFloat(str) {
+                // check if string is float
+                return (parseFloat(str) == str);
             }
         </script>
     </head>
@@ -112,32 +152,159 @@
                 <h2>Observations of {{target}}</h2>
             </center>
 
-            <table id="my_table">
-                <thead>
+            <div id="plot" style="margin: 0px; padding: 0px; resize:both; overflow: auto; width: 100%"></div>
+            <br>
+            <div>
+                <label for="period" style="display: inline;">Period</label>
+                <input type="text" id="period" name="period" title="Orbital period (days)."
+                    pattern="\d+(\.\d+)?$" value="{{ P }}">
+                <label for="epoch" style="display: inline;">Epoch</label>
+                <input type="text" id="epoch" name="epoch" title="Initial epoch in full JD."
+                    pattern="\d+(\.\d+)?$" value="{{ t0 }}">
+                <button type="button" name="phase" id="phase" onclick="phase_plot()" title="Make phase plot.">Phase
+                    plot</button>
+                <button type="button" name="normal" id="normal" onclick="plot()" title="Make time plot.">Time
+                    plot</button>
+            </div>
+
+            {% if obs_plot %}
+            <script type='text/javascript'>
+                const snr = {{ obs_plot['snr'] }};
+                const exp = {{ obs_plot['exp'] }};
+                const t = {{ obs_plot['t']  | safe }};
+
+                const colors = snr.map(value => {
+                    if (value < 5) return 'red';
+                    if (value < 10) return 'orange';
+                    if (value < 150) return 'green';
+                    return 'red';
+                });
+
+                const min = Math.min(...exp);
+                const max = Math.max(...exp);
+
+                if (min === max) {
+                    var scale=10;
+                }
+                else {                    
+                    var scale = exp.map(value => {
+                        const ratio = (value - min) / (max - min); // Normalize to 0-1
+                        return 7 + ratio * (18-7);    
+                    });
+                }
+
+                function plot() {                   
+                    var plot = {
+                        x: t,
+                        y: snr,
+                        mode: 'markers',
+                        type: 'scatter',
+                        marker: {
+                            size: scale,
+                            color: colors,
+                            line: {
+                                color: 'black',
+                                width: 1
+                            },
+                        },
+                        opacity: 0.9,                        
+                        customdata: exp,
+                        hovertemplate: 'Exp.: %{customdata}<extra></extra>'
+                    };
+                    Plotly.newPlot('plot', [plot], { yaxis: { title: 'SNR' } }, { displayModeBar: true });
+                    }
+
+                function phase_plot() {
+                    var jd = t.map(value => {
+                        const dt = new Date(value+"Z");
+                        return dt.valueOf()/86400000.0+2440587.5;
+                    });
+                    const P = document.getElementById('period').value;
+                    const t0 = document.getElementById('epoch').value;
+
+                    //some checks
+                    if (!P) {
+                        alert('Period missing!');
+                        return false;
+                    }
+
+                    if (!isFloat(P)) {
+                        alert('Incorrect Period!');
+                        return false;
+                    }
+
+                    if (P<=0) {
+                        alert('Incorrect Period!');
+                        return false;
+                    }
+
+                    if (t0) {
+                        if (!isFloat(t0)) {
+                            alert('Incorrect Epoch!');
+                            return false;
+                        }
+
+                        if (t0<2000000) {
+                            alert('Epoch should be in full JD!');
+                        }
+                    }
+
+                    var phase = jd.map(value => {
+                        return ((value-t0)%P)/P;
+                    });
+                    var plot = {
+                        x: phase,
+                        y: snr,
+                        mode: 'markers',
+                        type: 'scatter',
+                        marker: {
+                            size: scale,
+                            color: colors,
+                            line: {
+                                color: 'black',
+                                width: 1
+                            },
+                        },
+                        opacity: 0.9,                        
+                        customdata: exp,
+                        hovertemplate: 'Exp.: %{customdata}<extra></extra>'
+                    };
+                    Plotly.newPlot('plot', [plot], { yaxis: { title: 'SNR' }, xaxis: { range: [0,1], title: 'Phase' } }, { displayModeBar: true });
+                    }
+            </script>
+            <br>
+            {% endif %}
+
+            <details>
+                <summary>List of observations</summary>
+                <br>
+                <table id="my_table">
+                    <thead>
+                        <tr>
+                            <th>Night</th>
+                            <th>Instrument</th>
+                            <th>Exposure</th>
+                            <th>Number</th>
+                        </tr>
+                    </thead>
+                    <!-- fill table with obj obs -->
+                    {% for night, vals in obs.items() %}
+                    {% for inst, tmp in vals.items() %}
+                    {% for exp, number in tmp.items() %}
                     <tr>
-                        <th>Night</th>
-                        <th>Instrument</th>
-                        <th>Exposure</th>
-                        <th>Number</th>
+                        <td>
+                            <a href="{{ url_for('static',filename='logs/')}}{{night}}_log.pdf"
+                                target="_blank">{{ night }}</a>
+                        </td>
+                        <td>{{ inst }}</td>
+                        <td>{{ exp }}</td>
+                        <td>{{ number }}</td>
                     </tr>
-                </thead>
-                <!-- fill table with obj obs -->
-                {% for night, vals in obs.items() %}
-                {% for inst, tmp in vals.items() %}
-                {% for exp, number in tmp.items() %}
-                <tr>
-                    <td>
-                        <a href="{{ url_for('static',filename='logs/')}}{{night}}_log.pdf"
-                            target="_blank">{{ night }}</a>
-                    </td>
-                    <td>{{ inst }}</td>
-                    <td>{{ exp }}</td>
-                    <td>{{ number }}</td>
-                </tr>
-                {% endfor %}
-                {% endfor %}
-                {% endfor %}
-            </table>
+                    {% endfor %}
+                    {% endfor %}
+                    {% endfor %}
+                </table>
+            </details>
             {% if errors %}
             {% for field, error in errors.items() %}
             <center><label style="color: red; border: 2px solid red; background-color: yellow;">{{ error }}</label>
@@ -148,12 +315,15 @@
         {% if obj and not obs %}
         <script>
             // submit on 1st load
-            toggleChange();
+            toggleChange();            
         </script>
         {% endif %}
         <script>
             //change selectbox to selectize mode to be searchable
             $("select").select2();
+            {% if obs_plot %}
+            plot();
+            {% endif %}
         </script>
         <script>
             // sorting html table
