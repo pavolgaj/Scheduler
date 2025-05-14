@@ -2655,13 +2655,14 @@ def search():
                     if inst in obs[night]:
                         if exp in obs[night][inst]: obs[night][inst][exp]+=1
                         else: obs[night][inst][exp]=1
-                    else: obs[night][inst]={exp: 1}
-                    obs_plot['t'].append(row['date']+' '+row['time'])
-                    obs_plot['exp'].append(float(row['exposure']))
+                    else: obs[night][inst]={exp: 1}                    
                     if 'snr' in row:
-                        if len(row['snr'])>0: obs_plot['snr'].append(float(row['snr']))
-                        else: obs_plot['snr'].append(1)
-                    else: obs_plot['snr'].append(1)
+                        if len(row['snr'])>0: 
+                            obs_plot['t'].append(row['date']+' '+row['time'])
+                            obs_plot['exp'].append(float(row['exposure']))
+                            obs_plot['snr'].append(float(row['snr']))
+                        else: continue #obs_plot['snr'].append(1)                            
+                    else: continue #obs_plot['snr'].append(1)    
             f.close()        
         
         return render_template('search.html',obj=obj,target=target,obs=obs,errors={},obs_plot=obs_plot,t0=t0,P=P)

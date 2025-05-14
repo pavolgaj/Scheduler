@@ -152,6 +152,8 @@
                 <h2>Observations of {{target}}</h2>
             </center>
 
+            {% if obs_plot %}
+            {% if obs_plot['t'] %}
             <div id="plot" style="margin: 0px; padding: 0px; resize:both; overflow: auto; width: 100%"></div>
             <br>
             <div>
@@ -166,8 +168,7 @@
                 <button type="button" name="normal" id="normal" onclick="plot()" title="Make time plot.">Time
                     plot</button>
             </div>
-
-            {% if obs_plot %}
+            
             <script type='text/javascript'>
                 const snr = {{ obs_plot['snr'] }};
                 const exp = {{ obs_plot['exp'] }};
@@ -273,10 +274,11 @@
                     }
             </script>
             <br>
-            {% endif %}
+            
 
             <details>
                 <summary>List of observations</summary>
+            {% endif %}{% endif %}
                 <br>
                 <table id="my_table">
                     <thead>
@@ -304,7 +306,9 @@
                     {% endfor %}
                     {% endfor %}
                 </table>
+            {% if obs_plot %}{% if obs_plot['t'] %}
             </details>
+            {% endif %}{% endif %}
             {% if errors %}
             {% for field, error in errors.items() %}
             <center><label style="color: red; border: 2px solid red; background-color: yellow;">{{ error }}</label>
