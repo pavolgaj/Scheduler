@@ -223,9 +223,12 @@
                 </label>
                 <!-- required for all buttons   -->
                 <input type="text" id="name" name="name" value="{{ name }}"
-                    class="{{ 'error' if errors.get('name') else 'normal' }}" required title="Target name." placeholder="Target name.">
+                    class="{{ 'error' if errors.get('name') else 'normal' }}" required title="Target name." placeholder="Target name." style="flex: 2;">
                 <button type="submit" name="simbad" title="Look for coordinates and magnitude in Simbad.">Search in
                     Simbad
+                </button>
+                <button type="submit" name="exofop" title="Look for coordinates and magnitude in ExoFOP.">Search in
+                    ExoFOP
                 </button>
                 <br>
                 <br>

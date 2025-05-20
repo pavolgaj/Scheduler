@@ -16,6 +16,8 @@ import re
 import uuid
 import base64
 from datetime import datetime,timezone,timedelta
+import requests
+from bs4 import BeautifulSoup
 
 from make_stats import make_stats
 
@@ -257,6 +259,46 @@ def new():
             
             gc.collect()
             return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal)
+        
+        elif 'exofop' in request.form:
+            #search obj in exofop - ra,dec,mag
+            if name:
+                ra=''
+                dec=''
+                mag=''
+                
+                url = 'https://exofop.ipac.caltech.edu/tess/gototicid.php?target='+name
+                response = requests.get(url)
+                
+                if response.status_code == 200:
+                    soup = BeautifulSoup(response.content, "html.parser")
+
+                    uls = soup.find_all("ul")
+
+                    # Look for RA and De
+                    ra, dec, mag = None, None, None
+                    for ul in uls:
+                        lis = ul.find_all("li")
+                        for li in lis:
+                            if 'TESS mag' in li.get_text():
+                                text=li.get_text().splitlines()[1]
+                                data=text.replace('&nbsp',' ').split()
+                                mag=data[2]
+                            if 'RA/Dec' in li.get_text():
+                                text=li.get_text().splitlines()[1]
+                                data=text.replace('&nbsp',' ').split()
+                                ra=data[0]
+                                dec=data[1].replace('+','')
+                        if ra and dec and mag: break
+                    if not (ra and dec): errors['name'] = 'Object "'+name+'" NOT found in ExoFOP!'
+                else:
+                    errors['name'] = 'Object "'+name+'" NOT found in ExoFOP!'
+            
+            else: errors['name'] = 'Name is required.'
+            
+            gc.collect()
+            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal)
+        
         elif 'vsx' in request.form:
             #search P,t0 in VSX cat
             if name:
