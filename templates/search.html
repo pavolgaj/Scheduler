@@ -159,10 +159,12 @@
             <div>
                 <label for="period" style="display: inline;">Period</label>
                 <input type="text" id="period" name="period" title="Orbital period (days)."
-                    pattern="\d+(\.\d+)?$" value="{{ P }}">
+                    pattern="\d+(\.\d+)?$" value="{{ P }}" style="width: 130px;">
                 <label for="epoch" style="display: inline;">Epoch</label>
                 <input type="text" id="epoch" name="epoch" title="Initial epoch in full JD."
-                    pattern="\d+(\.\d+)?$" value="{{ t0 }}">
+                    pattern="\d+(\.\d+)?$" value="{{ t0 }}"  style="width: 130px;">
+                Around 0: 
+                <input type="checkbox" id="zero" title="Phase plot with 0 in the middle (from -0.5 to 0.5).">
                 <button type="button" name="phase" id="phase" onclick="phase_plot()" title="Make phase plot.">Phase
                     plot</button>
                 <button type="button" name="normal" id="normal" onclick="plot()" title="Make time plot.">Time
@@ -222,6 +224,7 @@
                     });
                     const P = document.getElementById('period').value;
                     const t0 = document.getElementById('epoch').value;
+                    const zero = document.getElementById("zero").checked;
 
                     //some checks
                     if (!P) {
@@ -251,7 +254,11 @@
                     }
 
                     var phase = jd.map(value => {
-                        return ((value-t0)%P)/P;
+                        var ph=((value-t0)%P)/P;
+                        if (zero==true && ph>0.5) {
+                            ph=ph-1;
+                        }
+                        return ph;
                     });
                     var plot = {
                         x: phase,
@@ -270,7 +277,12 @@
                         customdata: exp,
                         hovertemplate: 'Exp.: %{customdata}<extra></extra>'
                     };
-                    Plotly.newPlot('plot', [plot], { yaxis: { title: 'SNR' }, xaxis: { range: [0,1], title: 'Phase' } }, { displayModeBar: true });
+                    if (zero==true) {
+                        Plotly.newPlot('plot', [plot], { yaxis: { title: 'SNR' }, xaxis: { range: [-0.5,0.5], title: 'Phase' } }, { displayModeBar: true });
+                    }
+                    else {
+                        Plotly.newPlot('plot', [plot], { yaxis: { title: 'SNR' }, xaxis: { range: [0,1], title: 'Phase' } }, { displayModeBar: true });
+                    }
                     }
             </script>
             <br>
