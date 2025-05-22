@@ -116,8 +116,10 @@
                 <select name="type" id="type" onchange="toggleChange()">
                     <option value=".pdf" {% if type=='.pdf' %}selected{% endif %}>PDF</option>
                     <option value=".csv" {% if type=='.csv' %}selected{% endif %}>CSV</option>
+                    <option value="notes" {% if type=='notes' %}selected{% endif %}>General+Meteo Notes</option>
                 </select>
             </div>
+            {% if not type=='notes' %}
             <div class="form-group-night">
                 <label for="night"><b>Night</b>
                 </label>
@@ -131,12 +133,22 @@
                 <label>
                 </label>
             </div>
+            {% else %}
+            <input type="hidden" id="night" name="night" value="{{ night }}">
+            {% endif %}
             <hr>
             <ul class="column-list">
+            {% if not type=='notes' %}
                 {% for name in files %}
                 <li><a href="{{ url_for('static',filename='logs/')}}{{name}}{{type}}"
                         target="_blank">{{name}}{{type}}</a></li>
                 {% endfor %}
+            {% else %}
+            {% for name in files %}
+                <li><a href="{{ url_for('static',filename='logs/')}}{{name}}.csv"
+                        target="_blank">{{name}}</a></li>
+                {% endfor %}
+            {% endif %}
             </ul>
         </form>
     </body>

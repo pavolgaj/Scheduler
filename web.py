@@ -2621,9 +2621,14 @@ def logs():
         error=''
         if request.form['night']: obs = request.form['night']  #selected night
         file_extension = request.form['type']   #selected ext. (pdf/csv)
-        #check if log for selected night exist
-        if os.path.isfile(directory+'/'+obs+'_log'+file_extension): error=''
-        else: error='NO log exists!'
+        
+        if file_extension=='notes':
+            files = [os.path.splitext(os.path.basename(x))[0] for x in sorted(glob.glob(directory+'/general*.csv'))[::-1]]
+            files+=[os.path.splitext(os.path.basename(x))[0] for x in sorted(glob.glob(directory+'/meteo*.csv'))[::-1]]
+        else:  
+            #check if log for selected night exist
+            if os.path.isfile(directory+'/'+obs+'_log'+file_extension): error=''
+            else: error='NO log exists!'
         
         if 'download' in request.form:
             #download log for selected night
