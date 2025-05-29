@@ -173,7 +173,24 @@
                 if (!valid) {
                     alert('Number of exposure should be number!');
                     return valid;
+                }                
+
+                var time = document.getElementById('time');
+                if (time.checked) {
+                    var time_start = document.getElementById('time_start');
+                    var time_end = document.getElementById('time_end');   
+                    if (time_start.validity['badInput'] || time_end.validity['badInput']) {
+                        valid = false;
+                        alert('Incorrect time format!');
+                    }                    
                 }
+
+                var night = document.getElementById('night');   
+                if (night.validity['badInput']) {
+                    valid = false;
+                    alert('Incorrect date format!');
+                }  
+
                 return valid;
             }
 

@@ -226,6 +226,13 @@
                     }
                 }
 
+                var start = document.getElementById('start');   
+                var end = document.getElementById('end');  
+                if (start.validity['badInput'] || end.validity['badInput']) {
+                    alert('Incorrect date or time format!');
+                    return false;
+                }
+
                 return true;
             }
 
