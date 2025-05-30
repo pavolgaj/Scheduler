@@ -352,8 +352,14 @@ def new():
                 errors['name'] = 'Name is required.'
             if not ra:
                 errors['ra'] = 'RA is required.'
+            else:
+                tmp=ra.replace(':',' ').split()
+                if (not len(tmp)==3) or float(tmp[0])>23 or float(tmp[0])<0: errors['ra'] = 'Wrong RA format.'
             if not dec:
                 errors['dec'] = 'DEC is required.'
+            else:
+                tmp=dec.replace(':',' ').split()
+                if (not len(tmp)==3) or float(tmp[0])>90 or float(tmp[0])<-90: errors['dec'] = 'Wrong DEC format.'
             if not exp:
                 errors['exp'] = 'Exp. time is required.'
             if not series and not number:
@@ -473,12 +479,12 @@ def check(row):
     if len(row['RA'])==0: errors.append(row['Target']+': missing RA.')
     else:
         tmp=row['RA'].replace(':',' ').split()
-        if (not len(tmp)==3) or float(tmp[0])>23: errors.append(row['Target']+': wrong RA format.')
+        if (not len(tmp)==3) or float(tmp[0])>23 or float(tmp[0])<0: errors.append(row['Target']+': wrong RA format.')
 
     if len(row['DEC'])==0: errors.append(row['Target']+': missing DEC.')
     else:
         tmp=row['DEC'].replace(':',' ').split()
-        if not len(tmp)==3: errors.append(row['Target']+': wrong DEC format.')
+        if not len(tmp)==3 or float(tmp[0])>90 or float(tmp[0])<-90: errors.append(row['Target']+': wrong DEC format.')
 
     if len(row['Period'])>0:
         try: float(row['Period'])
