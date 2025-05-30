@@ -119,6 +119,35 @@ def dms(dd):
     deg,mnt = divmod(mnt, 60)
     return int(mult*deg), int(mnt), sec
 
+def is_int(text):
+    #check if text is int
+    try: int(text)
+    except ValueError: return False
+    return True
+
+def is_float(text):
+    #check if text is float
+    try: float(text)
+    except ValueError: return False
+    return True
+
+
+def check_dns(text,min=None,max=None):
+    #check text if is in DMS format
+    tmp=text.replace(':',' ').split()
+    if not len(tmp)==3: return False
+    if not is_int(tmp[0]): return False
+    if not is_int(tmp[1]): return False
+    if not is_float(tmp[2]): return False
+    if min is not None:
+        if int(tmp[0])<min: return False
+    if max is not None: 
+        if int(tmp[0])>max: return False
+    if int(tmp[1])>59 or int(tmp[1])<0: return False
+    if float(tmp[2])>59 or float(tmp[2])<0: return False    
+    return True    
+
+
 #header for obj in DB
 header='Target,RA,DEC,Mag,Period,Epoch,ExpTime,Number,Nights,Priority,Type,Remarks,MoonPhase,StartPhase,EndPhase,StartDate,EndDate,OtherRequests,Supervisor'
 header+='\n'
@@ -353,13 +382,11 @@ def new():
             if not ra:
                 errors['ra'] = 'RA is required.'
             else:
-                tmp=ra.replace(':',' ').split()
-                if (not len(tmp)==3) or float(tmp[0])>23 or float(tmp[0])<0: errors['ra'] = 'Wrong RA format.'
+                if not check_dns(ra,min=0,max=23): errors['ra'] = 'Wrong RA format.'
             if not dec:
                 errors['dec'] = 'DEC is required.'
             else:
-                tmp=dec.replace(':',' ').split()
-                if (not len(tmp)==3) or float(tmp[0])>90 or float(tmp[0])<-90: errors['dec'] = 'Wrong DEC format.'
+                if not check_dns(dec,min=-89,max=89): errors['dec'] = 'Wrong DEC format.'
             if not exp:
                 errors['exp'] = 'Exp. time is required.'
             if not series and not number:
@@ -368,6 +395,10 @@ def new():
                 errors['phot'] = 'Photometry parameters are required.'
             if moon and not moon_input:
                 errors['moon'] = 'Moon phase is required.'
+            if per:
+                if float(per)<=0: errors['per']='Period has to be positive.'
+            if t0:
+                if float(t0)<2000000: errors['t0']='Epoch has to be in full JD.'    
             if phase:
                 if not (phase_start or phase_end): errors['phase'] = 'Phase limits are required.'
                 if not per: errors['per'] = 'Period is required.'
@@ -478,41 +509,34 @@ def check(row):
 
     if len(row['RA'])==0: errors.append(row['Target']+': missing RA.')
     else:
-        tmp=row['RA'].replace(':',' ').split()
-        if (not len(tmp)==3) or float(tmp[0])>23 or float(tmp[0])<0: errors.append(row['Target']+': wrong RA format.')
+        if not check_dns(row['RA'],min=0,max=23): errors.append(row['Target']+': wrong RA format.')
 
     if len(row['DEC'])==0: errors.append(row['Target']+': missing DEC.')
     else:
-        tmp=row['DEC'].replace(':',' ').split()
-        if not len(tmp)==3 or float(tmp[0])>90 or float(tmp[0])<-90: errors.append(row['Target']+': wrong DEC format.')
+        if not check_dns(row['DEC'],min=-89,max=89): errors.append(row['Target']+': wrong DEC format.')
 
     if len(row['Period'])>0:
-        try: float(row['Period'])
-        except: errors.append(row['Target']+': period has to be number.')
+        if not is_float(row['Period']): errors.append(row['Target']+': period has to be number.')
+        elif not float(row['Period'])>0: errors.append(row['Target']+': period has to be positive.')
 
     if len(row['Epoch'])>0:
-        try:
-            if float(row['Epoch'])<2000000: errors.append(row['Target']+': epoch has to be in full JD.')
-        except: errors.append(row['Target']+': epoch has to be number.')
+        if not is_float(row['Epoch']): errors.append(row['Target']+': epoch has to be number.')
+        elif float(row['Epoch'])<2000000: errors.append(row['Target']+': epoch has to be in full JD.') 
 
     if len(row['ExpTime'])==0: errors.append(row['Target']+': missing ExpTime.')
     else:
-        try: float(row['ExpTime'])
-        except: errors.append(row['Target']+': ExpTime has to be number.')
+        if not is_int(row['ExpTime']): errors.append(row['Target']+': ExpTime has to be number.')
 
     if len(row['Number'])==0: row['Number']=1
     elif not row['Number']=='series':
-        try: float(row['Number'])
-        except: errors.append(row['Target']+': number of exp. has to be number or "series".')
+        if not is_int(row['Number']): errors.append(row['Target']+': number of exp. has to be number or "series".')
 
     if len(row['Nights'])>0:
-        try: float(row['Nights'])
-        except: errors.append(row['Target']+': number of nights has to be number.')
+        if not is_int(row['Nights']): errors.append(row['Target']+': number of nights has to be number.')
 
     if len(row['Priority'])==0: row['Priority']=3
     else:
-        try: float(row['Priority'])
-        except: errors.append(row['Target']+': priority has to be number.')
+        if not is_float(row['Priority']): errors.append(row['Target']+': priority has to be number.')
     
     #set priority for standards
     if row['Type']=='RV Standard': 
@@ -523,37 +547,34 @@ def check(row):
         if 'IC' in row['Remarks']: row['Priority']='0.6'
 
     if len(row['MoonPhase'])>0:
-        try:
-            if float(row['MoonPhase'])<0 or float(row['MoonPhase'])>1:
-                errors.append(row['Target']+': moon phase has to from 0 to 1.')
-        except: errors.append(row['Target']+': moon phase has to be number.')
+        if not is_float(row['MoonPhase']): errors.append(row['Target']+': moon phase has to be number.')
+        elif float(row['MoonPhase'])<0 or float(row['MoonPhase'])>1:
+            errors.append(row['Target']+': moon phase has to from 0 to 1.')
 
     if len(row['StartPhase'])>0:
-        try:
-            if float(row['StartPhase'])<0 or float(row['StartPhase'])>1:
-                    errors.append(row['Target']+': start phase has to from 0 to 1.')
-        except: errors.append(row['Target']+': start phase has to be number.')
+        if not is_float(row['StartPhase']): errors.append(row['Target']+': start phase has to be number.')
+        elif float(row['StartPhase'])<0 or float(row['StartPhase'])>1:
+            errors.append(row['Target']+': start phase has to from 0 to 1.')
 
     if len(row['EndPhase'])>0:
-        try:
-            if float(row['EndPhase'])<0 or float(row['EndPhase'])>1:
-                    errors.append(row['Target']+': end phase has to from 0 to 1.')
-        except: errors.append(row['Target']+': end phase has to be number.')
+        if not is_float(row['EndPhase']): errors.append(row['Target']+': end phase has to be number.')
+        elif float(row['EndPhase'])<0 or float(row['EndPhase'])>1:
+            errors.append(row['Target']+': end phase has to from 0 to 1.')
 
     if len(row['StartPhase'])+len(row['EndPhase'])>0 and len(row['Period'])*len(row['Epoch'])==0:
         errors.append(row['Target']+': period and epoch is required.')
 
     if len(row['StartDate'])>0:
         try: datetime.strptime(row['StartDate'],'%Y-%m-%dT%H:%M:%S')
-        except: 
+        except ValueError: 
             try: datetime.strptime(row['StartDate'],'%Y-%m-%d %H:%M:%S')
-            except: errors.append(row['Target']+': wrong StartDate format.')
+            except ValueError: errors.append(row['Target']+': wrong StartDate format.')
 
     if len(row['EndDate'])>0:
         try: datetime.strptime(row['EndDate'],'%Y-%m-%dT%H:%M:%S')
-        except: 
+        except ValueError: 
             try: datetime.strptime(row['EndDate'],'%Y-%m-%d %H:%M:%S')
-            except: errors.append(row['Target']+': wrong EndDate format.')
+            except ValueError: errors.append(row['Target']+': wrong EndDate format.')
         
     return row,errors
 
