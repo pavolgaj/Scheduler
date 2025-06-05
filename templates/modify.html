@@ -452,6 +452,14 @@
                         </td>
                         <td style="width: 50px;">
                             <center>
+                                <label for="condi">Observing conditions</label><br>
+                                <select id="condi" name="condi" title="Required observing conditions (clouds, seeing, wind etc.)" placeholder="Required observing conditions (clouds, seeing, wind etc.)">
+                                    <option value="all" {% if condi=='all' %}selected{% endif %}>All</option>
+                                    <option value="excellent" {% if condi=='excellent' %}selected{% endif %}>Excellent</option>
+                                    <option value="good" {% if condi=='good' %}selected{% endif %}>Good (normal)</option>
+                                    <option value="poor" {% if condi=='poor' %}selected{% endif %}>Poor</option>
+                                    <option value="na" {% if condi=='na' %}selected{% endif %}>Not given</option>
+                                </select><br><br>
                                 <input type="checkbox" name="individual" id="individual" value="checked"
                                     title="Apply inidividual object constraints." {% if indiv %}checked{% endif %}
                                     style="min-width: 20px;">

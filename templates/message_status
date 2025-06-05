@@ -1,4 +1,4 @@
-{{ supervisor }} (program ID: {{progID}}) added new object into the E152 database with following parameters:
+{{ supervisor }} (program ID: {{progID}}) asked for changing of the observing status in E152 database for following object:
 
 Target: {{ name }}
 Coordinates: {{ ra }}; {{ dec }}
@@ -10,5 +10,6 @@ Priority: {{ prior }}
 Type of object: {{ group }}
 Remarks: {{ notes }}
 
-Additional comments:
-{{ message }}
+NEW STATUS: {{ status }}
+
+{{ result }}

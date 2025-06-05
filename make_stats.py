@@ -172,6 +172,18 @@ def night_time(date):
     
     return 24-2*ha/15
 
+def get_program(id):
+    f=open('db/progID.json','r')
+    ids=json.load(f)
+    f.close()
+    
+    if len(id)==0: program='not given'
+    elif id not in ids: program='unknown' 
+    else: program=ids[id]['program_title']    
+    
+    return program
+    
+
 if __name__ == '__main__':
     import PDFReportClass as pdf
 
@@ -201,7 +213,7 @@ if __name__ == '__main__':
     reader = csv.DictReader(f)
     for row in reader:
         if not row['Target'] in objects:
-            objects[row['Target'].lower().replace('-','').replace(' ','').replace('_','')]=row['Supervisor']
+            objects[row['Target'].lower().replace('-','').replace(' ','').replace('_','')]={'supervisor': row['Supervisor'], 'program': get_program(row['ProgramID'])}
     f.close()
 
     stats={}
@@ -210,8 +222,12 @@ if __name__ == '__main__':
         if n>0:
             name=obj.lower().replace('-','').replace(' ','').replace('_','')
             stats[name]={'nights': n}
-            if name in objects: stats[name]['supervisor']=objects[name]
-            else: stats[name]['supervisor']='unknown'
+            if name in objects: 
+                stats[name]['supervisor']=objects[name]['supervisor']
+                stats[name]['program']=objects[name]['program']
+            else: 
+                stats[name]['supervisor']='unknown'
+                stats[name]['program']='unknown'
             
             total=0
             number=0
@@ -231,13 +247,13 @@ if __name__ == '__main__':
     else: outname=start.strftime('%Y%m')+'-'+end.strftime('%Y%m')
 
     f=open('statistics/statistics_'+outname+'.csv','w')
-    writer = csv.DictWriter(f, fieldnames=['Target','Supervisor','Nights','ExpNumber','TotalTime_hours'])
+    writer = csv.DictWriter(f, fieldnames=['Target','Supervisor','Program','Nights','ExpNumber','TotalTime_hours'])
     writer.writeheader()
     if len(stats)>0:
-        data=[['Target','Supervisor','Nights','ExpNumber','TotalTime (h)']]
+        data=[['Target','Supervisor','Program','Nights','ExpNumber','TotalTime (h)']]
         for obj in sorted(stats):
-            writer.writerow({'Target':names[obj],'Supervisor':stats[obj]['supervisor'],'Nights':stats[obj]['nights'],'ExpNumber':stats[obj]['number'],'TotalTime_hours':stats[obj]['time']/3600})
-            data.append([names[obj],stats[obj]['supervisor'],stats[obj]['nights'],stats[obj]['number'],round(stats[obj]['time']/3600,2)])
+            writer.writerow({'Target':names[obj],'Supervisor':stats[obj]['supervisor'],'Program':stats[obj]['program'],'Nights':stats[obj]['nights'],'ExpNumber':stats[obj]['number'],'TotalTime_hours':round(stats[obj]['time']/3600,2)})
+            data.append([names[obj],stats[obj]['supervisor'],stats[obj]['program'],stats[obj]['nights'],stats[obj]['number'],round(stats[obj]['time']/3600,2)])
     f.close()
 
     p=pdf.PDFReport('statistics/statistics_'+outname+'.pdf')

@@ -1,4 +1,4 @@
-{{ supervisor }} added following {{ objects | length }} new objects into the E152 database:
+{{ supervisor }} (program ID: {{progID}}) added following {{ objects | length }} new objects into the E152 database:
 {% for obj in objects %}
 {{ obj }}{% endfor %}
 

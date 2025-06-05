@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Ask for object modification
+        </title>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 50px;
+            }
+
+            button {
+                padding: 10px 20px;
+                border: none;
+                border-radius: 5px;
+                background-color: #333;
+                color: white;
+                cursor: pointer;
+            }
+
+            button:hover {
+                background-color: #555;
+            }
+
+            form {
+                max-width: 700px;
+                margin: 0 auto;
+                padding: 20px;
+                border: 1px solid #ccc;
+                border-radius: 10px;
+                background-color: #f9f9f9;
+            }
+
+            .form-group {
+                display: flex;
+                align-items: center;
+                margin-bottom: 15px;
+            }
+
+            .form-group label {
+                flex: 1;
+                font-weight: bold;
+            }
+
+            .form-group input,
+            .form-group textarea {
+                flex: 4;
+                padding: 10px;
+                border-radius: 5px;
+                width: 100%;
+            }
+
+            .form-group select {
+                flex: 4;
+                /* Input takes up 2 parts */
+                padding: 10px;
+                border-radius: 5px;
+                width: 100%;
+            }
+
+            .form-group textarea {
+                min-height: 100px;
+            }
+
+            label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: bold;
+            }
+
+            .error {
+                border: 2px solid red;
+            }
+
+            .normal {
+                border: 1px solid #ccc;
+            }
+
+            .radio-wrapper {
+                align-items: center;
+
+                margin-bottom: 10px;
+            }
+
+            .radio-wrapper input {
+                margin-left: 40px;
+            }
+
+            .radio-wrapper label {
+                display: inline;
+                font-weight: normal;
+            }
+        </style>
+        <script>
+            // submit form on ENTER
+            document.addEventListener('DOMContentLoaded', (event) => {
+                const form = document.querySelector('form');
+                form.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        document.querySelector('button[name="submit"]').click();
+                    }
+                });
+            });
+
+            //reload page (submit form) on change of obj
+            function toggleChange() {
+                document.getElementById('main_form').submit();
+            }
+        </script>
+        <script src="{{ url_for('static', filename='jquery.min.js') }}"></script>
+        <link href="{{ url_for('static', filename='select2.min.css') }}" rel="stylesheet" />
+        <script src="{{ url_for('static', filename='select2.min.js') }}"></script>
+    </head>
+
+    <body>
+        <!-- shows errors in data -->
+        {% if errors %}
+        <ul style="color:red;"> {% for field, error in errors.items() %}
+            {% if field=='data' %}
+            {% for error in errors['data'] %}
+            <li>{{ error }}
+            </li>{% endfor %}
+            {% else %}
+            <li>{{ error }}
+            </li>
+            {% endif %}
+            {% endfor %}
+        </ul>
+        {% endif %}
+        <center>
+            <h1>Ask for object modification</h1>
+        </center>
+
+        <form method="post" class="left-align" id="main_form">
+            <div class="form-group">
+                <label for="obj"><u>Object</u>
+                </label>
+                <select id="target" name="target" title="Name of target for modification." onchange="toggleChange()">
+                    <option disabled selected value></option> <!--  show empty value by default -->
+                    <!-- load obj from server to select options -->
+                    {% for x in obj %}
+                    <option value="{{ x[0] }}" {% if target==x[0] %}selected{% endif %}>{{ x[1] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div style="height: 3em;">
+                {{ info }}
+            </div>
+
+            <div class="form-group">
+                <label for="supervis"><u>Supervisor</u></label>
+                <input type="text" id="supervis" name="supervis" value="{{ supervis }}"
+                    class="{{ 'error' if errors.get('supervis') else 'normal' }}" title="Name of target supervisor."
+                    placeholder="Name of target supervisor">
+            </div>
+            <div class="form-group">
+                <label for="progID">Program ID</label>
+                <input type="text" id="progID" name="progID" value="{{ progID }}"
+                    class="{{ 'error' if errors.get('progID') else 'normal' }}" title="Program ID (obtained from AsU)."
+                    placeholder="Program ID (obtained from AsU).">
+            </div>
+            <div class="form-group">
+                <label for="email"><u>Email</u></label>
+                <input type="email" id="email" name="email" value="{{ email }}"
+                    class="{{ 'error' if errors.get('email') else 'normal' }}" title="E-mail address of supervisor."
+                    placeholder="E-mail address of supervisor">
+            </div>
+            <div class="radio-wrapper">
+                <label style="font-weight: bold;" for="status">Object Status</label>
+                <input type="radio" name="status" value="obs" {% if status=='obs' %}checked{% endif %}>
+                <label>observable</label>
+                <input type="radio" name="status" value="done" {% if status=='done' %}checked{% endif %}>
+                <label>finished</label>
+            </div>
+            <div class="form-group">
+                <label for="mess">Changes</label>
+                <textarea id="mess" name="mess" class="normal" title="Describe required changes."
+                    placeholder="Describe required changes.">{{ mess if mess else '' }}</textarea>
+            </div>
+            <br>
+            <center>
+                <button type="submit" name="send" id="send" title="Send form.">Submit</button>
+            </center>
+        </form>
+        <!-- shows errors in data -->
+        {% if errors %}
+        <ul style="color:red;"> {% for field, error in errors.items() %}
+            {% if field=='data' %}
+            {% for error in errors['data'] %}
+            <li>{{ error }}
+            </li>{% endfor %}
+            {% else %}
+            <li>{{ error }}
+            </li>
+            {% endif %}
+            {% endfor %}
+        </ul>
+        {% endif %}
+        <script>
+            //change selectbox to selectize mode to be searchable
+            $("select").select2();
+        </script>
+    </body>
+
+</html>

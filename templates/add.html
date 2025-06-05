@@ -46,7 +46,7 @@
             }
 
             .form-group select {
-                flex: 2;
+                flex: 4;
                 /* Input takes up 2 parts */
                 padding: 10px;
                 border-radius: 5px;
@@ -312,6 +312,13 @@
                 <input type="checkbox" id="ic" name="ic" value="checked" {% if ic %}checked{% endif %}
                     title="Use Iodine cell.">
             </div>
+            <div class="radio-wrapper">
+                <label style="font-weight: bold;">Readout speed</label>
+                <input type="radio" name="readout" value="fast" {% if readout=='fast' %}checked{% endif %}>
+                <label>fast</label>
+                <input type="radio" name="readout" value="slow" {% if readout=='slow' %}checked{% endif %}>
+                <label>slow</label>
+            </div>
             <div class="checkbox-wrapper">
                 <label for="phot">Photometry
                 </label>
@@ -397,6 +404,14 @@
                     class="{{ 'error' if errors.get('time') else 'normal' }}">
             </div>
             <div class="form-group">
+                <label for="condi">Obs. conditions</label>
+                <select id="condi" name="condi" title="Required observing conditions (clouds, seeing, wind etc.)" placeholder="Required observing conditions (clouds, seeing, wind etc.)">
+                    <option value="excellent" {% if condi=='excellent' %}selected{% endif %}>Excellent</option>
+                    <option value="good" {% if condi=='good' %}selected{% endif %}>Good (normal)</option>
+                    <option value="poor" {% if condi=='poor' %}selected{% endif %}>Poor</option>
+                </select>
+            </div>
+            <div class="form-group">
                 <label for="other">Other constr.</label>
                 <input type="text" id="other" name="other" value="{{ other }}"
                     title="Other constraints and requests for observation scheduling." placeholder="Other constraints and requests for observation scheduling">
@@ -408,6 +423,12 @@
                 </label>
                 <input type="text" id="supervis" name="supervis" value="{{ supervis }}"
                     class="{{ 'error' if errors.get('supervis') else 'normal' }}" title="Name of target supervisor." placeholder="Name of target supervisor">
+            </div>
+            <div class="form-group">
+                <label for="progID"><u>Program ID</u>
+                </label>
+                <input type="text" id="progID" name="progID" value="{{ progID }}"
+                    class="{{ 'error' if errors.get('progID') else 'normal' }}" title="Program ID (obtained from AsU)." placeholder="Program ID (obtained from AsU).">
             </div>
             <div class="form-group">
                 <label for="email"><u>Email</u>

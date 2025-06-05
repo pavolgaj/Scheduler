@@ -143,13 +143,13 @@ def check_dns(text,min=None,max=None):
         if int(tmp[0])<min: return False
     if max is not None: 
         if int(tmp[0])>max: return False
-    if int(tmp[1])>59 or int(tmp[1])<0: return False
-    if float(tmp[2])>59 or float(tmp[2])<0: return False    
+    if int(tmp[1])>=60 or int(tmp[1])<0: return False
+    if float(tmp[2])>=60 or float(tmp[2])<0: return False    
     return True    
 
 
 #header for obj in DB
-header='Target,RA,DEC,Mag,Period,Epoch,ExpTime,Number,Nights,Priority,Type,Remarks,MoonPhase,StartPhase,EndPhase,StartDate,EndDate,OtherRequests,Supervisor'
+header='Target,RA,DEC,Mag,Period,Epoch,ExpTime,Number,Nights,Priority,Type,Remarks,MoonPhase,StartPhase,EndPhase,StartDate,EndDate,Conditions,OtherRequests,Supervisor'
 header+='\n'
 
 # Route for displaying the form
@@ -174,7 +174,9 @@ def new():
         number = request.form['number']
         night = request.form['night']
         series = (request.form.get('series')=='checked')
+        simcal=request.form['simcal']
         ic = (request.form.get('ic')=='checked')
+        readout=request.form['readout']
         phot = (request.form.get('phot')=='checked')
         phot_input = request.form['phot_input']
         remarks = request.form['remarks']
@@ -190,11 +192,11 @@ def new():
         time = (request.form.get('time')=='checked')
         time_start = request.form['time_start']
         time_end = request.form['time_end']
-        other = request.form['other']
-        
-        simcal=request.form['simcal']
+        condi = request.form['condi']  
+        other = request.form['other']        
 
         supervis = request.form['supervis']
+        progID = request.form['progID']
         email = request.form['email']
         mess=request.form['mess']
 
@@ -287,7 +289,7 @@ def new():
             else: errors['name'] = 'Name is required.'
             
             gc.collect()
-            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal)
+            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID)
         
         elif 'exofop' in request.form:
             #search obj in exofop - ra,dec,mag
@@ -326,7 +328,7 @@ def new():
             else: errors['name'] = 'Name is required.'
             
             gc.collect()
-            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal)
+            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID)
         
         elif 'vsx' in request.form:
             #search P,t0 in VSX cat
@@ -349,7 +351,7 @@ def new():
             else: errors['name'] = 'Name is required.'
             
             gc.collect()
-            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors,remarks=remarks, simcal=simcal)
+            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors,remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID)
         elif 'exoarch' in request.form:
             #search P,t0 in exoplanet archive
             if name:
@@ -369,7 +371,7 @@ def new():
             else: errors['name'] = 'Name is required.'
             
             gc.collect()
-            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal)
+            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID)
 
 
 
@@ -407,6 +409,16 @@ def new():
 
             if not supervis:
                 errors['supervis'] = 'Supervisor is required.'
+            if not progID and group not in ['RV Standard','SpecPhot Standard']:
+                errors['progID'] = 'Program ID is required.'                  
+            else:  
+                #TODO check?  
+                f=open('db/progID.json','r')
+                ids=json.load(f)
+                f.close()       
+                
+                #if progID not in ids: errors['progID'] = 'Program ID is incorrect/unknown.'        
+            
             if not email:
                 errors['email'] = 'Email is required.'
 
@@ -414,15 +426,19 @@ def new():
             if errors:
                 gc.collect()
                 
-                return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal)
+                return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID)
 
             #set priority for standards
             if group=='RV Standard': 
+                progID=''    #TODO?
                 prior='0.1'
                 if ic: prior='0.2'
+                supervis='Standards'
             elif group=='SpecPhot Standard': 
+                progID=''
                 prior='0.5'
                 if ic: prior='0.6'
+                supervis='Standards'
 
             # save the data to a database
             tmp='"'+name+'"'+','
@@ -438,6 +454,7 @@ def new():
             tmp+=prior+','
             tmp+='"'+group+'"'+','
             notes=''
+            notes+=readout+'; '
             if ic: notes+='IC (FE); '
             if simcal=='thar': notes+='sim. ThAr; '
             elif simcal=='ic': notes+='sim. IC (CU); '
@@ -457,14 +474,16 @@ def new():
                 if time_end: tmp+=time_end+' 23:59:59,'
                 else: tmp+=','
             else: tmp+=',,'
+            tmp+=condi+','
             tmp+=other+','
-            tmp+='"'+supervis+'"'
+            tmp+='"'+supervis+'",'
+            tmp+=progID
             tmp+='\n'
 
             #write obj in file
             if not os.path.isfile('db/new_objects.csv'):
                 f=open('db/new_objects.csv','w')
-                f.write(header)
+                f.write(header.strip()+',ProgramID\n')
             else: f=open('db/new_objects.csv','a')
             f.write(tmp)
             f.close()
@@ -475,7 +494,7 @@ def new():
             
             #update message
             if series: number='series'
-            send.message=render_template('message',supervisor=supervis.replace('"',''),name=name.replace('"',''),ra=ra,dec=dec,mag=mag,exp=exp,number=number,night=night,prior=prior,group=group.replace('"',''),notes=notes.replace('"',''),message=mess)
+            send.message=render_template('message',supervisor=supervis.replace('"',''),name=name.replace('"',''),ra=ra,dec=dec,mag=mag,exp=exp,number=number,night=night,prior=prior,group=group.replace('"',''),notes=notes.replace('"',''),message=mess,progID=progID)
             
             try:
                 send.run()
@@ -488,7 +507,7 @@ def new():
             return redirect(url_for('success'))
 
     gc.collect()
-    return render_template('add.html', name='', ra='', dec='', mag='', per='', t0='', exp='', number=1, night=1, series=False, ic=False, phot=False, phot_input='', prior=3, group='', moon=False, moon_input='', phase=False, phase_start='', phase_end='', time=False, time_start='', time_end='', other='', supervis = '', email='', mess='', errors={}, remarks='', simcal='off')
+    return render_template('add.html', name='', ra='', dec='', mag='', per='', t0='', exp='', number=1, night=1, series=False, ic=False, phot=False, phot_input='', prior=3, group='', moon=False, moon_input='', phase=False, phase_start='', phase_end='', time=False, time_start='', time_end='', other='', supervis = '', email='', mess='', errors={}, remarks='', simcal='thar',readout='fast',condi='good')
 
 
 # Route for the success page
@@ -502,7 +521,13 @@ def success():
 def check(row):
     '''check format of added data'''
     errors=[]
+    row=dict(row)
     #check inputs!!!
+    
+    for x in row:
+        if row[x]=='ERROR':
+            raise KeyError('Parameter '+x+' is missing!')
+    
     if len(row['Target'])==0:
         errors.append('Missing name of target.')
         return row,errors
@@ -576,6 +601,10 @@ def check(row):
             try: datetime.strptime(row['EndDate'],'%Y-%m-%d %H:%M:%S')
             except ValueError: errors.append(row['Target']+': wrong EndDate format.')
         
+    if len(row['Conditions'])==0: row['Conditions']='good'
+    elif row['Conditions'] not in ['excellent', 'good', 'poor']:
+        errors.append(row['Target']+': wrong Conditions type. Available options: excellent, good, poor.')
+    
     return row,errors
 
 
@@ -591,6 +620,7 @@ def bulk():
         if 'submit' in request.form:
             #get data from form
             supervis = request.form['supervis']
+            progID = request.form['progID']
             email = request.form['email']
             mess=request.form['mess']
 
@@ -605,11 +635,21 @@ def bulk():
                 errors['supervis'] = 'Supervisor is required.'
             if not email:
                 errors['email'] = 'Email is required.'
+            if not progID:
+                errors['progID'] = 'Program ID is required.'   
+            else:  
+                #TODO check?  
+                f=open('db/progID.json','r')
+                ids=json.load(f)
+                f.close()       
+                
+                #if progID not in ids: errors['progID'] = 'Program ID is incorrect/unknown.'   
+            
 
             if errors:
                 gc.collect()
                 
-                return render_template('import.html', supervis = supervis, email=email, mess=mess, errors=errors)
+                return render_template('import.html', supervis = supervis, email=email, mess=mess, errors=errors, progID=progID)
 
             output = io.StringIO()   # create "file-like" output for writing
             objects=[]
@@ -617,18 +657,33 @@ def bulk():
             if file:
                 #read data from input file and save them in list
                 file_content = [x.decode() for x in file.readlines()]
-                csvreader = csv.DictReader(file_content)
-                csvwriter = csv.DictWriter(output,fieldnames=csvreader.fieldnames+['Supervisor'])
+                csvreader = csv.DictReader(file_content,restval='ERROR')
+                if not (csvreader.fieldnames+['Supervisor'])==header.strip().split(','):
+                    errors['data'].append('Incorrect CSV format. Check the template!')  
+                    return render_template('import.html', supervis = supervis, email=email, mess=mess, errors=errors, progID=progID)  
+                csvwriter = csv.DictWriter(output,fieldnames=csvreader.fieldnames+['Supervisor','ProgramID'])
                 for row in csvreader:
                     #check inputs!!! 
-                    if len(row['Target'])==0:
+                    if 'Target' not in row:
+                        errors['data'].append('Missing name of target.')
+                        continue
+                    elif len(row['Target'])==0:
                         errors['data'].append('Missing name of target.')
                         continue
                     
-                    row,err=check(row)
-                    errors['data']+=err
+                    try: 
+                        row,err=check(row)
+                        errors['data']+=err
+                    except KeyError: 
+                        errors['data'].append(row['Target']+': incorrect row format. Check the template!')  
+                        continue                  
                    
-                    row['Supervisor']=supervis
+                    if row['Type'] in ['RV Standard','SpecPhot Standard']: 
+                        row['ProgramID']=''   #TODO?
+                        row['Supervisor']='Standards'
+                    else: 
+                        row['ProgramID']=progID
+                        row['Supervisor']=supervis
                     objects.append(row['Target'])
                     csvwriter.writerow(row)
 
@@ -638,12 +693,12 @@ def bulk():
             if errors:
                 gc.collect()
                 
-                return render_template('import.html', supervis = supervis, email=email, mess=mess, errors=errors)
+                return render_template('import.html', supervis = supervis, email=email, mess=mess, errors=errors, progID=progID)
 
             # save the data to a database
             if not os.path.isfile('db/new_objects.csv'):
                 f=open('db/new_objects.csv','w')
-                f.write(header)
+                f.write(header.strip()+',ProgramID\n')
             else: f=open('db/new_objects.csv','a')
             f.write(news)
             f.close()
@@ -653,7 +708,7 @@ def bulk():
             send=SendMail(email)
 
             #update message
-            send.message=render_template('message_bulk',supervisor=supervis.replace('"',''),objects=objects,message=mess)
+            send.message=render_template('message_bulk',supervisor=supervis.replace('"',''),objects=objects,message=mess, progID=progID)
 
             try:
                 send.run()
@@ -666,7 +721,120 @@ def bulk():
             return redirect(url_for('success'))
 
     gc.collect()
-    return render_template('import.html', supervis = '', email='', mess='', errors={} )
+    return render_template('import.html', supervis = '', email='', mess='', errors={}, progID='')
+
+@app.route("/scheduler/modif_obj", methods=['GET', 'POST'])
+def modif_obj():
+    '''modif obj in DB'''
+    if not session.get('logged_in'):
+        return redirect(url_for('login', next=request.path))
+    
+    if not os.path.isfile('db/objects.csv'): obj=[]
+    else: 
+        f=open('db/objects.csv','r')
+        reader = csv.DictReader(f)
+        obj_all={}
+        i=0
+        for obj in reader: 
+            obj_all[i]=obj
+            i+=1 
+        f.close()
+        
+        #print(obj_all)
+        ids=sorted(obj_all, key=lambda v: obj_all[v]['Target'].replace('-','').replace(' ','').upper())  #sort ignoring upper/lower case
+        
+    if request.method == 'POST':
+        #get data from form
+        errors={}
+        status=''
+        info=''
+        
+        supervis = request.form['supervis']
+        progID = request.form['progID']
+        email = request.form['email']
+        mess=request.form['mess'].strip()
+        if 'target' in request.form:
+            target=int(request.form['target'])
+            obj=obj_all[target]
+            
+            info=obj['Target']+': '+str(obj['Number'])+' x '+str(obj['ExpTime'])+' s; '+str(obj['Remarks'])+'; '+('observation finished' if obj['Done']=='1' else 'observations running')
+            status=('done' if obj['Done']=='1' else 'obs')
+        else:
+            target=''
+            errors['name'] = 'Name is required.'
+                
+        if 'send' in request.form and len(errors)==0:
+            status0=status
+            status=request.form['status']
+            if not supervis:
+                errors['supervis'] = 'Supervisor is required.'
+            if not email:
+                errors['email'] = 'Email is required.'
+                
+            if not errors:        
+                        
+                if (status==status0) and len(mess)==0:
+                    gc.collect()
+                    return "Nothing to change!"
+                
+                elif len(mess)==0:
+                    if progID==obj['ProgramID'] and len(obj['ProgramID'])>0:
+                        #correct ID, change status automatically                                               
+                        obj['Done']=int(not (bool(int(obj['Done']))))  #change status
+                        
+                        f=open('db/objects.csv','w')
+                        writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ProgramID','Done'])
+                        writer.writeheader()
+                        for i in obj_all:
+                            if not i==target: writer.writerow(obj_all[i])
+                            else: writer.writerow(obj)
+                        f.close() 
+                        
+                        result='Status changed automatically!'
+                    else:
+                        #incorrect ID, send request to admin
+                        result='Program ID incorrect or missing! Status will be changed manually by admins.'                      
+                    
+                    #send mail to admins and supervisior of added obj
+                    send=SendMail(email)
+                  
+                    send.message=render_template('message_status',supervisor=supervis,name=obj['Target'],ra=obj['RA'],dec=obj['DEC'],mag=obj['Mag'],exp=obj['ExpTime'],number=obj['Number'],night=obj['Nights'],prior=obj['Priority'],group=obj['Type'],notes=obj['Remarks'],progID=progID,result=result,status=('observation finished' if status=='done' else 'observations running'))
+            
+                    send.mail["subject"]='Change of observing status'
+
+                    try:
+                        send.run()
+                    except:
+                        traceback.print_exc()
+                        send.mail['cc']=''
+                        send.send_mail("ERROR: exception", traceback.format_exc())
+                        
+                    gc.collect()
+                    return result
+                
+                else:
+                    #bigger change, send request to admin
+                    send=SendMail(email)
+                  
+                    send.message=render_template('message_change',supervisor=supervis,name=obj['Target'],ra=obj['RA'],dec=obj['DEC'],mag=obj['Mag'],exp=obj['ExpTime'],number=obj['Number'],night=obj['Nights'],prior=obj['Priority'],group=obj['Type'],notes=obj['Remarks'],progID=progID,status=('observation finished' if status=='done' else 'observations running')+(' (not changed)' if status==status0 else ''),message=mess)
+            
+                    send.mail["subject"]='Change of observing target'
+
+                    try:
+                        send.run()
+                    except:
+                        traceback.print_exc()
+                        send.mail['cc']=''
+                        send.send_mail("ERROR: exception", traceback.format_exc())
+                    
+                    gc.collect()
+                    return redirect(url_for('success'))          
+
+        return render_template('modify_obj.html', obj=[[x,obj_all[x]['Target']] for x in ids], target=target,info=info,supervis = supervis, email=email, mess=mess, errors=errors, progID=progID,status=status)
+    
+    return render_template('modify_obj.html', obj=[[x,obj_all[x]['Target']] for x in ids], target='',info='',supervis = '', email='', mess='', errors={}, progID='',status='')
+
+
 
 @app.route("/scheduler/db", methods=['GET', 'POST'])
 def show_db():
@@ -681,22 +849,43 @@ def show_db():
     data=[]
     done=[]
     for obj in reader:
+        #add program name
+        f=open('db/progID.json','r')
+        ids=json.load(f)
+        f.close()
+        
+        if len(obj['ProgramID'])==0: obj['Program']='not given'
+        elif obj['ProgramID'] not in ids: obj['Program']='unknown' 
+        else: obj['Program']=ids[obj['ProgramID']]['program_title']
+        
         #check if obs of obj is finished=done
         if obj['Done']=='1': done.append(obj) 
         else: data.append(obj)  
+    f.close()
             
     if request.method == 'POST':
         if 'download' in request.form:
             #download full DB
-            return send_file('db/objects.csv', as_attachment=True)  
+            #return send_file('db/objects.csv', as_attachment=True)
+            si = io.StringIO()  # create "file-like" output for writing
+            
+            writer=csv.DictWriter(si,fieldnames=header.strip().split(',')+['Done','Program'])
+            writer.writeheader()
+            writer.writerows([{x: o[x] for x in o if x not in ['ProgramID']} for o in data])
+            
+            #send output as response
+            output = make_response(si.getvalue())
+            output.headers["Content-Disposition"] = "attachment; filename=objects.csv"
+            output.headers["Content-type"] = "text/csv"
+            return output  
         
         elif 'observe' in request.form:
             #download only observe part of DB (not finished obj)
             si = io.StringIO()  # create "file-like" output for writing
             
-            writer=csv.DictWriter(si,fieldnames=header.strip().split(','))
+            writer=csv.DictWriter(si,fieldnames=header.strip().split(',')+['Program'])
             writer.writeheader()
-            writer.writerows([{x: o[x] for x in o if not x=='Done'} for o in data])
+            writer.writerows([{x: o[x] for x in o if x not in ['Done','ProgramID']} for o in data])
             
             #send output as response
             output = make_response(si.getvalue())
@@ -708,9 +897,9 @@ def show_db():
             #download only finished part of DB
             si = io.StringIO() # create "file-like" output for writing
             
-            writer=csv.DictWriter(si,fieldnames=header.strip().split(','))
+            writer=csv.DictWriter(si,fieldnames=header.strip().split(',')+['Program'])
             writer.writeheader()
-            writer.writerows([{x: o[x] for x in o if not x=='Done'} for o in done])
+            writer.writerows([{x: o[x] for x in o if x not in ['Done','ProgramID']} for o in done])
             
             #send output as response
             output = make_response(si.getvalue())
@@ -719,7 +908,7 @@ def show_db():
             return output    
     
     gc.collect()
-    return render_template('show_db.html', header=header.strip().split(','), data=data, done=done)
+    return render_template('show_db.html', header=header.strip().split(',')+['Program'], data=data, done=done)
 
 
 
@@ -756,9 +945,9 @@ def admin():
                 si = io.StringIO()    # create "file-like" output for writing
                 
                 # Get the data from the form and sort them based on original order              
-                targets=[{x: updated_data[x][ids[i]] for x in header.strip().split(',')} for i in sorted(ids)]                
+                targets=[{x: updated_data[x][ids[i]] for x in header.strip().split(',')+['ProgramID']} for i in sorted(ids)]                
                 
-                writer=csv.DictWriter(si,fieldnames=header.strip().split(','))
+                writer=csv.DictWriter(si,fieldnames=header.strip().split(',')+['ProgramID'])
                 writer.writeheader()
                 writer.writerows(targets)
                 
@@ -771,34 +960,34 @@ def admin():
             elif 'delete_all' in request.form:
                 #delete all targets
                 f=open('db/new_objects.csv','w')
-                f.write(header) 
+                f.write(header.strip()+',ProgramID\n') 
                 f.close()
                 
             elif 'accept_all' in request.form:
                 #accept all targets
                 
                 # Get the data from the form and sort them based on original order   
-                targets=[{**{x: updated_data[x][ids[i]] for x in header.strip().split(',')}, 'Done': '0'} for i in sorted(ids)]
+                targets=[{**{x: updated_data[x][ids[i]] for x in header.strip().split(',')+['ProgramID']}, 'Done': '0'} for i in sorted(ids)]
                 
                 #make data check
                 for target in targets:
-                    target,err=check(target) 
+                    tmp,err=check(target) 
                     errors+=err
                 
                 f=open('db/new_objects.csv','w')
-                writer=csv.DictWriter(f,fieldnames=header.strip().split(','))
+                writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ProgramID'])
                 writer.writeheader()                
-                if len(errors)>0: writer.writerows([{x:t[x] for x in header.strip().split(',')} for t in targets])  #problems with data
+                if len(errors)>0: writer.writerows([{x:t[x] for x in header.strip().split(',')+['ProgramID']} for t in targets])  #problems with data
                 f.close()
                 
                 if len(errors)==0: 
                     #if all data OK
                     if not os.path.isfile('db/objects.csv'):
                         f=open('db/objects.csv','w')
-                        f.write(header.strip()+',Done\n')
+                        f.write(header.strip()+',ProgramID,Done\n')
                     else: f=open('db/objects.csv','a')                
                                     
-                    writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['Done'])
+                    writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ProgramID','Done'])
                     writer.writerows(targets)
                     f.close()  
                 
@@ -807,11 +996,11 @@ def admin():
                 id=int(list(filter(r_del.match,request.form.keys()))[0].split('_')[1]) 
                 
                 # Get the data from the form and sort them based on original order                  
-                targets=[{x: updated_data[x][ids[i]] for x in header.strip().split(',')} for i in sorted(ids)]
+                targets=[{x: updated_data[x][ids[i]] for x in header.strip().split(',')+['ProgramID']} for i in sorted(ids)]
                 del(targets[id]) 
                 
                 f=open('db/new_objects.csv','w')
-                writer=csv.DictWriter(f,fieldnames=header.strip().split(','))
+                writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ProgramID'])
                 writer.writeheader()
                 writer.writerows(targets)
                 f.close()
@@ -822,25 +1011,25 @@ def admin():
                 id=int(list(filter(r_acc.match,request.form.keys()))[0].split('_')[1])   
                 
                 # Get the data from the form and sort them based on original order      
-                targets=[{x: updated_data[x][ids[i]] for x in header.strip().split(',')} for i in sorted(ids)]
+                targets=[{x: updated_data[x][ids[i]] for x in header.strip().split(',')+['ProgramID']} for i in sorted(ids)]
                 target=dict(targets[id])  
                 target['Done']='0'      
-                target,errors=check(target)   #make data check
+                tmp,errors=check(target)   #make data check
                 
                 if len(errors)==0:        
                     #if data OK        
                     if not os.path.isfile('db/objects.csv'):
                         f=open('db/objects.csv','w')
-                        f.write(header.strip()+',Done\n')
+                        f.write(header.strip()+',ProgramID,Done\n')
                     else: f=open('db/objects.csv','a')
-                    writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['Done'])
+                    writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ProgramID','Done'])
                     writer.writerow(target)
                     f.close() 
 
                     del(targets[id])    
                         
                 f=open('db/new_objects.csv','w')
-                writer=csv.DictWriter(f,fieldnames=header.strip().split(','))
+                writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ProgramID'])
                 writer.writeheader()
                 writer.writerows(targets)
                 f.close() 
@@ -872,9 +1061,9 @@ def admin():
                 si = io.StringIO()    # create "file-like" output for writing
                 
                 # Get the data from the form and sort them based on original order   
-                targets=[{x: updated_data[x][ids[i]] for x in header.strip().split(',')+['Done']} for i in sorted(ids)]
+                targets=[{x: updated_data[x][ids[i]] for x in header.strip().split(',')+['ProgramID','Done']} for i in sorted(ids)]
                 
-                writer=csv.DictWriter(si,fieldnames=header.strip().split(',')+['Done'])
+                writer=csv.DictWriter(si,fieldnames=header.strip().split(',')+['ProgramID','Done'])
                 writer.writeheader()
                 writer.writerows(targets)
                 
@@ -887,17 +1076,17 @@ def admin():
                 #save changes in table to DB
                             
                 # Get the data from the form and sort them based on original order   
-                targets=[{x: updated_data[x][ids[i]] for x in header.strip().split(',')+['Done']} for i in sorted(ids)]
+                targets=[{x: updated_data[x][ids[i]] for x in header.strip().split(',')+['ProgramID','Done']} for i in sorted(ids)]
                 
                 #make data check
                 for target in targets:
-                    target,err=check(target) 
+                    tmp,err=check(target) 
                     errors+=err
                 
                 if len(errors)==0:
                     #if all data OK -> save
                     f=open('db/objects.csv','w')
-                    writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['Done'])
+                    writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ProgramID','Done'])
                     writer.writeheader()
                     writer.writerows(targets)
                     f.close() 
@@ -909,12 +1098,12 @@ def admin():
                 id=int(list(filter(r_del.match,request.form.keys()))[0].split('_')[1])
                 
                 # Get the data from the form and sort them based on original order   
-                targets=[{x: updated_data[x][ids[i]] for x in header.strip().split(',')+['Done']} for i in sorted(ids)]
+                targets=[{x: updated_data[x][ids[i]] for x in header.strip().split(',')+['ProgramID','Done']} for i in sorted(ids)]
                 
                 #make data check
                 for i,target in enumerate(targets):
                     if i==id: continue   #ignore deleting row
-                    target,err=check(target) 
+                    tmp,err=check(target) 
                     errors+=err
                 
                 if len(errors)==0: del(targets[id])  #delete row
@@ -922,14 +1111,14 @@ def admin():
                 if len(errors)==0:
                     #if all data OK -> save
                     f=open('db/objects.csv','w')
-                    writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['Done'])
+                    writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ProgramID','Done'])
                     writer.writeheader()
                     writer.writerows(targets)
                     f.close()
                 
             if len(errors)>0:
                 #if some error reload displayed data - NO saved in file!
-                return render_template('admin_db.html', db=db, header=header.strip().split(','), data=targets, saved=saved, errors=errors)
+                return render_template('admin_db.html', db=db, header=header.strip().split(',')+['ProgramID'], data=targets, saved=saved, errors=errors)
                                
             
             if os.path.isfile('db/objects.csv'): os.chmod('db/objects.csv', 0o666)            
@@ -939,18 +1128,19 @@ def admin():
     
     #load DB from file    
     if db=='new': 
-        if not os.path.isfile('db/new_objects.csv'): return render_template('admin_db.html', db=db, header=header.strip().split(','), data=[], saved=saved, errors=errors)
+        if not os.path.isfile('db/new_objects.csv'): return render_template('admin_db.html', db=db, header=header.strip().split(',')+['ProgramID'], data=[], saved=saved, errors=errors)
         f=open('db/new_objects.csv','r')
     elif db=='objects': 
-        if not os.path.isfile('db/objects.csv'): return render_template('admin_db.html', db=db, header=header.strip().split(','), data=[], saved=saved, errors=errors)
+        if not os.path.isfile('db/objects.csv'): return render_template('admin_db.html', db=db, header=header.strip().split(',')+['ProgramID'], data=[], saved=saved, errors=errors)
         f=open('db/objects.csv','r')
     reader = csv.DictReader(f)
     data=[]
     for i,obj in enumerate(reader):
         data.append(obj)
+    f.close()
     
     gc.collect()
-    return render_template('admin_db.html', db=db, header=header.strip().split(','), data=data, saved=saved, errors=errors)
+    return render_template('admin_db.html', db=db, header=header.strip().split(',')+['ProgramID'], data=data, saved=saved, errors=errors)
 
 @app.route("/scheduler/run", methods=['GET','POST'])
 def scheduler():
@@ -963,12 +1153,20 @@ def scheduler():
     objects0=load_objects('db/objects.csv',check=False)   #check in Simbad?
        
     groups={}
+    condi={'excellent':0,'good':0,'poor':0,'na':0}
     for obj in objects0:
         if obj['full']['Done']==1: continue  #remove already finished targets
         group=obj['full']['Type']
         if pd.isna(group): group='None'
         if group in groups: groups[group]+=1
         else: groups[group]=1
+        
+        #print(obj['full'])
+        
+        if group not in ['RV Standard','SpecPhot Standard']: 
+            #ignore conditons for standards
+            if pd.isna(obj['full']['Conditions']): condi['na']+=1
+            else: condi[obj['full']['Conditions']]+=1      
     
     if request.method == 'POST':
         if 'run' in request.form:
@@ -981,7 +1179,10 @@ def scheduler():
             scheduler=request.form['scheduler']      
             if not 'use_group' in request.form:
                 return 'NO objects to schedule!'     
-            use_group=request.form.to_dict(flat=False)['use_group']     
+            use_group=request.form.to_dict(flat=False)['use_group'] 
+            if not 'use_condi' in request.form: use_condi=[]    
+            else: use_condi=request.form.to_dict(flat=False)['use_condi']     
+            if 'na' in use_condi: use_condi.append('')
             
             n_selected=[]
             n_obs=[]
@@ -993,9 +1194,14 @@ def scheduler():
             for obj in objects0:
                 if obj['full']['Done']==1: continue
                 if not series and obj['n_exp']=='series': continue
-                group=obj['full']['Type']    
+                group=obj['full']['Type']  
+                condi=obj['full']['Conditions']  
                 if pd.isna(group): group='None'
-                if group in use_group: objects1[str(uuid.uuid4())]=obj
+                if pd.isna(condi): condi=''
+                if group in use_group: 
+                    if condi in use_condi or group in ['RV Standard','SpecPhot Standard']:
+                        #ignore conditons for standards
+                        objects1[str(uuid.uuid4())]=obj
             
             #load config - based on observatory!
             config=load_config('lasilla_config.txt')
@@ -1178,7 +1384,7 @@ def scheduler():
                 return render_template('multi_schedule.html', names=out_names, selected=n_selected, observable=n_obs, scheduled=n_sch)
     
     gc.collect()
-    return render_template('run_scheduler.html',night=datetime.now(timezone.utc).strftime('%Y-%m-%d'),number=1,name='',groups=groups,scheduler='StdPriority',use_group=['RV Standard'],time=False,azm=False,position='both')
+    return render_template('run_scheduler.html',night=datetime.now(timezone.utc).strftime('%Y-%m-%d'),number=1,name='',groups=groups,scheduler='StdPriority',use_group=['RV Standard'],time=False,azm=False,position='both',condi=condi,use_condi=['good','poor','na'])
 
 
 @app.route("/scheduler/new_schedule", methods=['GET','POST'])
@@ -1320,7 +1526,7 @@ def modify():
     schedules=[os.path.splitext(os.path.basename(x))[0] for x in  sorted(glob.glob('schedules/*.csv'), key=os.path.getmtime)][::-1]  
     
     if not os.path.isfile('db/objects.csv'):
-        return render_template('modify.html', schedules=schedules,name='',schedule=[],code='',codeF='', alt_plot='',sky='',start='',night='',groups={},use_group=[],objects=[],obs=[],indiv=True, calc=0,total_time=16,all_obj=[],codeObj='',indObj='')
+        return render_template('modify.html', schedules=schedules,name='',schedule=[],code='',codeF='', alt_plot='',sky='',start='',night='',groups={},use_group=[],objects=[],obs=[],indiv=True, calc=0,total_time=16,all_obj=[],codeObj='',indObj='',condi='all')
     objects0=load_objects('db/objects.csv',check=False)   #check in Simbad?
     
     groups={}
@@ -1357,7 +1563,7 @@ def modify():
             cache.set(codeObj,dict(all_obj0))
             if len(all_obj0)==0: codeObj=''
         
-            return render_template('modify.html', schedules=schedules,name=name,schedule=[],code='',codeF='', alt_plot='',sky='',start='',night='',groups=groups,use_group=[],objects=[],obs=[],prev_plot='',indiv=True,modify=True, calc=1,total_time=16,all_obj=sorted(all_obj0.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj='')
+            return render_template('modify.html', schedules=schedules,name=name,schedule=[],code='',codeF='', alt_plot='',sky='',start='',night='',groups=groups,use_group=[],objects=[],obs=[],prev_plot='',indiv=True,modify=True, calc=1,total_time=16,all_obj=sorted(all_obj0.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj='',condi='all')
         
     
     if request.method=='POST':
@@ -1395,6 +1601,11 @@ def modify():
         
         if not 'use_group' in request.form: use_group=[]     
         else: use_group=request.form.to_dict(flat=False)['use_group']
+        
+        condi=request.form['condi']
+        if condi=='all': use_condi=['excellent','good','poor','']
+        elif condi=='na': use_condi=['']
+        else: use_condi=[condi]
         
         indiv = (request.form.get('individual')=='checked')
         
@@ -1473,8 +1684,13 @@ def modify():
                 if obj['full']['Done']==1: continue
                 #if not series and obj['n_exp']=='series': continue
                 group=obj['full']['Type']    
+                con=obj['full']['Conditions']
                 if pd.isna(group): group='None'
-                if group in use_group: objects.append(obj)
+                if pd.isna(con): con=''
+                if group in use_group: 
+                    if con in use_condi or group in ['RV Standard','SpecPhot Standard']:
+                        #ignore conditons for standards
+                        objects.append(obj)                
                 
             obs=[]  #observability times
              
@@ -1619,69 +1835,6 @@ def modify():
             for i,tw in enumerate(twilights):
                 if i<4: plt.text(tw[0],ymin,tw[2],horizontalalignment='right',verticalalignment='bottom',fontsize=8,rotation='vertical')
                 else: plt.text(tw[0],ymin,tw[2],horizontalalignment='left',verticalalignment='bottom',fontsize=8,rotation='vertical')
-            
-            #moon phase and alt plot
-            '''
-            mtime=stime[::2]
-            moon_altaz=schedule.observer.moon_altaz(mtime)
-
-            #moon phase (0-1)
-            k=round((schedule.start_time.datetime.year+schedule.start_time.datetime.month/12.+schedule.start_time.datetime.day/365.-2000)*12.3685)
-            T=k/1236.85
-            newm=2451550.09766+29.530588861*k+0.00015437*T**2-0.000000150*T**3+0.00000000073*T**4  #predosli nov
-            while schedule.start_time.jd<newm: newm-=29.530588861
-            age=schedule.start_time.jd-newm
-            phase0=age/29.530588861
-
-            phase=phase0
-            if phase0>0.5: phase-=0.5
-            arg=2*np.pi*phase
-
-            a=np.arange(0,2*np.pi,0.1)
-            x0=np.cos(a)
-            y0=np.sin(a)
-
-            ym=np.arange(-1,1.01,0.1)
-            xm=np.cos(arg)*np.sqrt(1-ym**2)
-            y1=np.arange(1,-1.01,-0.1)
-            x1=np.sqrt(1-y1**2)
-            xm=np.append(xm,x1)
-            ym=np.append(ym,y1)
-            xy=np.zeros([xm.shape[0],2])
-            xy[:,0]=xm
-            xy[:,1]=ym
-
-            xy0=np.zeros([x0.shape[0],2])
-            xy0[:,0]=x0
-            xy0[:,1]=y0
-
-            if phase0<=0.5:
-                polygon=patches.Polygon(xy0,closed=True)
-                p1=PatchCollection([polygon],color='k',zorder=3)
-                polygon=patches.Polygon(xy,closed=True)
-                p2=PatchCollection([polygon],color='yellow',zorder=3)
-            else:
-                polygon=patches.Polygon(xy0,closed=True)
-                p1=PatchCollection([polygon],color='yellow',zorder=3)
-                polygon=patches.Polygon(xy,closed=True)
-                p2=PatchCollection([polygon],color='k',zorder=3)
-                
-            mi=np.where(moon_altaz.alt>0)
-            ax.plot(mtime[mi].plot_date,moon_altaz.alt[mi],'o-',color='gray',alpha=0.8)
-            moonx=0.12
-            moony=0.83
-            
-            axM = ax.figure.add_axes([moonx, moony, 0.1*ax.figure.get_figheight()/ax.figure.get_figwidth(), 0.1])
-            axM.set_yticklabels([])
-            axM.set_xticklabels([])
-            axM.grid(False)
-            axM.set_axis_off()
-            axM.set_xlim(-1,1)
-            axM.set_ylim(-1,1)
-            axM.figure.tight_layout()
-            axM.add_collection(p1)
-            axM.add_collection(p2)
-            '''
             
             #star alt track
             ra='{}h{}m{}s'.format(*obj['RA'].replace(':',' ').replace(',','.').split())
@@ -1854,7 +2007,7 @@ def modify():
                 if codeF: objects=cache.get(codeF)
                 else: objects=[]
             
-                return render_template('modify.html', schedules=schedules,name=name,schedule=[],code='', codeF=codeF, alt_plot='',sky='',start=request.form['start'],night=request.form['night'],groups=groups,use_group=use_group,objects=objects,calc=0,total_time=16,all_obj=sorted(all_obj.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj=idObj)
+                return render_template('modify.html', schedules=schedules,name=name,schedule=[],code='', codeF=codeF, alt_plot='',sky='',start=request.form['start'],night=request.form['night'],groups=groups,use_group=use_group,objects=objects,calc=0,total_time=16,all_obj=sorted(all_obj.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj=idObj,condi=condi)
             else: ids=[int(i) for i in request.form.to_dict(flat=False)['id']]          
 
             df0=pd.DataFrame(cache.get(code)[0])
@@ -2176,7 +2329,7 @@ def modify():
             output.headers["Content-type"] = "text/json"
             return output 
         
-        return render_template('modify.html', schedules=schedules,name=name,schedule=dfW,code=code, codeF=codeF,alt_plot=alt_plot,sky=sky_plot,start=startF,night=nightF,groups=groups,use_group=use_group,objects=objects,obs=obs,indiv=indiv,calc=calc,total_time=total_time,all_obj=sorted(all_obj.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj=idObj)
+        return render_template('modify.html', schedules=schedules,name=name,schedule=dfW,code=code, codeF=codeF,alt_plot=alt_plot,sky=sky_plot,start=startF,night=nightF,groups=groups,use_group=use_group,objects=objects,obs=obs,indiv=indiv,calc=calc,total_time=total_time,all_obj=sorted(all_obj.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj=idObj,condi=condi)
     else:
         all_obj=all_obj0
         
@@ -2186,7 +2339,7 @@ def modify():
     
     gc.collect()
     
-    return render_template('modify.html', schedules=schedules,name='',schedule=[],code='',codeF='', alt_plot='',sky='',start='',night='',groups=groups,use_group=[],objects=[],obs=[],indiv=True,calc=0,total_time=16,all_obj=sorted(all_obj.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj='')
+    return render_template('modify.html', schedules=schedules,name='',schedule=[],code='',codeF='', alt_plot='',sky='',start='',night='',groups=groups,use_group=[],objects=[],obs=[],indiv=True,calc=0,total_time=16,all_obj=sorted(all_obj.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj='',condi='all')
 
 @app.route("/scheduler/limits", methods=['GET'])
 def limits():

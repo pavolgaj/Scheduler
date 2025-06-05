@@ -155,10 +155,10 @@
                 if (!isInt(input.value)) {
                     valid = false;
                 }
-                else if ((input.value<1) | (input.value)>10) {
+                else if ((input.value < 1) | (input.value) > 10) {
                     valid = false;
                 }
-                
+
                 if (!valid) {
                     alert('Number of nights should be number from 1 to 10!');
                     return valid;
@@ -173,30 +173,30 @@
                 if (!valid) {
                     alert('Number of exposure should be number!');
                     return valid;
-                }                
+                }
 
                 var time = document.getElementById('time');
                 if (time.checked) {
                     var time_start = document.getElementById('time_start');
-                    var time_end = document.getElementById('time_end');   
+                    var time_end = document.getElementById('time_end');
                     if (time_start.validity['badInput'] || time_end.validity['badInput']) {
                         valid = false;
                         alert('Incorrect time format!');
-                    }                    
+                    }
                 }
 
-                var night = document.getElementById('night');   
+                var night = document.getElementById('night');
                 if (night.validity['badInput']) {
                     valid = false;
                     alert('Incorrect date format!');
-                }  
+                }
 
                 return valid;
             }
 
             function popup() {
                 //show info about running, not block server
-                var check=checkNum();
+                var check = checkNum();
                 if (check) {
                     var myDialog = document.createElement("dialog");
                     document.body.appendChild(myDialog)
@@ -249,7 +249,7 @@
                 //show/hide name for multiple nights
                 var number = document.getElementById('number');
                 var name = document.getElementById('name-div');
-                name.style.display = (number.value>1) ? 'flex' : 'none';
+                name.style.display = (number.value > 1) ? 'flex' : 'none';
             }
             // Run this function on page load to check if the checkbox was checked (loading from server)
             window.onload = function () {
@@ -267,8 +267,8 @@
             </center>
             <div class="form-group">
                 <label for="night">Scheduling night:</label>
-                <input type="date" name="night" id="night" value="{{ night }}"
-                    title="Local date of beginning of night." required>
+                <input type="date" name="night" id="night" value="{{ night }}" title="Local date of beginning of night."
+                    required>
             </div>
             <div class="checkbox-wrapper">
                 <label for="time">Part of night:</label>
@@ -291,12 +291,15 @@
             </div>
             <div class="form-group" id="name-div">
                 <label for="name">Name of new schedule </label>
-                <input type="text" name="name" id="name" value="{{ name }}" title="Name prefix for generating schedules. Date added automatically. Name = prefix_YMD" placeholder="Name prefix for generating schedules">
+                <input type="text" name="name" id="name" value="{{ name }}"
+                    title="Name prefix for generating schedules. Date added automatically. Name = prefix_YMD"
+                    placeholder="Name prefix for generating schedules">
             </div>
 
             <div class="form-group">
                 <label for="position">Telescope position</label>
-                <select id="position" name="position">
+                <select id="position" name="position" title="Telescope position in pointing restrictions."
+                    placeholder="Telescope position in pointing restrictions.">
                     <option value="both" {% if position=='both' %}selected{% endif %}>Both (East+West)</option>
                     <option value="east" {% if position=='east' %}selected{% endif %}>Only East</option>
                     <option value="west" {% if position=='west' %}selected{% endif %}>Only West</option>
@@ -306,16 +309,76 @@
             <div class="checkbox-wrapper">
                 <label for="time">Azimuth constraints:</label>
                 <input type="checkbox" id="azm" name="azm" value="checked"
-                    title="Specify limits for azimuth constraint (from 0 to 360 deg)." onclick="toggleAzm()" {% if azm %}checked{% endif
-                    %}>
+                    title="Specify limits for azimuth constraint (from 0 to 360 deg)." onclick="toggleAzm()" {% if azm
+                    %}checked{% endif %}>
                 <label for="azm_start" id="azm_start_label">&nbsp;&nbsp;&nbsp;from</label>
                 <input type="text" name="azm_start" id="azm_start" value="{{ azm_start }}"
                     style="display::{{ 'inline-block' if azm else 'none' }}"
-                    title="Lower azimuth limit (i.e. start of permitted slot). Leave empty if NO limit." placeholder="Lower azimuth limit in deg">
+                    title="Lower azimuth limit (i.e. start of permitted slot). Leave empty if NO limit."
+                    placeholder="Lower azimuth limit in deg">
                 <label for="azm_end" id="azm_end_label">&nbsp;&nbsp;&nbsp;to</label>
                 <input type="text" name="azm_end" id="azm_end" value="{{ azm_end }}"
                     style="display::{{ 'inline-block' if azm else 'none' }}"
-                    title="Upper azimuth limit (i.e. end of permitted slot). Leave empty if NO limit." placeholder="Upper azimuth limit in deg">
+                    title="Upper azimuth limit (i.e. end of permitted slot). Leave empty if NO limit."
+                    placeholder="Upper azimuth limit in deg">
+            </div>
+
+            <div>
+                <label>Required observing conditions</label>
+                <table id="condi_table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Conditions</th>
+                            <th>Number of objects</th>
+                        </tr>
+                    </thead>
+                    <tr>
+                        <td>
+                            <center>
+                                <input type="checkbox" name="use_condi" value="excellent"
+                                    title="Include group of objects to scheduler." {% if 'excellent' in use_condi
+                                    %}checked{% endif %}>
+                            </center>
+                        </td>
+                        <td>Excellent</td>
+                        <td>{{ condi['excellent'] }}</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <center>
+                                <input type="checkbox" name="use_condi" value="good"
+                                    title="Include group of objects to scheduler." {% if 'good' in use_condi
+                                    %}checked{% endif %}>
+                            </center>
+                        </td>
+                        <td>Good (normal)</td>
+                        <td>{{ condi['good'] }}</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <center>
+                                <input type="checkbox" name="use_condi" value="poor"
+                                    title="Include group of objects to scheduler." {% if 'poor' in use_condi
+                                    %}checked{% endif %}>
+                            </center>
+                        </td>
+                        <td>Poor</td>
+                        <td>{{ condi['poor'] }}</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <center>
+                                <input type="checkbox" name="use_condi" value="na"
+                                    title="Include group of objects to scheduler." {% if 'na' in use_condi
+                                    %}checked{% endif %}>
+                            </center>
+                        </td>
+                        <td>Not given</td>
+                        <td>{{ condi['na'] }}</td>
+                    </tr>
+                </table>
+                <br>
             </div>
 
             <!-- table with object types/groups -->
@@ -346,7 +409,8 @@
                 <br>
                 <div class="button-group">
                     <center>
-                        <button type="button" name="all" title="Select all objects groups." onclick="select_all()">Select
+                        <button type="button" name="all" title="Select all objects groups."
+                            onclick="select_all()">Select
                             all</button>
                         <button type="button" name="none" title="Deselect all groups." onclick="select_none()">Select
                             none</button>

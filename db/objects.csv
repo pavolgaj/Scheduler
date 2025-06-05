@@ -1,2 +1,2 @@
-Target,RA,DEC,Mag,Period,Epoch,ExpTime,Number,Nights,Priority,Type,Remarks,MoonPhase,StartPhase,EndPhase,StartDate,EndDate,OtherRequests,Supervisor,Done
-Sirius,06 45 08.92,-16 42 58.02,-1.46,,,60,1,1,3,test,sim. ThAr; ,,,,,,,example,0
+Target,RA,DEC,Mag,Period,Epoch,ExpTime,Number,Nights,Priority,Type,Remarks,MoonPhase,StartPhase,EndPhase,StartDate,EndDate,Conditions,OtherRequests,Supervisor,ProgramID,Done
+Sirius,06 45 08.92,-16 42 58.02,-1.46,,,60,1,1,3,test,sim. ThAr; ,,,,,,good,,example,1234,0

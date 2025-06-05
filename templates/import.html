@@ -108,7 +108,7 @@
         <!-- manual for data structure -->
         <ol>
             <li>Download CSV <a href="{{ url_for('static',filename='objects_template.csv') }}">template</a>.</li>
-            <li>Add your objects (one per line). Please, use these rules and formats:</li>
+            <li>Add your objects (one per line). Please, use these rules and formats (see <a href="{{ url_for('static',filename='objects_example.csv') }}">example</a>):</li>
             <ul>
                 <li><u>Target</u> - name of object (use name findable in Simbad if possible).</li>
                 <li><u>RA</u> - right accession in format "H M S" or "H:M:S".</li>
@@ -131,7 +131,7 @@
                     <li>SpecPhot Standard</li>
                 </ul>
                 Or write your own one.
-                <li>Remarks - all remarks to observation: usage of iodine cell (IC), settings of simultaneous calibration (ThAr, IC), parameters for simultaneous
+                <li>Remarks - all remarks to observation: usage of iodine cell (IC), settings of simultaneous calibration (ThAr, IC), readout speed, parameters for simultaneous
                     photometry (e.g. filter, exposure).</li>
                 <li>MoonPhase - Constraint on maximum acceptable Moon phase (illumination). From 0 to 1 (full Moon).
                 </li>
@@ -145,10 +145,11 @@
                 <li>EndDate - Constraint on end of observing period. Use format "Y-m-d H:M:S" or "Y-m-d'T'H:M:S" (time 23:59:59 is
                     recommended). Leave empty if NO
                     limit.</li>
+                <li>Conditions - Required observing conditions (excellent, good, poor).</li>
                 <li>OtherRequests - Other constraints and requests for observation scheduling. Leave empty if NOT
                     aplicable.</li>
             </ul>
-            <b>Underline items are always required! Leave other fields blank if not apply to target.</b>
+            <b>Underline items are always required! Leave other fields blank if not apply to target.</b>            
             <li>Save your list of objects as CSV file.</li>
             <li>Upload the file.</li>
             <li>Fill out and submit following form:</li>
@@ -168,6 +169,12 @@
                 </label>
                 <input type="text" id="supervis" name="supervis" value="{{ supervis }}"
                     class="{{ 'error' if errors.get('supervis') else 'normal' }}" title="Name of target supervisor." placeholder="Name of target supervisor" required>
+            </div>
+            <div class="form-group">
+                <label for="progID"><u>Program ID</u>
+                </label>
+                <input type="text" id="progID" name="progID" value="{{ progID }}"
+                    class="{{ 'error' if errors.get('progID') else 'normal' }}" title="Program ID (obtained from AsU)." placeholder="Program ID (obtained from AsU)." required>
             </div>
             <div class="form-group">
                 <label for="email"><u>Email</u>
