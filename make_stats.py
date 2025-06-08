@@ -69,21 +69,27 @@ def make_stats():
         reader = csv.DictReader(f)
         last=os.path.basename(log)[:10]
         for obs in reader:
-            target=obs['object'].replace('?','').replace('ttarget-','').replace('ttarget_','').replace('_',' ').strip()
+            target=obs['object'].replace('?','').replace('ttarget-','').replace('ttarget_','').replace('-thar','').replace('_thar','').replace('-ThAr','').replace('_ThAr','').replace('_',' ').strip()
             #remove calibrations and tests
-            if target.lower() in ['bias','flat','comp','test','zero','thar','','dark','pokus','neco','xx','calibration','djdj','rtjhrstjh','shgdfz','shs','shswh','ttt','yflju','t','twst','ttarget']: continue
+            if target.lower() in ['bias','flat','comp','test','zero','thar','','dark','pokus','neco','xx','calibration','djdj',
+                                  'rtjhrstjh','shgdfz','shs','shswh','ttt','yflju','t','twst','ttarget','ic','ic-cu','ic cu',
+                                  'lampa','i2cu','i2-cu','i2-fe-i2-cu','cu-ic','back','back2','dome','pok','front','spektrum',
+                                  'tharCU','th-ar-cu-I2-frontend','4-4','6-4','6-5','arc','cu','th-ar-cu']: continue
             if 'test' in target.lower(): continue
-            if 'thar' in target.lower(): continue
-            if 'flat' in target.lower(): continue
-            if 'dark' in target.lower(): continue
-            if 'dome' in target.lower(): continue
-            if 'pok' in target.lower(): continue
             if 'front' in target.lower(): continue
+            if 'dome' in target.lower(): continue
+            if 'thar' in target.lower(): continue
+            if 'pok' in target.lower(): continue
+            if 'lamp' in target.lower(): continue
             if 'spektrum' in target.lower(): continue
             if 'comp' in target.lower(): continue
             if 'bias' in target.lower(): continue
             if 'zero' in target.lower(): continue
             if 'comb' in target.lower(): continue
+            if 'flat' in target.lower(): continue
+            if 'dark' in target.lower(): continue
+            if 'arc ' in target.lower(): continue 
+            if 'arc-' in target.lower(): continue 
 
             #utilize similar objects names - spaces, lower/upper case etc.
             if not target.lower().replace('-','').replace(' ','') in names: 
@@ -236,7 +242,7 @@ if __name__ == '__main__':
                 reader = csv.DictReader(f)
                 for row in reader:
                     #utilize similar objects names - spaces, lower/upper case etc.
-                    if row['object'].replace('?','').replace('ttarget-','').replace('ttarget_','').replace('_',' ').strip().lower().replace('-','').replace(' ','')==name:
+                    if row['object'].lower().replace('?','').replace('ttarget-','').replace('ttarget_','').replace('-thar','').replace('_thar','').replace('_',' ').strip().replace('-','').replace(' ','')==name:
                         total+=float(row['exposure'])
                         number+=1
                 f.close() 
@@ -259,7 +265,7 @@ if __name__ == '__main__':
     p=pdf.PDFReport('statistics/statistics_'+outname+'.pdf')
     if start.strftime('%Y%m')==end.strftime('%Y%m'): p.set_title(start.strftime('%Y%m'))
     else: p.set_title(start.strftime('%Y%m')+'-'+end.strftime('%Y%m'))
-    p.set_author('Scheduler')
+    p.set_author('E152')
 
     if len(stats)>0:
         #get lenght of all nights

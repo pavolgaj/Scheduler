@@ -2876,7 +2876,7 @@ def search():
             reader = csv.DictReader(f)
             for row in reader:
                 #utilize similar objects names - spaces, lower/upper case etc.
-                if target.lower().replace('-','').replace(' ','')==row['object'].replace('?','').replace('ttarget-','').replace('ttarget_','').replace('_',' ').strip().lower().replace('-','').replace(' ',''):
+                if target.lower().replace('-','').replace(' ','')==row['object'].replace('?','').replace('ttarget-','').replace('ttarget_','').replace('-thar','').replace('_thar','').replace('_',' ').strip().lower().replace('-','').replace(' ',''):
                     exp=row['exposure']
                     inst=row['instrument']
                     if inst in obs[night]:
