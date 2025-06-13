@@ -501,7 +501,8 @@ def new():
             except:
                 traceback.print_exc()
                 send.mail['cc']=''
-                send.send_mail("ERROR: exception", traceback.format_exc())
+                try: send.send_mail("ERROR: exception", traceback.format_exc())
+                except: pass   #incorrect mail config
 
             gc.collect()
             return redirect(url_for('success'))
@@ -715,7 +716,8 @@ def bulk():
             except:
                 traceback.print_exc()
                 send.mail['cc']=''
-                send.send_mail("ERROR: exception", traceback.format_exc())
+                try: send.send_mail("ERROR: exception", traceback.format_exc())
+                except: pass   #incorrect mail config
 
             gc.collect()
             return redirect(url_for('success'))
@@ -807,7 +809,8 @@ def modif_obj():
                     except:
                         traceback.print_exc()
                         send.mail['cc']=''
-                        send.send_mail("ERROR: exception", traceback.format_exc())
+                        try: send.send_mail("ERROR: exception", traceback.format_exc())
+                        except: pass   #incorrect mail config
                         
                     gc.collect()
                     return result
@@ -825,7 +828,8 @@ def modif_obj():
                     except:
                         traceback.print_exc()
                         send.mail['cc']=''
-                        send.send_mail("ERROR: exception", traceback.format_exc())
+                        try: send.send_mail("ERROR: exception", traceback.format_exc())
+                        except: pass   #incorrect mail config
                     
                     gc.collect()
                     return redirect(url_for('success'))          
