@@ -1168,6 +1168,12 @@ def scheduler():
        
     groups={}
     condi={'excellent':0,'good':0,'poor':0,'na':0}
+    programs={}
+    
+    f=open('db/progID.json','r')
+    ids=json.load(f)
+    f.close()
+    
     for obj in objects0:
         if obj['full']['Done']==1: continue  #remove already finished targets
         group=obj['full']['Type']
@@ -1175,7 +1181,23 @@ def scheduler():
         if group in groups: groups[group]+=1
         else: groups[group]=1
         
-        #print(obj['full'])
+        #add program name       
+        progID=obj['full']['ProgramID']
+        if pd.isna(progID): progID=''
+        if len(progID)==0: prog='not given'
+        elif progID not in ids: prog='unknown' 
+        else: prog=ids[progID]['program_title']
+        
+        if prog in programs: programs[prog]['n']+=1
+        else: 
+            programs[prog]={'n':1}
+            if prog in ['not given','unknown']:
+                programs[prog]['service']=True
+                programs[prog]['readout']='unknown'
+            else:
+                programs[prog]['service']=(True if ids[progID]['mode'].split()[0]=='service' else False)
+                programs[prog]['readout']=ids[progID]['readout'].split()[0].lower()
+        
         
         if group not in ['RV Standard','SpecPhot Standard']: 
             #ignore conditons for standards
@@ -1198,6 +1220,23 @@ def scheduler():
             else: use_condi=request.form.to_dict(flat=False)['use_condi']     
             if 'na' in use_condi: use_condi.append('')
             
+            if not 'use_program' in request.form: use_program=[]    
+            else: use_program=request.form.to_dict(flat=False)['use_program']     
+            if 'na' in use_program: use_program.append('')
+            
+            mag_min=request.form['mag_min'].strip()
+            if len(mag_min)==0: mag_min=-20
+            else: mag_min=float(mag_min)
+            
+            mag_max=request.form['mag_max'].strip()
+            if len(mag_max)==0: mag_max=20
+            else: mag_max=float(mag_max)
+            
+            if mag_min>mag_max:
+                x=mag_max
+                mag_max=mag_min
+                mag_min=x
+            
             n_selected=[]
             n_obs=[]
             n_sch=[]
@@ -1212,9 +1251,26 @@ def scheduler():
                 condi=obj['full']['Conditions']  
                 if pd.isna(group): group='None'
                 if pd.isna(condi): condi=''
-                if group in use_group: 
+                
+                #add program name       
+                progID=obj['full']['ProgramID']
+                if pd.isna(progID): progID=''
+                if len(progID)==0: prog='not given'
+                elif progID not in ids: prog='unknown' 
+                else: prog=ids[progID]['program_title']
+        
+                if group in use_group and prog in use_program: 
                     if condi in use_condi or group in ['RV Standard','SpecPhot Standard']:
                         #ignore conditons for standards
+                        mag=obj['full']['Mag']
+                        
+                        try: mag=float(mag)
+                        except ValueError: 
+                            objects1[str(uuid.uuid4())]=obj
+                            continue
+            
+                        if not pd.isna(mag):
+                            if mag<mag_min or mag>mag_max: continue    #filter of magnitude
                         objects1[str(uuid.uuid4())]=obj
             
             #load config - based on observatory!
@@ -1398,7 +1454,7 @@ def scheduler():
                 return render_template('multi_schedule.html', names=out_names, selected=n_selected, observable=n_obs, scheduled=n_sch)
     
     gc.collect()
-    return render_template('run_scheduler.html',night=datetime.now(timezone.utc).strftime('%Y-%m-%d'),number=1,name='',groups=groups,scheduler='StdPriority',use_group=['RV Standard'],time=False,azm=False,position='both',condi=condi,use_condi=['good','poor','na'])
+    return render_template('run_scheduler.html',night=datetime.now(timezone.utc).strftime('%Y-%m-%d'),number=1,name='',groups=groups,scheduler='StdPriority',use_group=['RV Standard'],time=False,azm=False,position='both',condi=condi,use_condi=['good','poor','na'],programs=programs)
 
 
 @app.route("/scheduler/new_schedule", methods=['GET','POST'])
