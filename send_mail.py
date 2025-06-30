@@ -120,17 +120,28 @@ def main():
 
     argv_len = len(sys.argv)
 
-    if argv_len not in [2, 3]:
-        print("Usage: %s DIRECTORY [c|check]" % sys.argv[0])
+    if argv_len<2:
+        print("Usage: %s DIRECTORY [c|check] [subject]" % sys.argv[0])
         return
 
     directory = sys.argv[1]
     check = False
 
-    if argv_len == 3:
-        check = True
-
-    send_mail = SendMail(cc='',directory=directory,check=check)
+    subj=None
+    if argv_len>2:
+        if sys.argv[2]=='c' or sys.argv[2]=='check': 
+            check = True
+            del(sys.argv[2])
+    if argv_len>2: subj=sys.argv[-1]
+    
+    send_mail = SendMail(cc='',directory=directory)
+    if subj is not None: send_mail.mail['subject']=subj
+    
+    if check: 
+        print("Only check")
+        send_mail.check()
+        print("\nSUCCESS")
+        sys.exit()
 
     try:
         send_mail.run()
