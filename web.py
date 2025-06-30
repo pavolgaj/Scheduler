@@ -1184,7 +1184,7 @@ def scheduler():
         #add program name       
         progID=obj['full']['ProgramID']
         if pd.isna(progID): progID=''
-        if len(progID)==0: prog='not given'
+        if len(str(progID))==0: prog='not given'
         elif progID not in ids: prog='unknown' 
         else: prog=ids[progID]['program_title']
         
@@ -1255,7 +1255,7 @@ def scheduler():
                 #add program name       
                 progID=obj['full']['ProgramID']
                 if pd.isna(progID): progID=''
-                if len(progID)==0: prog='not given'
+                if len(str(progID))==0: prog='not given'
                 elif progID not in ids: prog='unknown' 
                 else: prog=ids[progID]['program_title']
         

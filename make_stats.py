@@ -183,7 +183,7 @@ def get_program(id):
     ids=json.load(f)
     f.close()
     
-    if len(id)==0: program='not given'
+    if len(str(id))==0: program='not given'
     elif id not in ids: program='unknown' 
     else: program=ids[id]['program_title']    
     
