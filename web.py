@@ -159,18 +159,28 @@ def new():
     if not session.get('logged_in'):
         return redirect(url_for('login', next=request.path))
     
+    groups=["Exoplanet","Eclipsing binary","Flaring star","Pulsating star","RV Standard","SpecPhot Standard"]
+    
+    if os.path.isfile('db/objects.csv'):
+        f=open('db/objects.csv','r')
+        reader = csv.DictReader(f)
+        for obj in reader: 
+            if not obj['Type'] in groups: groups.append(obj['Type'])
+        f.close()
+        
+    
     if request.method == 'POST':
         errors = {}
 
         #get data from form
-        name = request.form['name']
-        ra = request.form['ra']
-        dec = request.form['dec']
-        mag = request.form['mag']
-        per = request.form['per']
-        t0 = request.form['t0']
+        name = request.form['name'].strip()
+        ra = request.form['ra'].strip()
+        dec = request.form['dec'].strip()
+        mag = request.form['mag'].strip()
+        per = request.form['per'].strip()
+        t0 = request.form['t0'].strip()
 
-        exp = request.form['exp']
+        exp = request.form['exp'].strip()
         number = request.form['number']
         night = request.form['night']
         series = (request.form.get('series')=='checked')
@@ -178,27 +188,27 @@ def new():
         ic = (request.form.get('ic')=='checked')
         readout=request.form['readout']
         phot = (request.form.get('phot')=='checked')
-        phot_input = request.form['phot_input']
-        remarks = request.form['remarks']
+        phot_input = request.form['phot_input'].strip()
+        remarks = request.form['remarks'].strip()
 
         prior = request.form['prior']
-        group = request.form['group']
+        group = request.form['group'].strip()
 
         moon = (request.form.get('moon')=='checked')
-        moon_input = request.form['moon_input']
+        moon_input = request.form['moon_input'].strip()
         phase = (request.form.get('phase')=='checked')
-        phase_start = request.form['phase_start']
-        phase_end = request.form['phase_end']
+        phase_start = request.form['phase_start'].strip()
+        phase_end = request.form['phase_end'].strip()
         time = (request.form.get('time')=='checked')
         time_start = request.form['time_start']
         time_end = request.form['time_end']
         condi = request.form['condi']  
-        other = request.form['other']        
+        other = request.form['other'].strip()        
 
-        supervis = request.form['supervis']
-        progID = request.form['progID']
-        email = request.form['email']
-        mess=request.form['mess']
+        supervis = request.form['supervis'].strip()
+        progID = request.form['progID'].strip()
+        email = request.form['email'].strip()
+        mess=request.form['mess'].strip()
 
         if 'simbad' in request.form:
             #search obj in simbad - ra,dec,mag
@@ -289,7 +299,7 @@ def new():
             else: errors['name'] = 'Name is required.'
             
             gc.collect()
-            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID)
+            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID,groups=groups)
         
         elif 'exofop' in request.form:
             #search obj in exofop - ra,dec,mag
@@ -328,7 +338,7 @@ def new():
             else: errors['name'] = 'Name is required.'
             
             gc.collect()
-            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID)
+            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID,groups=groups)
         
         elif 'vsx' in request.form:
             #search P,t0 in VSX cat
@@ -351,7 +361,7 @@ def new():
             else: errors['name'] = 'Name is required.'
             
             gc.collect()
-            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors,remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID)
+            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors,remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID,groups=groups)
         elif 'exoarch' in request.form:
             #search P,t0 in exoplanet archive
             if name:
@@ -371,7 +381,7 @@ def new():
             else: errors['name'] = 'Name is required.'
             
             gc.collect()
-            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID)
+            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID,groups=groups)
 
 
 
@@ -407,7 +417,7 @@ def new():
                 if not t0: errors['t0'] = 'Epoch is required.'
             if time and not (time_start or time_end): errors['time'] = 'Date limits are required.'
 
-            if not supervis:
+            if not supervis and group not in ['RV Standard','SpecPhot Standard']:
                 errors['supervis'] = 'Supervisor is required.'
             if not progID and group not in ['RV Standard','SpecPhot Standard']:
                 errors['progID'] = 'Program ID is required.'                  
@@ -426,7 +436,7 @@ def new():
             if errors:
                 gc.collect()
                 
-                return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID)
+                return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID,groups=groups)
 
             #set priority for standards
             if group=='RV Standard': 
@@ -508,7 +518,7 @@ def new():
             return redirect(url_for('success'))
 
     gc.collect()
-    return render_template('add.html', name='', ra='', dec='', mag='', per='', t0='', exp='', number=1, night=1, series=False, ic=False, phot=False, phot_input='', prior=3, group='', moon=False, moon_input='', phase=False, phase_start='', phase_end='', time=False, time_start='', time_end='', other='', supervis = '', email='', mess='', errors={}, remarks='', simcal='thar',readout='fast',condi='good')
+    return render_template('add.html', name='', ra='', dec='', mag='', per='', t0='', exp='', number=1, night=1, series=False, ic=False, phot=False, phot_input='', prior=3, group='', moon=False, moon_input='', phase=False, phase_start='', phase_end='', time=False, time_start='', time_end='', other='', supervis = '', email='', mess='', errors={}, remarks='', simcal='thar',readout='fast',condi='good',groups=groups)
 
 
 # Route for the success page
@@ -620,10 +630,10 @@ def bulk():
 
         if 'submit' in request.form:
             #get data from form
-            supervis = request.form['supervis']
-            progID = request.form['progID']
-            email = request.form['email']
-            mess=request.form['mess']
+            supervis = request.form['supervis'].strip()
+            progID = request.form['progID'].strip()
+            email = request.form['email'].strip()
+            mess=request.form['mess'].strip()
 
             #get file with obj
             if 'file' not in request.files:
@@ -751,9 +761,9 @@ def modif_obj():
         status=''
         info=''
         
-        supervis = request.form['supervis']
-        progID = request.form['progID']
-        email = request.form['email']
+        supervis = request.form['supervis'].strip()
+        progID = request.form['progID'].strip()
+        email = request.form['email'].strip()
         mess=request.form['mess'].strip()
         if 'target' in request.form:
             target=int(request.form['target'])

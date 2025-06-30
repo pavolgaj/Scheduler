@@ -168,13 +168,13 @@
                 <td>
                     <!-- compress output values = round floats and remove decimals from RA/DEC -->
                     {% if not '.' in row[col] %}
-                    {{ row[col] }}
+                    {{ row[col][:60] }}
                     {% elif row[col] | float(default=row[col]) is number %}
                     {{ row[col] | float() | round(3) }}
                     {% elif col=='RA' or col=='DEC' %}
                     {{ row[col].split('.')[0] }}
                     {% else %}
-                    {{ row[col] }}
+                    {{ row[col][:60] }}
                     {% endif %}
                 </td>
                 {% endfor %}
@@ -204,13 +204,13 @@
                 <td>
                     <!-- compress output values = round floats and remove decimals from RA/DEC -->
                     {% if not '.' in row[col] %}
-                    {{ row[col] }}
+                    {{ row[col][:60] }}
                     {% elif row[col] | float(default=row[col]) is number %}
                     {{ row[col] | float() | round(3) }}
                     {% elif col=='RA' or col=='DEC' %}
                     {{ row[col].split('.')[0] }}
                     {% else %}
-                    {{ row[col] }}
+                    {{ row[col][:60] }}
                     {% endif %}
                 </td>
                 {% endfor %}

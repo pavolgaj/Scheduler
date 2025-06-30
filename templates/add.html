@@ -149,7 +149,7 @@
             document.addEventListener('DOMContentLoaded', (event) => {
                 const form = document.querySelector('form');
                 form.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
+                    if ((e.key === 'Enter') && (e.target.type != 'textarea')) {
                         e.preventDefault();
                         document.querySelector('button[name="submit"]').click();
                     }
@@ -348,12 +348,9 @@
                     title="Type of object." placeholder="Type of object">
                 <datalist id="group-list" name="group-list">
                     <!-- list of some obj types, write own possible -->
-                    <option value="Exoplanet">
-                    <option value="Eclipsing binary">
-                    <option value="Flaring star">
-                    <option value="Pulsating star">
-                    <option value="RV Standard">
-                    <option value="SpecPhot Standard">
+                     {% for gr in groups | sort %}
+                        <option value="{{ gr }}"></option>
+                     {% endfor %}                    
                 </datalist>
             </div>
             <hr>
