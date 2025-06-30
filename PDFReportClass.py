@@ -63,6 +63,7 @@ class PDFReport(object):
             objsT={}
             prog={}
             progT={}
+            progShort={}
             for i in range(1,len(df)):
                 #print(df[i])
                 name=df[i][1]
@@ -72,15 +73,50 @@ class PDFReport(object):
                 else: 
                     sups[name]=df[i][3]
                     supsT[name]=df[i][5]
-                name=df[i][2]
-                if name in prog: 
-                    prog[name]+=df[i][3]
-                    progT[name]+=df[i][5]
+                progName=df[i][2]
+                if progName in prog: 
+                    prog[progName]+=df[i][3]
+                    progT[progName]+=df[i][5]
                 else: 
-                    prog[name]=df[i][3]
-                    progT[name]=df[i][5]
+                    prog[progName]=df[i][3]
+                    progT[progName]=df[i][5]
                 objs[df[i][0]]=df[i][3]
                 objsT[df[i][0]]=df[i][5]
+                
+                #wrap very long text
+                ii=0
+                target=df[i][0]
+                target1=''
+                while len(target[ii:])>20:
+                    target1+=target[ii:ii+20]+'\n'
+                    ii+=20
+                target1+=target[ii:]
+                df[i][0]=target1
+                
+                ii=0
+                name1=''
+                while len(name[ii:])>20:
+                    name1+=name[ii:ii+20]+'\n'
+                    ii+=20
+                name1+=name[ii:]
+                df[i][1]=name1
+                
+                ii=0
+                progName1=''
+                while len(progName[ii:])>20:
+                    progName1+=progName[ii:ii+20]+'\n'
+                    ii+=20
+                progName1+=progName[ii:]
+                df[i][2]=progName1
+                
+                if not progName in progShort:
+                    ii=0
+                    progName1=''
+                    while len(progName[ii:])>60:
+                        progName1+=progName[ii:ii+60]+'\n'
+                        ii+=60
+                    progName1+=progName[ii:]
+                    progShort[progName]=progName1
             
             #select only 1st 10 with biggest time/nights 
             sups10={}
@@ -202,8 +238,8 @@ class PDFReport(object):
             elements.append(p)
             
             df=[['Program','Nights']]
-            for x in prog:
-                df.append([x,prog[x]])
+            for x in sorted(prog, key=lambda x: prog[x])[::-1]:
+                df.append([progShort[x],prog[x]])
                 
             t = Table(df)
             t.setStyle(TableStyle([('FONTNAME', (0, 0), (-1, -1), "Helvetica"),
@@ -219,8 +255,8 @@ class PDFReport(object):
             elements.append(p)
             
             df=[['Program','TotalTime (h)','Fraction']]
-            for x in progT:
-                df.append([x,round(progT[x],2),'%.2f%%' %(100*progT[x]/allTime)])
+            for x in sorted(progT, key=lambda x: progT[x])[::-1]:
+                df.append([progShort[x],round(progT[x],2),'%.2f%%' %(100*progT[x]/allTime)])
                 
             t = Table(df)
             t.setStyle(TableStyle([('FONTNAME', (0, 0), (-1, -1), "Helvetica"),
@@ -260,10 +296,10 @@ class PDFReport(object):
             
             fig, axs = plt.subplots(2,1,dpi=300,figsize=(10,9))
             fig.text(0.5, 0.92, 'Observing nights', ha='center', fontsize=14, fontweight='bold')
-            axs[0].pie(prog.values(),labels=prog.keys(),rotatelabels=True, textprops={'fontsize': 8})
+            axs[0].pie(sorted(prog.values())[::-1],labels=[x[:30] for x in sorted(prog, key=lambda x: prog[x])[::-1]],rotatelabels=True, textprops={'fontsize': 8})
             
             fig.text(0.5, 0.48, 'Observing time', ha='center', fontsize=14, fontweight='bold')
-            axs[1].pie(progT.values(),labels=progT.keys(),rotatelabels=True,autopct='%d%%', textprops={'fontsize': 8})
+            axs[1].pie(sorted(progT.values())[::-1],labels=[x[:30] for x in sorted(progT, key=lambda x: progT[x])[::-1]],rotatelabels=True,autopct='%d%%', textprops={'fontsize': 8})
             
             elements.append(fig2image(fig))
             elements.append(Spacer(1, 0.2 * inch))
