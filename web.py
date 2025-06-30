@@ -862,8 +862,13 @@ def show_db():
     reader = csv.DictReader(f)
     data=[]
     done=[]
+    all=[]
+    f=open('db/progID.json','r')
+    ids=json.load(f)
+    f.close()
+    
     for obj in reader:
-        #add program name
+        #add program name       
         f=open('db/progID.json','r')
         ids=json.load(f)
         f.close()
@@ -875,6 +880,7 @@ def show_db():
         #check if obs of obj is finished=done
         if obj['Done']=='1': done.append(obj) 
         else: data.append(obj)  
+        all.append(obj)
     f.close()
             
     if request.method == 'POST':
@@ -885,7 +891,7 @@ def show_db():
             
             writer=csv.DictWriter(si,fieldnames=header.strip().split(',')+['Done','Program'])
             writer.writeheader()
-            writer.writerows([{x: o[x] for x in o if x not in ['ProgramID']} for o in data])
+            writer.writerows([{x: o[x] for x in o if x not in ['ProgramID']} for o in all])
             
             #send output as response
             output = make_response(si.getvalue())
