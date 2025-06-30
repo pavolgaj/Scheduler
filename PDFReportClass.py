@@ -109,7 +109,7 @@ class PDFReport(object):
                 progName1+=progName[ii:]
                 df[i][2]=progName1
                 
-                if not progName in progShort:
+                if progName not in progShort:
                     ii=0
                     progName1=''
                     while len(progName[ii:])>60:

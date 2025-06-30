@@ -1185,8 +1185,8 @@ def scheduler():
         progID=obj['full']['ProgramID']
         if pd.isna(progID): progID=''
         if len(str(progID))==0: prog='not given'
-        elif progID not in ids: prog='unknown' 
-        else: prog=ids[progID]['program_title']
+        elif str(progID) not in ids: prog='unknown' 
+        else: prog=ids[str(progID)]['program_title']
         
         if prog in programs: programs[prog]['n']+=1
         else: 
@@ -1195,8 +1195,8 @@ def scheduler():
                 programs[prog]['service']=True
                 programs[prog]['readout']='unknown'
             else:
-                programs[prog]['service']=(True if ids[progID]['mode'].split()[0]=='service' else False)
-                programs[prog]['readout']=ids[progID]['readout'].split()[0].lower()
+                programs[prog]['service']=(True if ids[str(progID)]['mode'].split()[0]=='service' else False)
+                programs[prog]['readout']=ids[str(progID)]['readout'].split()[0].lower()
         
         
         if group not in ['RV Standard','SpecPhot Standard']: 
@@ -1256,8 +1256,8 @@ def scheduler():
                 progID=obj['full']['ProgramID']
                 if pd.isna(progID): progID=''
                 if len(str(progID))==0: prog='not given'
-                elif progID not in ids: prog='unknown' 
-                else: prog=ids[progID]['program_title']
+                elif str(progID) not in ids: prog='unknown' 
+                else: prog=ids[str(progID)]['program_title']
         
                 if group in use_group and prog in use_program: 
                     if condi in use_condi or group in ['RV Standard','SpecPhot Standard']:

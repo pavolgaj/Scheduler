@@ -131,7 +131,7 @@ def main():
     if argv_len>2:
         if sys.argv[2]=='c' or sys.argv[2]=='check': 
             check = True
-            del(sys.argv[2])
+            del sys.argv[2]
     if argv_len>2: subj=sys.argv[-1]
     
     send_mail = SendMail(cc='',directory=directory)

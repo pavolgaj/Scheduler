@@ -184,8 +184,8 @@ def get_program(id):
     f.close()
     
     if len(str(id))==0: program='not given'
-    elif id not in ids: program='unknown' 
-    else: program=ids[id]['program_title']    
+    elif str(id) not in ids: program='unknown' 
+    else: program=ids[str(id)]['program_title']    
     
     return program
     
