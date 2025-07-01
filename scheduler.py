@@ -441,11 +441,11 @@ def plot_schedule(schedule,plottype='alt',show_night=True,legend=False,index=Tru
 
 
     stime=schedule.start_time+(schedule.end_time-schedule.start_time)*np.linspace(0,1,res)
+    if plottype=='sky': stime=stime[::2]
 
     if moon:
         if len(stime)>50: mtime=stime[::2]
         else: mtime=stime[::1]
-        if plottype=='sky': mtime=mtime[::2]
         moon_altaz=schedule.observer.moon_altaz(mtime)
 
         #moon phase (0-1)

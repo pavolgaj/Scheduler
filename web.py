@@ -1793,7 +1793,7 @@ def modify():
                         else: start=observatory.sun_set_time(midnight,n_grid_points=10, which='nearest',horizon=-12*u.deg)  #time is before sunset -> set begining of astro twilight
                     
                 night=sunr-start
-                obstime=start+night*np.linspace(0, 1, 100)    #range of observing scheduling
+                obstime=start+night*np.linspace(0, 1, 50)    #range of observing scheduling
             
                 #general constraints
                 constraints = [ModifAltitudeConstraint(config['minAlt'],config['maxAlt'],boolean_constraint=False), 
@@ -1878,7 +1878,7 @@ def modify():
             sunr=observatory.sun_rise_time(midnight,n_grid_points=10, which='nearest')+1*u.hour
             night=sunr-suns
             
-            stime=suns+night*np.linspace(0, 1, 100)
+            stime=suns+night*np.linspace(0, 1, 40)
             
             start = plantime
 
