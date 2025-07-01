@@ -871,14 +871,28 @@ class StdPriorityScheduler(PriorityScheduler):
         score_array = scorer.create_score_array(time_resolution)
 
         # Sort the list of blocks by priority
+        #mask = _block_priorities < 1    # standards
+        #iStd=np.where(mask)[0]
+        #iObj=np.where(~mask)[0]    # normal targets
+        #
+        #np.random.shuffle(iStd)    # randomize order of standards
+        #sorted_obj=iObj[np.argsort(_block_priorities[iObj], kind='mergesort')]    # sort normal targets
+        #
+        #sorted_indices = np.concatenate([iStd, sorted_obj])  #join standards and targets
+        
         sorted_indices = np.argsort(_block_priorities, kind='mergesort')
+        
 
         scheduled_std=[]   #priorites of already sheduled std (<1) - only one per night and priority
         unscheduled_blocks = []
         # Compute the optimal observation time in priority order
         for i in sorted_indices:
+            #print(b.priority)
             b = blocks[i]
-            if b.priority in scheduled_std: continue    #priorites of already sheduled std (<1) - only one per night and priority
+            if b.priority in scheduled_std: 
+                #priorites of already sheduled std (<1) - only one per night and priority
+                if b.priority>0.2: continue    
+                if scheduled_std.count(b.priority)==3: continue    # RV std - max. 3
             # Compute possible observing times by combining object constraints
             # with the master open times mask
             constraint_scores = score_array[i]
