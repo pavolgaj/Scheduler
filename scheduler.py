@@ -395,7 +395,7 @@ colors=['indigo','darkred','darkorange','darkmagenta','darkgreen','brown','blue'
 #     'orangered','orchid','purple','red','saddlebrown','seagreen','salmon','skyblue','sandybrown','sienna','slateblue','violet','slategray','springgreen','steelblue','teal','yellowgreen']
 colors=500*colors
 
-def plot_schedule(schedule,plottype='alt',show_night=True,legend=False,index=True,moon=False,slots=False,objects0={}):
+def plot_schedule(schedule,plottype='alt',show_night=True,legend=False,index=True,moon=False,slots=False,objects0={},res=100):
     '''plot startrack in schedule on altitude (alt), airmass or sky plot'''
     import operator
 
@@ -440,10 +440,11 @@ def plot_schedule(schedule,plottype='alt',show_night=True,legend=False,index=Tru
             else: plt.text(tw[0],ymin,tw[2],horizontalalignment='left',verticalalignment='bottom',fontsize=8,rotation='vertical')
 
 
-    stime=schedule.start_time+(schedule.end_time-schedule.start_time)*np.linspace(0,1,100)
+    stime=schedule.start_time+(schedule.end_time-schedule.start_time)*np.linspace(0,1,res)
 
     if moon:
-        mtime=stime[::2]
+        if len(stime)>50: mtime=stime[::2]
+        else: mtime=stime[::1]
         if plottype=='sky': mtime=mtime[::2]
         moon_altaz=schedule.observer.moon_altaz(mtime)
 

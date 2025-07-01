@@ -1460,7 +1460,7 @@ def scheduler():
                 return render_template('multi_schedule.html', names=out_names, selected=n_selected, observable=n_obs, scheduled=n_sch)
     
     gc.collect()
-    return render_template('run_scheduler.html',night=datetime.now(timezone.utc).strftime('%Y-%m-%d'),number=1,name='',groups=groups,scheduler='StdPriority',use_group=['RV Standard'],time=False,azm=False,position='both',condi=condi,use_condi=['good','poor','na'],programs=programs)
+    return render_template('run_scheduler.html',night=datetime.now(timezone.utc).strftime('%Y-%m-%d'),number=1,name='',groups=groups,scheduler='StdPriority',use_group=['RV Standard','SpecPhot Standard'],time=False,azm=False,position='both',condi=condi,use_condi=['good','poor','na'],programs=programs)
 
 
 @app.route("/scheduler/new_schedule", methods=['GET','POST'])
@@ -1567,7 +1567,7 @@ def web_plot(schedule):
     '''make output plots for web'''      
     #make alt plot
     plt.Figure()
-    ax=plot_schedule(schedule,plottype='alt',moon=True,slots=True)
+    ax=plot_schedule(schedule,plottype='alt',moon=True,slots=True,res=40)
     #save to "buffer" file
     buf=io.BytesIO()
     plt.savefig(buf,format='png',dpi=150)
@@ -1579,7 +1579,7 @@ def web_plot(schedule):
     
     #make sky plot
     plt.Figure()
-    ax=plot_schedule(schedule,plottype='sky',moon=True)
+    ax=plot_schedule(schedule,plottype='sky',moon=True,res=40)
     #save to "buffer" file
     buf=io.BytesIO()
     plt.savefig(buf,format='png',dpi=150)
