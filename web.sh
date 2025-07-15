@@ -1,3 +1,3 @@
 #!/bin/bash
 #run on waitress-serve production server
-waitress-serve --host 0.0.0.0 --port=5000 web:app
+gunicorn -b 0.0.0.0:5000 -k gevent -w 1 --threads 20 -t 0 --reload web:app
