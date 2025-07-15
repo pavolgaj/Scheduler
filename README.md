@@ -16,7 +16,7 @@ Observation scheduler for PlatoSpec (E152) and OES (Perek telescope)
 - numpy (autoinstallation with astroplan) - tested on 1.21.6, 1.24.4 and 1.26.4
 - flask (web)
 - flask-caching (web)
-- waitress (deploying server)
+- gunicorn (WSGI server)
 
 ## Instalation
 
