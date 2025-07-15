@@ -40,7 +40,7 @@ app = Flask(__name__,static_url_path='/scheduler')
 app.secret_key = 'e152logs'  # Used to secure the session
 
 #create cache
-cache = Cache(app,config={'CACHE_TYPE': 'SimpleCache',"CACHE_DEFAULT_TIMEOUT": 3600})
+cache = Cache(app,config={'CACHE_TYPE': 'RedisCache',"CACHE_DEFAULT_TIMEOUT": 3600,'CACHE_REDIS_URL': 'redis://localhost:6379/0'})
 
 #md5 hash of passwords
 adminPassword = '21232f297a57a5a743894a0e4a801fc3'  # admin - CHANGE!
