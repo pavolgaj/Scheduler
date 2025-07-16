@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Details about observing program
+        </title>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 50px;
+            }
+
+            td {
+                padding-right: 30px;
+                word-wrap: break-word;
+                max-width: 200px;
+                vertical-align: top;
+            }
+
+            .key {
+                font-weight: bold;
+            }
+
+            tr.spaceUnder>td {
+            padding-bottom: 2em;
+            }
+        </style>
+
+    </head>
+
+    <body>
+        <h1>{{ prog['program_title'] }}</h1>
+
+        <table>
+            {% for key in ['name','mode','strategy','calibration','readout','special_requests','instructions'] %}
+            <tr>
+                <td class="key">{{ key }}</td>
+                <td>{{ prog[key] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+    </body>
+
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Details about target
+        </title>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+        <script type="text/javascript" src="{{ url_for('static', filename='aladin.js') }}" charset="utf-8"></script>
+
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 50px;
+            }
+
+            td {
+                padding-right: 30px;
+                word-wrap: break-word;
+                max-width: 200px;
+                vertical-align: top;
+            }
+
+            .key {
+                font-weight: bold;
+            }
+
+            tr.spaceUnder>td {
+            padding-bottom: 2em;
+            }
+        </style>
+
+    </head>
+
+    <body>
+        <h1>{{ obj[0]['Target'] }}</h1>
+
+        <table>
+        <tr>
+        <td style="width: 60%; max-width: 2000px;">
+        <table>
+            {% for key in obj[0] %}
+            {% if key not in ['Target','Done','ProgramID'] %}
+            <tr>
+                <td class="key">{{ key }}</td>
+                {% for ob in obj %}
+                <td>{{ ob[key] }}</td>
+                {% endfor %}
+            </tr>
+            {% endif %}
+            {% endfor %}
+
+            <tr class="spaceUnder">
+                <td></td>
+            </tr>
+
+
+            {% for key in ['program_title','name','mode','strategy','calibration','readout','special_requests','instructions'] %}
+            <tr>
+                <td class="key">{{ key }}</td>
+                {% for pr in prog %}
+                <td>{{ pr[key] }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </table>
+        </td>
+        <td style="min-width: 400px; max-width: 2000px; text-align: center; vertical-align: top">
+              <div id="aladin-div" style="width:400px;height:400px;"></div>
+              <div>
+                <a href="https://aladin.cds.unistra.fr/AladinLite/?target={{ obj[0]['RA'] }}{% if not obj[0]['DEC'][0]=='-' %}%2B{% endif %}{{ obj[0]['DEC'] | replace('+','') }}&fov=0.10"  target="_blank">Open Aladin</a>
+                <br>
+                <a href="https://simbad.u-strasbg.fr/simbad/sim-basic?Ident={{ obj[0]['RA'] }}{% if not obj[0]['DEC'][0]=='-' %}%2B{% endif %}{{ obj[0]['DEC'] | replace('+','') }}"  target="_blank">Search in Simbad</a>
+             </div>
+        </td>
+        </tr>
+        </table>        
+
+        <!-- todo: statistika pozorovani, vypocet fazy (cez date+time input)  -->
+       <script type="text/javascript">
+            var aladin;
+            A.init.then(() => {
+                aladin = A.aladin('#aladin-div');
+                aladin.gotoObject("{{ obj[0]['RA'] }} {% if not obj[0]['DEC'][0]=='-' %}+{% endif %}{{ obj[0]['DEC'] | replace('+','') }}"); 
+                aladin.setFoV(0.1); 
+            });
+        </script>
+
+    </body>
+
+</html>
