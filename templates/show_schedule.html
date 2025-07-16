@@ -4,6 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
         <title>Scheduler table</title>
         <style>
             body {
@@ -76,7 +77,6 @@
                 border-color: black;
                 border-width: 1px;
                 border-radius: 5px;
-                margin-right: 2px;
             }
 
             .modify-row img {
@@ -84,6 +84,10 @@
                 display: block;
                 margin-left: auto;
                 margin-right: auto;
+            }
+
+            .modify-row button {
+                padding: 0px;
             }
         </style>
         <script>
@@ -141,7 +145,7 @@
         </center>
         <table id="my_table">
             <thead>
-                <th></th>
+                <th style="width: 50px;"></th>
                 <th>Target</th>
                 <th>RA</th>
                 <th>DEC</th>
@@ -151,14 +155,23 @@
                 <th>Notes</th>
                 <th>Start</th>
                 <th>End</th>
+                <th>Priority</th>
                 <th>Altitude</th>
                 <th>Airmass</th>
-                <th>Azimut</th>
+                <th>Azimuth</th>
+                <th>MoonDist</th>
                 <th>Position</th>
             </thead>
             {% for row in schedule %}
             <tr data-row-id="{{ loop.index0 }}">
-                <td>{{ row.index }}</td>
+                <td style="width: 50px;">{{ row.index }}
+                    <input type="checkbox">
+                    <button type="button" class="modify-row" name="info" title="Info about target"
+                        onclick="window.open('{{ url_for('object_info', name = row.Target) }}', '_blank')"
+                        formtarget=”_blank”>
+                        <img src="{{ url_for('static',filename='info.svg') }}" alt="preview">
+                    </button>
+                </td>
                 <td>{{ row.Target }}</td>
                 <td>{{ row.RA.split('.')[0] }}</td>
                 <td>{{ row.DEC.split('.')[0] }}</td>
@@ -173,9 +186,34 @@
                 <td>{{ row.Remarks }}</td>
                 <td>{{ row.Start.split()[1][:row.Start.split()[1].rfind(':')] }}</td>
                 <td>{{ row.End.split()[1][:row.End.split()[1].rfind(':')] }}</td>
-                <td>{{ row.Altitude | round(0) | int() }}</td>
-                <td>{{ row.Airmass | round(1) }}</td>
-                <td>{{ row.Azimut | round(0) | int() }}</td>
+                <td>{{ row.Priority }}</td>
+                <td>{% if row.Altitude %}
+                    {{ row.Altitude | float() | round(0) | int() }}
+                    {% endif %}
+                    {% if row.AltitudeStart %}
+                    {{ row.AltitudeStart | float() | round(0) | int() }} -
+                    {{ row.AltitudeEnd | float() | round(0) | int() }}
+                    {% endif %}
+                </td>
+                <td>{% if row.Airmass %}
+                    {{ row.Airmass | float() | round(1) }}
+                    {% endif %}
+                    {% if row.AirmassStart %}
+                    {{ row.AirmassStart | float() | round(1) }} - {{ row.AirmassEnd | float() | round(1) }}
+                    {% endif %}
+                </td>
+                <td>{% if row.Azimut %}
+                    {{ row.Azimut | float() | round(0) | int() }}
+                    {% endif %}
+                    {% if row.AzimutStart %}
+                    {{ row.AzimutStart | float() | round(0) | int() }} -
+                    {{ row.AzimutEnd | float() | round(0) | int() }}
+                    {% endif %}
+                </td>
+                <td>{% if row.MoonSeparation %}
+                    {{ row.MoonSeparation | float() | round(0) | int() }}
+                    {% endif %}
+                </td>
                 <td {% if row.Position=='-' %}style="background-color: red; " {% endif %}>
                     <span style="display: inline-block; width: 30px;">{{ row.Position }}</span>
                     <button type="button" class="modify-row" name="plot" title="Plot telescope limits"

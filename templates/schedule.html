@@ -132,9 +132,11 @@
                 <th>Notes</th>
                 <th>Start</th>
                 <th>End</th>
+                <th>Priority</th>
                 <th>Altitude</th>
                 <th>Airmass</th>
                 <th>Azimut</th>
+                <th>MoonDist</th>
                 <th>Position</th>
             </thead>
             {% for row in schedule %}
@@ -154,9 +156,34 @@
                 <td>{{ row.Remarks }}</td>
                 <td>{{ row.Start.split()[1][:row.Start.split()[1].rfind(':')] }}</td>
                 <td>{{ row.End.split()[1][:row.End.split()[1].rfind(':')] }}</td>
-                <td>{{ row.Altitude | float() | round(0) | int() }}</td>
-                <td>{{ row.Airmass | float() | round(1) }}</td>
-                <td>{{ row.Azimut | float() | round(0) | int() }}</td>
+                <td>{{ row.Priority }}</td>
+                <td>{% if row.Altitude %}
+                    {{ row.Altitude | float() | round(0) | int() }}
+                    {% endif %}
+                    {% if row.AltitudeStart %}
+                    {{ row.AltitudeStart | float() | round(0) | int() }} -
+                    {{ row.AltitudeEnd | float() | round(0) | int() }}
+                    {% endif %}
+                </td>
+                <td>{% if row.Airmass %}
+                    {{ row.Airmass | float() | round(1) }}
+                    {% endif %}
+                    {% if row.AirmassStart %}
+                    {{ row.AirmassStart | float() | round(1) }} - {{ row.AirmassEnd | float() | round(1) }}
+                    {% endif %}
+                </td>
+                <td>{% if row.Azimut %}
+                    {{ row.Azimut | float() | round(0) | int() }}
+                    {% endif %}
+                    {% if row.AzimutStart %}
+                    {{ row.AzimutStart | float() | round(0) | int() }} -
+                    {{ row.AzimutEnd | float() | round(0) | int() }}
+                    {% endif %}
+                </td>
+                <td>{% if row.MoonSeparation %}
+                    {{ row.MoonSeparation | float() | round(0) | int() }}
+                    {% endif %}
+                </td>
                 <td {% if row.Position=='-' %}style="background-color: red; " {% endif %}>{{ row.Position }}</td>
             </tr>
             {% endfor %}
