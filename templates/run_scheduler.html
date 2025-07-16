@@ -112,7 +112,12 @@
                 border: 1px solid black;
                 text-align: left;
                 padding: 8px;
-                white-space: nowrap;
+            }
+
+            .wrap {
+                word-wrap: break-word; 
+                max-width: 300px;
+                white-space: wrap;
             }
 
             tr:nth-child(even) {
@@ -122,6 +127,24 @@
             img {
                 height: 17px;
                 display: inline;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .modify-row {
+                padding: 0px;
+                width: 20px;
+                height: 20px;
+                background-color: silver;
+                border-color: black;
+                border-width: 1px;
+                border-radius: 5px;
+                margin-right: 2px;
+            }
+
+            .modify-row img {
+                height: 17px;
+                display: block;
                 margin-left: auto;
                 margin-right: auto;
             }
@@ -194,22 +217,22 @@
                     if (document.getElementById('azm_start').value) {
                         if (!isFloat(document.getElementById('azm_start').value)) {
                             alert('Azimuth limit should be number!');
-                            valid=false;
+                            valid = false;
                         }
-                        else if (((document.getElementById('azm_start').value)<-360) || ((document.getElementById('azm_start').value)>2*360) ) {
+                        else if (((document.getElementById('azm_start').value) < -360) || ((document.getElementById('azm_start').value) > 2 * 360)) {
                             alert('Azimuth limit out of range!');
-                            valid=false;
+                            valid = false;
                         }
                     }
 
                     if (document.getElementById('azm_end').value) {
                         if (!isFloat(document.getElementById('azm_end').value)) {
                             alert('Azimuth limit should be number!');
-                            valid=false;
+                            valid = false;
                         }
-                        else if (((document.getElementById('azm_end').value)<-360) || ((document.getElementById('azm_end').value)>2*360) ) {
+                        else if (((document.getElementById('azm_end').value) < -360) || ((document.getElementById('azm_end').value) > 2 * 360)) {
                             alert('Azimuth limit out of range!');
-                            valid=false;
+                            valid = false;
                         }
                     }
                 }
@@ -217,13 +240,20 @@
                 if (document.getElementById('mag_min').value) {
                     if (!isFloat(document.getElementById('mag_min').value)) {
                         alert('Magnitude limit should be number!');
-                        valid=false;
+                        valid = false;
                     }
                 }
                 if (document.getElementById('mag_max').value) {
                     if (!isFloat(document.getElementById('mag_max').value)) {
                         alert('Magnitude limit should be number!');
-                        valid=false;
+                        valid = false;
+                    }
+                }
+
+                if (document.getElementById('exp').value) {
+                    if (!isFloat(document.getElementById('exp').value)) {
+                        alert('Exposure factor should be number!');
+                        valid = false;
                     }
                 }
 
@@ -314,6 +344,7 @@
                 toggleTime();
                 toggleAzm();
                 toggleNumber();
+                //select_all();
             }
         </script>
     </head>
@@ -393,60 +424,66 @@
                     placeholder="Upper mag limit">
             </div>
 
+            <div class="form-group">
+                <label for="exp">Extend exposure factor </label>
+                <input type="text" name="exp" id="exp" value="{{ exp }}" title="Multiple exposure times of all targets."
+                    pattern="\d+(\.\d+)?"">
+            </div>
+
             <div>
                 <label>Required observing conditions</label>
-                <table id="condi_table">
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th>Conditions</th>
-                            <th>Number of objects</th>
-                        </tr>
-                    </thead>
+                <table id=" condi_table">
+                <thead>
                     <tr>
-                        <td>
-                            <center>
-                                <input type="checkbox" name="use_condi" value="excellent"
-                                    title="Include group of objects to scheduler." {% if 'excellent' in use_condi
-                                    %}checked{% endif %}>
-                            </center>
-                        </td>
-                        <td>Excellent</td>
-                        <td>{{ condi['excellent'] }}</td>
+                        <th></th>
+                        <th>Conditions</th>
+                        <th>Number of objects</th>
                     </tr>
-                    <tr>
-                        <td>
-                            <center>
-                                <input type="checkbox" name="use_condi" value="good"
-                                    title="Include group of objects to scheduler." {% if 'good' in use_condi
-                                    %}checked{% endif %}>
-                            </center>
-                        </td>
-                        <td>Good (normal)</td>
-                        <td>{{ condi['good'] }}</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <center>
-                                <input type="checkbox" name="use_condi" value="poor"
-                                    title="Include group of objects to scheduler." {% if 'poor' in use_condi
-                                    %}checked{% endif %}>
-                            </center>
-                        </td>
-                        <td>Poor</td>
-                        <td>{{ condi['poor'] }}</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <center>
-                                <input type="checkbox" name="use_condi" value="na"
-                                    title="Include group of objects to scheduler." {% if 'na' in use_condi
-                                    %}checked{% endif %}>
-                            </center>
-                        </td>
-                        <td>Not given</td>
-                        <td>{{ condi['na'] }}</td>
-                    </tr>
+                </thead>
+                <tr>
+                    <td>
+                        <center>
+                            <input type="checkbox" name="use_condi" value="excellent"
+                                title="Include group of objects to scheduler." {% if 'excellent' in use_condi
+                                %}checked{% endif %}>
+                        </center>
+                    </td>
+                    <td>Excellent</td>
+                    <td>{{ condi['excellent'] }}</td>
+                </tr>
+                <tr>
+                    <td>
+                        <center>
+                            <input type="checkbox" name="use_condi" value="good"
+                                title="Include group of objects to scheduler." {% if 'good' in use_condi %}checked{%
+                                endif %}>
+                        </center>
+                    </td>
+                    <td>Good (normal)</td>
+                    <td>{{ condi['good'] }}</td>
+                </tr>
+                <tr>
+                    <td>
+                        <center>
+                            <input type="checkbox" name="use_condi" value="poor"
+                                title="Include group of objects to scheduler." {% if 'poor' in use_condi %}checked{%
+                                endif %}>
+                        </center>
+                    </td>
+                    <td>Poor</td>
+                    <td>{{ condi['poor'] }}</td>
+                </tr>
+                <tr>
+                    <td>
+                        <center>
+                            <input type="checkbox" name="use_condi" value="na"
+                                title="Include group of objects to scheduler." {% if 'na' in use_condi %}checked{% endif
+                                %}>
+                        </center>
+                    </td>
+                    <td>Not given</td>
+                    <td>{{ condi['na'] }}</td>
+                </tr>
                 </table>
                 <br>
             </div>
@@ -469,12 +506,17 @@
                         <td>
                             <center>
                                 <input type="checkbox" name="use_program" value="{{ prog }}"
-                                    title="Include objects in program to scheduler." 
-                                    {% if obj['service'] %}checked{%
+                                    title="Include objects in program to scheduler." {% if obj['service'] %}checked{%
                                     endif %}>
                             </center>
                         </td>
-                        <td>{{ prog[:50] }}</td>
+                        <td class="wrap">{{ prog }}
+                            <button type="button" class="modify-row" name="info" title="Info about observing program"
+                                onclick="window.open('{{ url_for('proposal_info', name = prog) }}', '_blank')"
+                                formtarget=”_blank”>
+                                <img src="{{ url_for('static',filename='info.svg') }}" alt="preview">
+                            </button>
+                        </td>
                         <td><span style="display: none;">{{ obj['service'] }}</span>
                             {% if obj['service'] %}
                             <img src="{{ url_for('static',filename='accept.svg') }}" alt="yes">
@@ -490,10 +532,10 @@
                 <br>
                 <div class="button-group">
                     <center>
-                        <button type="button" name="all" title="Select all programs."
-                            onclick="select_all_prog()">Select
+                        <button type="button" name="all" title="Select all programs." onclick="select_all_prog()">Select
                             all</button>
-                        <button type="button" name="none" title="Deselect all programs." onclick="select_none_prog()">Select
+                        <button type="button" name="none" title="Deselect all programs."
+                            onclick="select_none_prog()">Select
                             none</button>
                     </center>
                 </div>
@@ -520,7 +562,7 @@
                                     endif %}>
                             </center>
                         </td>
-                        <td>{{ group }}</td>
+                        <td class="wrap">{{ group }}</td>
                         <td>{{ obj }}</td>
                     </tr>
                     {% endfor %}
