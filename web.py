@@ -444,11 +444,15 @@ def new():
                 prior='0.1'
                 if ic: prior='0.2'
                 supervis='Standards'
+                night=''
+                condi=''
             elif group=='SpecPhot Standard': 
                 progID=''
                 prior='0.5'
                 if ic: prior='0.6'
                 supervis='Standards'
+                night=''
+                condi=''
 
             # save the data to a database
             tmp='"'+name+'"'+','
@@ -1198,7 +1202,7 @@ def scheduler():
         else: 
             programs[prog]={'n':1}
             if prog in ['not given','unknown']:
-                programs[prog]['service']=True
+                programs[prog]['service']=False
                 programs[prog]['readout']='unknown'
             else:
                 programs[prog]['service']=(True if ids[str(progID)]['mode'].split()[0]=='service' else False)
@@ -1219,6 +1223,11 @@ def scheduler():
             limits=request.form['position']           
             series = (request.form.get('series')=='checked')
             scheduler=request.form['scheduler']      
+            expF=request.form['exp']  
+            
+            if not expF: expF=1
+            else: expF=float(expF)
+            
             if not 'use_group' in request.form:
                 return 'NO objects to schedule!'     
             use_group=request.form.to_dict(flat=False)['use_group'] 
@@ -1293,8 +1302,8 @@ def scheduler():
             elif scheduler=='StdPriority': Scheduler=StdPriorityScheduler
                        
             #general constraints
-            constraints0 = [ModifAltitudeConstraint(config['minAlt'],config['maxAlt'],boolean_constraint=False), 
-                        AirmassConstraint(config['airmass'],boolean_constraint=True),AtNightConstraint.twilight_nautical(), MoonSeparationConstraint(config['moon'])]
+            constraints0 = [ModifAltitudeConstraint(config['minAlt'],config['maxAlt'],boolean_constraint=True), 
+                        ModifAirmassConstraint(config['airmass'],boolean_constraint=False),AtNightConstraint.twilight_nautical(), MoonSeparationConstraint(config['moon'])]
             
             #load telescope restrictions and set constraint
             limE,limW=load_limits()
@@ -1393,7 +1402,7 @@ def scheduler():
                             else:
                                 names[obj['target'].name]=0
                                 name1=obj['target'].name
-                            blocks.append(ObservingBlock.from_exposures(FixedTarget(name=name1, coord=obj['target'].coord),obj['priority'],obj['exp']*u.second,5,read_out,constraints=cons))
+                            blocks.append(ObservingBlock.from_exposures(FixedTarget(name=name1, coord=obj['target'].coord),obj['priority'],expF*obj['exp']*u.second,5,read_out,constraints=cons))
                     else:
                         if obj['target'].name in names:  #repeating objects -> NOT replace debug plots
                             names[obj['target'].name]+=1
@@ -1401,7 +1410,7 @@ def scheduler():
                         else:
                             names[obj['target'].name]=0
                             name1=obj['target'].name
-                        blocks.append(ObservingBlock.from_exposures(FixedTarget(name=name1, coord=obj['target'].coord),obj['priority'],obj['exp']*u.second,obj['n_exp'],read_out,constraints=cons))
+                        blocks.append(ObservingBlock.from_exposures(FixedTarget(name=name1, coord=obj['target'].coord),obj['priority'],expF*obj['exp']*u.second,obj['n_exp'],read_out,constraints=cons))
             
                 if len(blocks)==0:
                     return '<p>Schedule is EMPTY!</p>'+'<p>Selected objects: '+str(n_selected[0])+'<br>'+'Observable objects: '+str(n_obs[0])+'</p>'                    
@@ -1428,7 +1437,7 @@ def scheduler():
                     tab=schedule_table(schedule,objects1)    
                     df=tab[~(tab['target']=='TransitionBlock')].to_pandas()
                     
-                    cols={'target':'Target', 'ra':'RA', 'dec':'DEC', 'mag':'Mag','exposure (seconds)':'ExpTime', 'number exposures':'Number','_Remarks':'Remarks', 'start time (UTC)':'Start', 'end time (UTC)':'End','altitude':'Altitude', 'airmass':'Airmass', 'azimut':'Azimut','position':'Position','priority':'Priority'}
+                    cols={'target':'Target', 'ra':'RA', 'dec':'DEC', 'mag':'Mag','exposure (seconds)':'ExpTime', 'number exposures':'Number','_Remarks':'Remarks', 'start time (UTC)':'Start', 'end time (UTC)':'End','altitude':'Altitude', 'airmass':'Airmass', 'azimut':'Azimut','altitude-start':'AltitudeStart', 'airmass-start':'AirmassStart', 'azimut-start':'AzimutStart','altitude-end':'AltitudeEnd', 'airmass-end':'AirmassEnd', 'azimut-end':'AzimutEnd','position':'Position','priority':'Priority','moon-separation':'MoonSeparation'}
     
                     df=df.rename(columns=cols)
                     df.to_csv('schedules/'+out+'.csv',index=False)
@@ -1460,7 +1469,7 @@ def scheduler():
                 return render_template('multi_schedule.html', names=out_names, selected=n_selected, observable=n_obs, scheduled=n_sch)
     
     gc.collect()
-    return render_template('run_scheduler.html',night=datetime.now(timezone.utc).strftime('%Y-%m-%d'),number=1,name='',groups=groups,scheduler='StdPriority',use_group=['RV Standard','SpecPhot Standard'],time=False,azm=False,position='both',condi=condi,use_condi=['good','poor','na'],programs=programs)
+    return render_template('run_scheduler.html',night=datetime.now(timezone.utc).strftime('%Y-%m-%d'),number=1,name='',groups=groups,scheduler='StdPriority',use_group=groups,time=False,azm=False,position='both',condi=condi,use_condi=['good','poor','na'],programs=programs,exp=1)
 
 
 @app.route("/scheduler/new_schedule", methods=['GET','POST'])
@@ -1473,8 +1482,7 @@ def new_schedule():
     
     #get unique hash code -> load data from cache
     code=request.args.get('code')
-    schedule,objects=cache.get(code)
-    #cache.delete(code)  #remove data from cache ?    
+    schedule,objects=cache.get(code)  
        
     #make output table
     tab=schedule_table(schedule,objects)
@@ -1485,18 +1493,26 @@ def new_schedule():
         return '<p>Schedule is EMPTY!</p>'+'<p>Selected objects: '+str(request.args.get('selected'))+'<br>'+'Observable objects: '+str(request.args.get('observable'))+'</p>'
     
     #cols to save in CSV
-    cols={'target':'Target', 'ra':'RA', 'dec':'DEC', 'mag':'Mag','exposure (seconds)':'ExpTime', 'number exposures':'Number','_Remarks':'Remarks', 'start time (UTC)':'Start', 'end time (UTC)':'End','altitude':'Altitude', 'airmass':'Airmass', 'azimut':'Azimut','position':'Position','priority':'Priority'}
+    cols={'target':'Target', 'ra':'RA', 'dec':'DEC', 'mag':'Mag','exposure (seconds)':'ExpTime', 'number exposures':'Number','_Remarks':'Remarks', 'start time (UTC)':'Start', 'end time (UTC)':'End','altitude':'Altitude', 'airmass':'Airmass', 'azimut':'Azimut','altitude-start':'AltitudeStart', 'airmass-start':'AirmassStart', 'azimut-start':'AzimutStart','altitude-end':'AltitudeEnd', 'airmass-end':'AirmassEnd', 'azimut-end':'AzimutEnd','position':'Position','priority':'Priority','moon-separation':'MoonSeparation'}
+    cols1=['Target','RA', 'DEC', 'Mag','ExpTime', 'Number','Remarks', 'Start', 'End','Position','Priority']   #for download
   
     if not 'position' in df.columns: del(cols['position'])
     
-    df=df.rename(columns=cols)
+    #get created data from cache
+    tmp=cache.get(code+'dfPlot') 
+    if tmp is not None:
+        df,alt_plot,sky_plot=tmp  
+    else: 
+        df=df.rename(columns=cols)
+        alt_plot,sky_plot=web_plot(schedule)    
+        cache.set(code+'dfPlot',[pd.DataFrame(df),alt_plot,sky_plot])    
     
     if request.method == 'POST':
         if 'download' in request.form:
             #download csv
             si = io.StringIO()    # create "file-like" output for writing
             
-            df[cols.values()].to_csv(si,index=False)
+            df[cols1].to_csv(si,index=False)
             output = make_response(si.getvalue())
             output.headers["Content-Disposition"] = "attachment; filename=schedule.csv"
             output.headers["Content-type"] = "text/csv"
@@ -1506,7 +1522,7 @@ def new_schedule():
             #download json
             si = io.StringIO()    # create "file-like" output for writing
             
-            df[cols.values()].to_json(si,orient='records',index=False)
+            df[cols1].to_json(si,orient='records',index=False)
             output = make_response(si.getvalue())
             output.headers["Content-Disposition"] = "attachment; filename=schedule.json"
             output.headers["Content-type"] = "text/json"
@@ -1548,6 +1564,16 @@ def new_schedule():
             name=request.form['name'].replace('/','_').replace('\\','_')
             if not '.csv' in name: name+='.csv'
             df.to_csv('schedules/'+name,index=False)
+            
+            #save images
+            f=open('schedules/'+name.replace('.csv','_alt.png'),'wb')              
+            f.write(base64.b64decode(alt_plot.encode('utf8')))
+            f.close()
+            
+            f=open('schedules/'+name.replace('.csv','_sky.png'),'wb')              
+            f.write(base64.b64decode(sky_plot.encode('utf8')))
+            f.close()
+                
             return 'Schedule saved with name "'+name+'"!'  
         
         if 'modify' in request.form:
@@ -1557,8 +1583,6 @@ def new_schedule():
             df.to_csv('schedules/'+name,index=False) 
                 
             return redirect(url_for('modify', name=name))   
-                         
-    alt_plot,sky_plot=web_plot(schedule)
     
     gc.collect()
     return render_template('schedule.html', selected=request.args.get('selected'),observable=request.args.get('observable'),scheduled=len(df),schedule=df.to_dict('records'), alt_plot=alt_plot,sky=sky_plot,user=request.args.get('user'))
@@ -1605,18 +1629,36 @@ def modify():
         return render_template('modify.html', schedules=schedules,name='',schedule=[],code='',codeF='', alt_plot='',sky='',start='',night='',groups={},use_group=[],objects=[],obs=[],indiv=True, calc=0,total_time=16,all_obj=[],codeObj='',indObj='',condi='all')
     objects0=load_objects('db/objects.csv',check=False)   #check in Simbad?
     
+    f=open('db/progID.json','r')
+    ids=json.load(f)
+    f.close()
+    
+    scroll=False
+    
     groups={}
     all_obj0={}
     for obj in objects0:
-        if obj['full']['Done']==1: continue  #remove al
-        group=obj['full']['Type']
-        if pd.isna(group): group='None'
-        if group in groups: groups[group]+=1
-        else: groups[group]=1
+        if obj['full']['Done']==1: continue  #remove already finished targets
         all_obj0[str(uuid.uuid4())]={'name':obj['full']['Target'],'obj':obj}
+                
+        # group=obj['full']['Type']
+        # if pd.isna(group): group='None'
+        # if group in groups: groups[group]+=1
+        # else: groups[group]=1        
+        
+        #add program name       
+        progID=obj['full']['ProgramID']
+        if pd.isna(progID): progID=''
+        if len(str(progID))==0: prog='not given'
+        elif str(progID) not in ids: prog='unknown' 
+        else: prog=ids[str(progID)]['program_title']
+        
+        if prog in groups: groups[prog]+=1
+        else: groups[prog]=1
     
     #cols to save in CSV
-    cols={'target':'Target', 'ra':'RA', 'dec':'DEC', 'mag':'Mag','exposure (seconds)':'ExpTime', 'number exposures':'Number','_Remarks':'Remarks', 'start time (UTC)':'Start', 'end time (UTC)':'End','altitude':'Altitude', 'airmass':'Airmass', 'azimut':'Azimut','position':'Position','priority':'Priority'}
+    cols={'target':'Target', 'ra':'RA', 'dec':'DEC', 'mag':'Mag','exposure (seconds)':'ExpTime', 'number exposures':'Number','_Remarks':'Remarks', 'start time (UTC)':'Start', 'end time (UTC)':'End','altitude':'Altitude', 'airmass':'Airmass', 'azimut':'Azimut','altitude-start':'AltitudeStart', 'airmass-start':'AirmassStart', 'azimut-start':'AzimutStart','altitude-end':'AltitudeEnd', 'airmass-end':'AirmassEnd', 'azimut-end':'AzimutEnd','position':'Position','priority':'Priority','moon-separation':'MoonSeparation'}
+    cols1=['Target','RA', 'DEC', 'Mag','ExpTime', 'Number','Remarks', 'Start', 'End','Position','Priority']   #for download
     
     #load config - based on observatory!
     config=load_config('lasilla_config.txt')
@@ -1639,7 +1681,7 @@ def modify():
             cache.set(codeObj,dict(all_obj0))
             if len(all_obj0)==0: codeObj=''
         
-            return render_template('modify.html', schedules=schedules,name=name,schedule=[],code='',codeF='', alt_plot='',sky='',start='',night='',groups=groups,use_group=[],objects=[],obs=[],prev_plot='',indiv=True,modify=True, calc=1,total_time=16,all_obj=sorted(all_obj0.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj='',condi='all')
+            return render_template('modify.html', schedules=schedules,name=name,schedule=[],code='',codeF='', alt_plot='',sky='',start='',night='',groups=groups,use_group=[],objects=[],obs=[],prev_plot='',indiv=True,modify=True, calc=1,total_time=16,all_obj=sorted(all_obj0.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj='',condi='all',scroll=False)
         
     
     if request.method=='POST':
@@ -1735,14 +1777,41 @@ def modify():
             df['ha0']=ha0
             df['ha1']=ha1
             df['de']=de
-                               
-            alt_plot,sky_plot=web_plot(schedule)
+            
+            if os.path.isfile('schedules/'+name+'_alt.png'):
+                #load saved images
+                f=open('schedules/'+name+'_alt.png','rb')
+                alt_plot=base64.b64encode(f.read()).decode('utf8')
+                f.close()
+                
+                f=open('schedules/'+name+'_sky.png','rb')
+                sky_plot=base64.b64encode(f.read()).decode('utf8')
+                f.close()                             
+            else: 
+                alt_plot,sky_plot=web_plot(schedule)
+                
+                f=open('schedules/'+name+'_alt.png','wb')              
+                f.write(base64.b64decode(alt_plot.encode('utf8')))
+                f.close()
+                
+                f=open('schedules/'+name+'_sky.png','wb')              
+                f.write(base64.b64decode(sky_plot.encode('utf8')))
+                f.close()
+            
             cache.set(code,[pd.DataFrame(df),alt_plot,sky_plot])    #save in cache
             
-            if codeF: objects,obs=cache.get(codeF)
+            if codeF: 
+                tmp=cache.get(codeF)
+                if tmp is None:
+                    codeF=''
+                    objects=[]
+                    obs=[]
+                else: objects,obs=tmp
             else: 
                 objects=[]
                 obs=[]
+                
+            
             
             startF=start.strftime('%H:%M') 
             dfW=df.to_dict('records')
@@ -1759,7 +1828,13 @@ def modify():
             for obj in objects0:
                 if obj['full']['Done']==1: continue
                 #if not series and obj['n_exp']=='series': continue
-                group=obj['full']['Type']    
+                progID=obj['full']['ProgramID']
+                if pd.isna(progID): progID=''
+                if len(str(progID))==0: prog='not given'
+                elif str(progID) not in ids: prog='unknown' 
+                else: prog=ids[str(progID)]['program_title']
+                group=prog
+                #group=obj['full']['Type']    
                 con=obj['full']['Conditions']
                 if pd.isna(group): group='None'
                 if pd.isna(con): con=''
@@ -1964,9 +2039,28 @@ def modify():
             new_obj['Start']=''
             new_obj['End']=''
             new_obj['configuration']=''
-            new_obj['Altitude']=''
-            new_obj['Airmass']=''
-            new_obj['Azimut']=''
+            if len(data)>0:
+                if 'Azimut' in data[last]:
+                    #old schedule
+                    new_obj['Altitude']=''
+                    new_obj['Airmass']=''
+                    new_obj['Azimut']=''
+                else:
+                    new_obj['AltitudeStart']=''
+                    new_obj['AirmassStart']=''
+                    new_obj['AzimutStart']=''
+                    new_obj['AltitudeEnd']=''
+                    new_obj['AirmassEnd']=''
+                    new_obj['AzimutEnd']=''  
+                    new_obj['MoonSeparation']=''
+            else:
+                new_obj['AltitudeStart']=''
+                new_obj['AirmassStart']=''
+                new_obj['AzimutStart']=''
+                new_obj['AltitudeEnd']=''
+                new_obj['AirmassEnd']=''
+                new_obj['AzimutEnd']=''  
+                new_obj['MoonSeparation']=''
             new_obj['Priority']=obj['Priority']
             new_obj['ExpTime']=obj['ExpTime']
             if obj['Number']=='series': new_obj['Number']=5
@@ -2011,9 +2105,28 @@ def modify():
             new_obj['Start']=''
             new_obj['End']=''
             new_obj['configuration']=''
-            new_obj['Altitude']=''
-            new_obj['Airmass']=''
-            new_obj['Azimut']=''
+            if len(data)>0:
+                if 'Azimut' in data[last]:
+                    #old schedule
+                    new_obj['Altitude']=''
+                    new_obj['Airmass']=''
+                    new_obj['Azimut']=''
+                else:
+                    new_obj['AltitudeStart']=''
+                    new_obj['AirmassStart']=''
+                    new_obj['AzimutStart']=''
+                    new_obj['AltitudeEnd']=''
+                    new_obj['AirmassEnd']=''
+                    new_obj['AzimutEnd']=''  
+                    new_obj['MoonSeparation']=''
+            else:
+                new_obj['AltitudeStart']=''
+                new_obj['AirmassStart']=''
+                new_obj['AzimutStart']=''
+                new_obj['AltitudeEnd']=''
+                new_obj['AirmassEnd']=''
+                new_obj['AzimutEnd']=''            
+                new_obj['MoonSeparation']=''
             new_obj['Priority']=obj['Priority']
             new_obj['ExpTime']=obj['ExpTime']
             if obj['Number']=='series': new_obj['Number']=5
@@ -2076,14 +2189,14 @@ def modify():
             total_time=16
            
         
-        if 'calc' in request.form:
+        if 'calc' in request.form or 'plot' in request.form:
             #recalculate schedule
             
             if not 'id' in request.form:
                 if codeF: objects=cache.get(codeF)
                 else: objects=[]
             
-                return render_template('modify.html', schedules=schedules,name=name,schedule=[],code='', codeF=codeF, alt_plot='',sky='',start=request.form['start'],night=request.form['night'],groups=groups,use_group=use_group,objects=objects,calc=0,total_time=16,all_obj=sorted(all_obj.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj=idObj,condi=condi)
+                return render_template('modify.html', schedules=schedules,name=name,schedule=[],code='', codeF=codeF, alt_plot='',sky='',start=request.form['start'],night=request.form['night'],groups=groups,use_group=use_group,objects=objects,calc=0,total_time=16,all_obj=sorted(all_obj.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj=idObj,condi=condi,scroll=False)
             else: ids=[int(i) for i in request.form.to_dict(flat=False)['id']]          
 
             df0=pd.DataFrame(cache.get(code)[0])
@@ -2169,8 +2282,9 @@ def modify():
             df['ha0']=ha0
             df['ha1']=ha1
             df['de']=de
-                                
-            alt_plot,sky_plot=web_plot(schedule)
+            
+            if 'plot' in request.form: alt_plot,sky_plot=web_plot(schedule)                
+            else: alt_plot,sky_plot='',''
             cache.set(code,[pd.DataFrame(df),alt_plot,sky_plot])    #save in cache
             
             if codeF: objects,obs=cache.get(codeF)
@@ -2180,6 +2294,8 @@ def modify():
             
             dfW=df.to_dict('records')
             startF=start.strftime('%H:%M')  
+            
+            scroll=True
             
             calc=1  
             
@@ -2230,8 +2346,8 @@ def modify():
             obstime=suns+night*np.linspace(0, 1, 100)    #range of observing scheduling   
                 
             #general constraints
-            constraints = [ModifAltitudeConstraint(config['minAlt'],config['maxAlt'],boolean_constraint=False), 
-                        AirmassConstraint(config['airmass'],boolean_constraint=True),AtNightConstraint.twilight_nautical(), MoonSeparationConstraint(config['moon'])]
+            constraints = [ModifAltitudeConstraint(config['minAlt'],config['maxAlt'],boolean_constraint=True), 
+                        ModifAirmassConstraint(config['airmass'],boolean_constraint=False),AtNightConstraint.twilight_nautical(), MoonSeparationConstraint(config['moon'])]
             constraints.append(TimeConstraint(start,sunr))  #schedule only same part of night
             
             Scheduler=SequentialScheduler
@@ -2342,12 +2458,26 @@ def modify():
         if 'save' in request.form:
             #save scheduler on server
             
-            df=cache.get(code)[0]
+            df,alt_plot,sky_plot=cache.get(code)
             
             name=request.form['save-name'].replace('/','_').replace('\\','_')
             if not '.csv' in name: name+='.csv'
             if '_index' in df.columns: df=df.drop(columns=['_index'])
             df.rename(columns=cols).to_csv('schedules/'+name,index=False)
+            
+            if len(alt_plot)>0:
+                #save images
+                f=open('schedules/'+name.replace('.csv','_alt.png'),'wb')              
+                f.write(base64.b64decode(alt_plot.encode('utf8')))
+                f.close()
+                
+                f=open('schedules/'+name.replace('.csv','_sky.png'),'wb')              
+                f.write(base64.b64decode(sky_plot.encode('utf8')))
+                f.close()
+            elif os.path.isfile('schedules/'+name.replace('.csv','_alt.png')):
+                os.remove('schedules/'+name.replace('.csv','_alt.png'))
+                os.remove('schedules/'+name.replace('.csv','_sky.png'))
+            
             return 'Schedule saved with name "'+name+'"!'    
         
         if 'download' in request.form:
@@ -2356,7 +2486,7 @@ def modify():
             
             si = io.StringIO()    # create "file-like" output for writing
             
-            df[cols.values()].to_csv(si,index=False)
+            df[cols1].to_csv(si,index=False)
             output = make_response(si.getvalue())
             output.headers["Content-Disposition"] = "attachment; filename=schedule.csv"
             output.headers["Content-type"] = "text/csv"
@@ -2367,7 +2497,7 @@ def modify():
             df=cache.get(code)[0]
             si = io.StringIO()    # create "file-like" output for writing
             
-            df[cols.values()].to_json(si,orient='records',index=False)
+            df[cols1].to_json(si,orient='records',index=False)
             output = make_response(si.getvalue())
             output.headers["Content-Disposition"] = "attachment; filename=schedule.json"
             output.headers["Content-type"] = "text/json"
@@ -2405,7 +2535,7 @@ def modify():
             output.headers["Content-type"] = "text/json"
             return output 
         
-        return render_template('modify.html', schedules=schedules,name=name,schedule=dfW,code=code, codeF=codeF,alt_plot=alt_plot,sky=sky_plot,start=startF,night=nightF,groups=groups,use_group=use_group,objects=objects,obs=obs,indiv=indiv,calc=calc,total_time=total_time,all_obj=sorted(all_obj.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj=idObj,condi=condi)
+        return render_template('modify.html', schedules=schedules,name=name,schedule=dfW,code=code, codeF=codeF,alt_plot=alt_plot,sky=sky_plot,start=startF,night=nightF,groups=groups,use_group=use_group,objects=objects,obs=obs,indiv=indiv,calc=calc,total_time=total_time,all_obj=sorted(all_obj.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj=idObj,condi=condi,scroll=scroll)
     else:
         all_obj=all_obj0
         
@@ -2415,7 +2545,7 @@ def modify():
     
     gc.collect()
     
-    return render_template('modify.html', schedules=schedules,name='',schedule=[],code='',codeF='', alt_plot='',sky='',start='',night='',groups=groups,use_group=[],objects=[],obs=[],indiv=True,calc=0,total_time=16,all_obj=sorted(all_obj.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj='',condi='all')
+    return render_template('modify.html', schedules=schedules,name='',schedule=[],code='',codeF='', alt_plot='',sky='',start='',night='',groups=groups,use_group=[],objects=[],obs=[],indiv=True,calc=0,total_time=16,all_obj=sorted(all_obj.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj='',condi='all',scroll=False)
 
 @app.route("/scheduler/limits", methods=['GET'])
 def limits():
@@ -2457,7 +2587,7 @@ def show():
     if len(schedules)==0: return('NO schedules to show!!!')
     
     #cols to save in CSV
-    cols=['Target','RA', 'DEC', 'Mag','ExpTime', 'Number','Remarks', 'Start', 'End','Altitude', 'Airmass', 'Azimut','Position','Priority']
+    cols=['Target','RA', 'DEC', 'Mag','ExpTime', 'Number','Remarks', 'Start', 'End','Position','Priority']
     
     if request.method=='POST':
         name=request.form['name']    
@@ -2564,8 +2694,26 @@ def show():
         df['ha1']=ha1
         df['de']=de
               
-        alt_plot,sky_plot=web_plot(schedule)
-        
+        if os.path.isfile('schedules/'+name+'_alt.png'):
+            #load saved images
+            f=open('schedules/'+name+'_alt.png','rb')
+            alt_plot=base64.b64encode(f.read()).decode('utf8')
+            f.close()
+            
+            f=open('schedules/'+name+'_sky.png','rb')
+            sky_plot=base64.b64encode(f.read()).decode('utf8')
+            f.close()                             
+        else: 
+            alt_plot,sky_plot=web_plot(schedule)
+            
+            f=open('schedules/'+name+'_alt.png','wb')              
+            f.write(base64.b64decode(alt_plot.encode('utf8')))
+            f.close()
+            
+            f=open('schedules/'+name+'_sky.png','wb')              
+            f.write(base64.b64decode(sky_plot.encode('utf8')))
+            f.close()
+    
         gc.collect()
         
         return render_template('show_schedule.html', schedules=schedules,name=name,schedule=df.to_dict('records'), alt_plot=alt_plot,sky=sky_plot)
@@ -2574,6 +2722,74 @@ def show():
              
     return render_template('show_schedule.html', schedules=schedules,name=name,schedule=[], alt_plot='',sky='')
 
+
+@app.route('/scheduler/object',methods=['GET'])
+def object_info():
+    gc.collect()
+    
+    if not session.get('logged_in'):
+        return redirect(url_for('login', next=request.path))
+        
+    if 'name' in request.args: name0=request.args['name']
+    else: return 'Missing object name!'
+    
+    if 'done' in request.args: done=request.args['done']
+    else: done='0'
+    
+    name=name0.lower().replace(' ', '').replace('-','').replace('_','')
+    
+    objects=[]
+    f=open('db/objects.csv','r')
+    reader = csv.DictReader(f)
+    for obj in reader:
+        if obj['Done']==done and obj['Target'].lower().replace('-','').replace(' ','').replace('_','')==name: 
+            objects.append(obj)    #load object and select only obj. for observations
+    f.close()          
+    
+    if len(objects)==0: return 'Object "'+name0+'" not found in DB!'
+    
+    f=open('db/progID.json','r')
+    progs=json.load(f)
+    f.close()
+    
+    programs=[]
+    for ob in objects:
+        prID=ob['ProgramID']
+        if prID in progs: programs.append(progs[prID])
+        else: programs.append({})
+    
+    gc.collect()
+    
+    return render_template('object.html',obj=objects,prog=programs)
+	
+
+@app.route('/scheduler/proposal',methods=['GET'])
+def proposal_info():
+    gc.collect()
+    
+    if not session.get('logged_in'):
+        return redirect(url_for('login', next=request.path))
+        
+    if 'name' in request.args: name=request.args['name'].strip()
+    else: return 'Missing proposal name!'
+    
+    if len(name)==0: return 'Missing proposal name!'
+        
+    f=open('db/progID.json','r')
+    progs=json.load(f)
+    f.close()
+    
+    program={}
+    for prog in progs:
+        if name in progs[prog]['program_title']:
+            program=progs[prog]
+            break
+    
+    if len(program)==0: return 'Proposal "'+name+'" not found!'        
+    
+    gc.collect()
+    
+    return render_template('proposal.html',prog=program)
 
 @app.route('/scheduler/check_output', methods=['GET'])
 def check_output():
