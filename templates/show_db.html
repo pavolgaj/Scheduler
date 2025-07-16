@@ -27,7 +27,10 @@
                 border: 1px solid black;
                 text-align: left;
                 padding: 8px;
-                white-space: nowrap;
+                /* white-space: nowrap; */
+                word-wrap: break-word; 
+                max-width: 300px;
+                min-width: 100px;
             }
 
             tr:nth-child(even) {
@@ -79,6 +82,27 @@
                 min-width: 100px;
                 max-width: 200px;
                 margin-bottom: 10px;
+            }
+
+            .modify-row {
+                padding: 0px;
+                width: 20px;
+                height: 20px;
+                background-color: silver;
+                border-color: black;
+                border-width: 1px;
+                border-radius: 5px;
+            }
+
+            .modify-row img {
+                height: 17px;
+                display: block;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .modify-row button {
+                padding: 0px;
             }
         </style>
         <!-- import basic jquery functions -> used for sorting -->
@@ -168,13 +192,26 @@
                 <td>
                     <!-- compress output values = round floats and remove decimals from RA/DEC -->
                     {% if not '.' in row[col] %}
-                    {{ row[col][:60] }}
+                    {{ row[col] }}
                     {% elif row[col] | float(default=row[col]) is number %}
                     {{ row[col] | float() | round(3) }}
                     {% elif col=='RA' or col=='DEC' %}
                     {{ row[col].split('.')[0] }}
                     {% else %}
-                    {{ row[col][:60] }}
+                    {{ row[col] }}                    
+                    {% endif %}
+                    {% if col=='Program' %}
+                    <button type="button" class="modify-row" name="info" title="Info about observing program"
+                        onclick="window.open('{{ url_for('proposal_info', name = row[col]) }}', '_blank')"
+                        formtarget=”_blank”>
+                        <img src="{{ url_for('static',filename='info.svg') }}" alt="preview">
+                    </button>
+                    {% elif  col=='Target' %}
+                    <button type="button" class="modify-row" name="info" title="Info about target"
+                        onclick="window.open('{{ url_for('object_info', name = row.Target) }}', '_blank')"
+                        formtarget=”_blank”>
+                        <img src="{{ url_for('static',filename='info.svg') }}" alt="preview">
+                    </button>
                     {% endif %}
                 </td>
                 {% endfor %}
@@ -204,13 +241,26 @@
                 <td>
                     <!-- compress output values = round floats and remove decimals from RA/DEC -->
                     {% if not '.' in row[col] %}
-                    {{ row[col][:60] }}
+                    {{ row[col] }}
                     {% elif row[col] | float(default=row[col]) is number %}
                     {{ row[col] | float() | round(3) }}
                     {% elif col=='RA' or col=='DEC' %}
                     {{ row[col].split('.')[0] }}
                     {% else %}
-                    {{ row[col][:60] }}
+                    {{ row[col] }}
+                    {% endif %}
+                    {% if col=='Program' %}
+                    <button type="button" class="modify-row" name="info" title="Info about observing program"
+                        onclick="window.open('{{ url_for('proposal_info', name = row[col]) }}', '_blank')"
+                        formtarget=”_blank”>
+                        <img src="{{ url_for('static',filename='info.svg') }}" alt="preview">
+                    </button>
+                    {% elif  col=='Target' %}
+                    <button type="button" class="modify-row" name="info" title="Info about target"
+                        onclick="window.open('{{ url_for('object_info', name = row.Target,done=1) }}', '_blank')"
+                        formtarget=”_blank”>
+                        <img src="{{ url_for('static',filename='info.svg') }}" alt="preview">
+                    </button>
                     {% endif %}
                 </td>
                 {% endfor %}
