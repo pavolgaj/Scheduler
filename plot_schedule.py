@@ -123,7 +123,7 @@ if not os.path.isdir('schedule/'+objlist[:objlist.rfind(('.'))]): os.mkdir('sche
 print('#######################\nGenerate outputs...\n#######################\n')
 tab=schedule_table(schedule,objects)
 
-cols={'target':'Target', 'start time (UTC)':'Start', 'end time (UTC)':'End','duration (minutes)':'Duration','ra':'RA', 'dec':'DEC', 'mag':'Mag','altitude':'Altitude', 'airmass':'Airmass', 'azimut':'Azimut','priority':'Priority','exposure (seconds)':'ExpTime', 'number exposures':'Number','_Remarks':'Remarks', 'position':'Position'}
+cols={'target':'Target', 'start time (UTC)':'Start', 'end time (UTC)':'End','duration (minutes)':'Duration','ra':'RA', 'dec':'DEC', 'mag':'Mag','exposure (seconds)':'ExpTime', 'number exposures':'Number','_Remarks':'Remarks','altitude-start':'AltitudeStart', 'airmass-start':'AirmassStart', 'azimut-start':'AzimutStart','altitude-end':'AltitudeEnd', 'airmass-end':'AirmassEnd', 'azimut-end':'AzimutEnd','position':'Position','priority':'Priority','moon-separation':'MoonSeparation'}
 
 for c in tab.colnames:
     if c in cols: tab[c].name=cols[c]
@@ -178,11 +178,14 @@ df['RA']=[x[:x.find('.')] if '.' in x else x for x in df.RA]
 df['DEC']=[x[:x.find('.')] if '.' in x else x for x in df.DEC]
 df['Start']=[x.split()[1][:x.split()[1].rfind(':')] for x in df['Start']]
 df['End']=[x.split()[1][:x.split()[1].rfind(':')] for x in df['End']]
-df.Altitude=[round(float(x)) for x in df.Altitude]
-df.Azimut=[round(float(x)) for x in df.Azimut]
-df.Airmass=['%.1f' %float(x) for x in df.Airmass]
-if 'Position' in tab.colnames: cols=['index', 'Target', 'RA', 'DEC', 'Mag','ExpTime','Number', 'Priority','Start', 'End','Altitude', 'Airmass', 'Azimut', 'Position']
-else: cols=['index', 'Target', 'RA', 'DEC', 'Mag','ExpTime','Number', 'Priority','Start', 'End','Altitude', 'Airmass', 'Azimut']
+df.AltitudeStart=[round(float(x)) for x in df.AltitudeStart]
+df.AzimutStart=[round(float(x)) for x in df.AzimutStart]
+df.AirmassStart=['%.1f' %float(x) for x in df.AirmassStart]
+df.AltitudeEnd=[round(float(x)) for x in df.AltitudeEnd]
+df.AzimutEnd=[round(float(x)) for x in df.AzimutEnd]
+df.AirmassEnd=['%.1f' %float(x) for x in df.AirmassEnd]
+if 'Position' in tab.colnames: cols=['index', 'Target', 'RA', 'DEC', 'Mag','ExpTime','Number', 'Priority','Start', 'End','AltitudeStart', 'AirmassStart', 'AzimutStart','AltitudeEnd', 'AirmassEnd', 'AzimutEnd', 'Position']
+else: cols=['index', 'Target', 'RA', 'DEC', 'Mag','ExpTime','Number', 'Priority','Start', 'End','AltitudeStart', 'AirmassStart', 'AzimutStart','AltitudeEnd', 'AirmassEnd', 'AzimutEnd']
 df[cols].to_csv(outname+'_schedule-web.csv',index=False)
 
 

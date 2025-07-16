@@ -701,9 +701,12 @@ def plot_score(blocks,schedule,constraints,legend=False,index=True,objects0={}):
 def schedule_table(schedule,objects0={}):
     '''add altitude and airmass columns'''
     tab=schedule.to_table()
-    air=[]
-    alt=[]
-    azm=[]
+    air0=[]
+    alt0=[]
+    azm0=[]
+    air1=[]
+    alt1=[]
+    azm1=[]
     prior=[]
     exp=[]
     n_exp=[]
@@ -713,18 +716,35 @@ def schedule_table(schedule,objects0={}):
     pos=[]
     target=[]
     mag=[]
+    moon_sep=[]
     #notes=[]
     full=[]
+    
+    start=None
+    end=None
+    for slot in schedule.slots:
+        if hasattr(slot.block, 'target'):
+            if start is None: start=slot.block.start_time
+            end=slot.block.end_time
+    
+    #moon at middle of schedule
+    mtime=(end-start)/2+start
+    moon=get_moon(mtime)
 
     i=1
     for slot in schedule.slots:
         if hasattr(slot.block, 'target'):
-            t=slot.block.start_time+slot.block.duration/2
-            altaz=slot.block.observer.altaz(t, slot.block.target)
-            alt.append(str(altaz.alt.degree.round(2)))
-            air.append(str(altaz.secz.round(2)))
-            azm.append(str(altaz.az.degree.round(2)))
+            t0=slot.block.start_time
+            t1=slot.block.end_time
+            altaz=slot.block.observer.altaz([t0,t1], slot.block.target)
+            alt0.append(str(altaz[0].alt.degree.round(2)))
+            air0.append(str(altaz[0].secz.round(2)))
+            azm0.append(str(altaz[0].az.degree.round(2)))
+            alt1.append(str(altaz[1].alt.degree.round(2)))
+            air1.append(str(altaz[1].secz.round(2)))
+            azm1.append(str(altaz[1].az.degree.round(2)))
             prior.append(str(slot.block.priority))
+            moon_sep.append(str(moon.separation(slot.block.target.coord).deg))
             n_exp.append(str(int(slot.block.number_exposures)))
             exp.append(str(int(round(slot.block.time_per_exposure.value))))
             ra.append(str(slot.block.target.ra/15).replace('d',':').replace('m',':').replace('s',''))
@@ -750,9 +770,12 @@ def schedule_table(schedule,objects0={}):
                 full.append({})
             i+=1
         elif hasattr(slot.block, 'components'):
-            alt.append('')
-            air.append('')
-            azm.append('')
+            alt0.append('')
+            air0.append('')
+            azm0.append('')
+            alt1.append('')
+            air1.append('')
+            azm1.append('')
             prior.append('')
             n_exp.append('')
             exp.append('')
@@ -762,6 +785,7 @@ def schedule_table(schedule,objects0={}):
             pos.append('')
             target.append('TransitionBlock')
             mag.append('')
+            moon_sep.append('')
             #notes.append('')
             full.append({})
 
@@ -774,9 +798,13 @@ def schedule_table(schedule,objects0={}):
                 else: fulls[key].append(x[key])
             else: fulls[key].append('')
 
-    tab.add_column(alt,name='altitude')
-    tab.add_column(air,name='airmass')
-    tab.add_column(azm,name='azimut')
+    tab.add_column(alt0,name='altitude-start')
+    tab.add_column(air0,name='airmass-start')
+    tab.add_column(azm0,name='azimut-start')
+    tab.add_column(alt1,name='altitude-end')
+    tab.add_column(air1,name='airmass-end')
+    tab.add_column(azm1,name='azimut-end')
+    tab.add_column(moon_sep,name='moon-separation')
     tab.add_column(prior,name='priority')
     tab.add_column(exp,name='exposure (seconds)')
     tab.add_column(n_exp,name='number exposures')
