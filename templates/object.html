@@ -27,9 +27,104 @@
             }
 
             tr.spaceUnder>td {
-            padding-bottom: 2em;
+                padding-bottom: 2em;
+            }
+
+            label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: bold;
+            }
+
+            input {
+                border-radius: 5px;
+                display: inline;
+                padding: 8px;
+            }
+
+            button {
+                padding: 10px;
+                border: none;
+                border-radius: 5px;
+                background-color: #333;
+                color: white;
+                cursor: pointer;
             }
         </style>
+
+        <script>
+            function isFloat(str) {
+                // check if string is float
+                return (parseFloat(str) == str);
+            }
+
+            function phase() {
+                var valid = true;
+
+                if (document.getElementById('day').value) {
+                    if (document.getElementById('day').validity['badInput']) {
+                        alert('Incorrect date format!');
+                        valid = false;
+                    }
+                }
+                else {
+                    alert('Date is missing or incorrect!');
+                    valid = false;
+                }
+
+                if (document.getElementById('time').value) {
+                    if (document.getElementById('time').validity['badInput']) {
+                        alert('Incorrect time format!');
+                        valid = false;
+                    }
+                }
+                else {
+                    alert('Time is missing or incorrect!');
+                    valid = false;
+                }
+
+                if (document.getElementById('period').value) {
+                    if (!isFloat(document.getElementById('period').value)) {
+                        alert('Period should be number!');
+                        valid = false;
+                    }
+                }
+                else {
+                    alert('Period is missing!');
+                    valid = false;
+                }
+
+                if (document.getElementById('epoch').value) {
+                    if (!isFloat(document.getElementById('epoch').value)) {
+                        alert('Epoch should be number!');
+                        valid = false;
+                    }
+                }
+                else {
+                    alert('Epoch is missing!');
+                    valid = false;
+                }
+
+                if (!valid) {
+                    ph = document.getElementById('phase');
+                    ph.innerHTML = '';
+                    return false;
+                }
+
+                const date = document.getElementById('day').value;
+                const time = document.getElementById('time').value;
+                var dt = new Date(date + "T" + time + "Z");
+                var jd = dt.valueOf() / 86400000.0 + 2440587.5;
+
+                const P = document.getElementById('period').value;
+                const t0 = document.getElementById('epoch').value;
+
+                var phase = ((jd - t0) % P) / P;
+
+                ph = document.getElementById('phase');
+                ph.innerHTML = phase.toFixed(4)
+            }
+        </script>
 
     </head>
 
@@ -37,53 +132,85 @@
         <h1>{{ obj[0]['Target'] }}</h1>
 
         <table>
-        <tr>
-        <td style="width: 60%; max-width: 2000px;">
-        <table>
-            {% for key in obj[0] %}
-            {% if key not in ['Target','Done','ProgramID'] %}
             <tr>
-                <td class="key">{{ key }}</td>
-                {% for ob in obj %}
-                <td>{{ ob[key] }}</td>
-                {% endfor %}
-            </tr>
-            {% endif %}
-            {% endfor %}
+                <td style="width: 60%; max-width: 2000px;">
+                    <table>
+                        {% for key in obj[0] %}
+                        {% if key not in ['Target','Done','ProgramID'] %}
+                        <tr>
+                            <td class="key">{{ key }}</td>
+                            {% for ob in obj %}
+                            <td>{{ ob[key] }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endif %}
+                        {% endfor %}
 
-            <tr class="spaceUnder">
-                <td></td>
-            </tr>
+                        <tr class="spaceUnder">
+                            <td></td>
+                        </tr>
 
 
-            {% for key in ['program_title','name','mode','strategy','calibration','readout','special_requests','instructions'] %}
-            <tr>
-                <td class="key">{{ key }}</td>
-                {% for pr in prog %}
-                <td>{{ pr[key] }}</td>
-                {% endfor %}
+                        {% for key in
+                        ['program_title','name','mode','strategy','calibration','readout','special_requests','instructions']
+                        %}
+                        <tr>
+                            <td class="key">{{ key }}</td>
+                            {% for pr in prog %}
+                            <td>{{ pr[key] }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </td>
+                <td style="min-width: 400px; max-width: 2000px; text-align: center; vertical-align: top">
+                    <div id="aladin-div" style="width:400px;height:400px;"></div>
+                    <div>
+                        <a href="https://aladin.cds.unistra.fr/AladinLite/?target={{ obj[0]['RA'] }}{% if not obj[0]['DEC'][0]=='-' %}%2B{% endif %}{{ obj[0]['DEC'] | replace('+','') }}&fov=0.10"
+                            target="_blank">Open Aladin</a>
+                        <br>
+                        <a href="https://simbad.u-strasbg.fr/simbad/sim-basic?Ident={{ obj[0]['RA'] }}{% if not obj[0]['DEC'][0]=='-' %}%2B{% endif %}{{ obj[0]['DEC'] | replace('+','') }}"
+                            target="_blank">Search in Simbad</a>
+                    </div>
+
+                    <div style="text-align: left;">
+                        <br>
+                        <label for="day" style="display: inline;">Date</label>
+                        <input type="date" name="day" id="day" value="{{ day }}" title="UTC Date.">
+                        <label for="time" style="display: inline;">Time</label>
+                        <input type="time" name="time" id="time" value="{{ time }}" title="UTC time.">
+                        <br>
+                        <br>
+                        <label for="period" style="display: inline;">Period</label>
+                        <input type="text" id="period" name="period" title="Orbital period (days)." value="{{ P }}"
+                            style="width: 130px;">
+                        <label for="epoch" style="display: inline;">Epoch</label>
+                        <input type="text" id="epoch" name="epoch" title="Initial epoch in full JD." value="{{ t0 }}"
+                            style="width: 130px;">
+                        <br>
+                        <br>
+                        <label for="phase" style="display: inline;">Phase: &nbsp;</label>
+                        <span id="phase" style="width: 130px; display: inline-block;"></span>
+                        <button type="button" name="phase" id="phase" onclick="phase()"
+                            title="Calculate phase.">Calculate</button>
+
+                        {% if P and t0 %}
+                        <script>phase()</script>
+                        {% endif %}
+
+                    </div>
+
+                </td>
             </tr>
-            {% endfor %}
         </table>
-        </td>
-        <td style="min-width: 400px; max-width: 2000px; text-align: center; vertical-align: top">
-              <div id="aladin-div" style="width:400px;height:400px;"></div>
-              <div>
-                <a href="https://aladin.cds.unistra.fr/AladinLite/?target={{ obj[0]['RA'] }}{% if not obj[0]['DEC'][0]=='-' %}%2B{% endif %}{{ obj[0]['DEC'] | replace('+','') }}&fov=0.10"  target="_blank">Open Aladin</a>
-                <br>
-                <a href="https://simbad.u-strasbg.fr/simbad/sim-basic?Ident={{ obj[0]['RA'] }}{% if not obj[0]['DEC'][0]=='-' %}%2B{% endif %}{{ obj[0]['DEC'] | replace('+','') }}"  target="_blank">Search in Simbad</a>
-             </div>
-        </td>
-        </tr>
-        </table>        
 
-        <!-- todo: statistika pozorovani, vypocet fazy (cez date+time input)  -->
-       <script type="text/javascript">
+        <!-- todo: statistika pozorovani  -->
+        <script type="text/javascript">
             var aladin;
             A.init.then(() => {
                 aladin = A.aladin('#aladin-div');
-                aladin.gotoObject("{{ obj[0]['RA'] }} {% if not obj[0]['DEC'][0]=='-' %}+{% endif %}{{ obj[0]['DEC'] | replace('+','') }}"); 
-                aladin.setFoV(0.1); 
+                aladin.gotoObject("{{ obj[0]['RA'] }} {% if not obj[0]['DEC'][0]=='-' %}+{% endif %}{{ obj[0]['DEC'] | replace('+','') }}");
+                aladin.setFoV(0.1);
             });
         </script>
 

@@ -2738,12 +2738,17 @@ def object_info():
     
     name=name0.lower().replace(' ', '').replace('-','').replace('_','')
     
+    P=''
+    t0=''
     objects=[]
     f=open('db/objects.csv','r')
     reader = csv.DictReader(f)
     for obj in reader:
         if obj['Done']==done and obj['Target'].lower().replace('-','').replace(' ','').replace('_','')==name: 
             objects.append(obj)    #load object and select only obj. for observations
+            if not (P and t0):
+                if obj['Period']: P=obj['Period']
+                if obj['Epoch']: t0=obj['Epoch']
     f.close()          
     
     if len(objects)==0: return 'Object "'+name0+'" not found in DB!'
@@ -2760,6 +2765,8 @@ def object_info():
     
     gc.collect()
     
+    return render_template('object.html',obj=objects,prog=programs,P=P,t0=t0,day=datetime.now(timezone.utc).strftime('%Y-%m-%d'),time=datetime.now(timezone.utc).strftime('%H:%M'))
+
     return render_template('object.html',obj=objects,prog=programs)
 	
 
