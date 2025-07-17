@@ -1,0 +1,7 @@
+Following objects in your program "{{ program }}" (program ID: {{progID}}) have requested number of observations with questionable SNR (value in log is 5-10 - SNR of reduced spectra is about 20).
+
+List of targets with number of observing with good and poor results, and requested nights and mean SNR:
+{% for obj in objects %}{{ obj['name'] }}: {{ obj['good'] }} + {{ obj['faint'] }} / {{ obj['nights'] }}; snr: {{ obj['snr'] }}
+{% endfor %}
+
+Please, use form "Modify object" on Scheduler web page (https://stel.asu.cas.cz/scheduler) to change their status or ask for more nights. If the quality of spectra is not sufficient, consider using of longer exposure time (use the same form such a change).
