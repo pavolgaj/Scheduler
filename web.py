@@ -308,30 +308,40 @@ def new():
                 dec=''
                 mag=''
                 
-                url = 'https://exofop.ipac.caltech.edu/tess/gototicid.php?target='+name
-                response = requests.get(url)
+                urlID = 'https://exofop.ipac.caltech.edu/tess/gototicid.php?target='+name+'&json'
+                urlData = 'https://exofop.ipac.caltech.edu/tess/target.php?id='
+                response = requests.get(urlID)
                 
                 if response.status_code == 200:
-                    soup = BeautifulSoup(response.content, "html.parser")
+                    dicID=json.loads(response.content)
+                    if not dicID['status']=='OK':
+                        errors['name'] = 'Object "'+name+'" NOT found in ExoFOP!'
+                    else:
+                        tic=dicID['TIC']
 
-                    uls = soup.find_all("ul")
+                        response = requests.get(urlData+tic+'&json')
+                        
+                        if response.status_code == 200:
+                            data=json.loads(response.content)
+                            if not 'coordinates' in data:
+                                errors['name'] = 'Object "'+name+'" NOT found in ExoFOP!'
+                            else:
+                                ra='%02d %02d %05.2f' %dms(float(data['coordinates']['ra'])/15)
+                                dec='%02d %02d %05.2f' %dms(float(data['coordinates']['dec']))
 
-                    # Look for RA and De
-                    ra, dec, mag = None, None, None
-                    for ul in uls:
-                        lis = ul.find_all("li")
-                        for li in lis:
-                            if 'TESS mag' in li.get_text():
-                                text=li.get_text().splitlines()[1]
-                                data=text.replace('&nbsp',' ').split()
-                                mag=data[2]
-                            if 'RA/Dec' in li.get_text():
-                                text=li.get_text().splitlines()[1]
-                                data=text.replace('&nbsp',' ').split()
-                                ra=data[0]
-                                dec=data[1].replace('+','')
-                        if ra and dec and mag: break
-                    if not (ra and dec): errors['name'] = 'Object "'+name+'" NOT found in ExoFOP!'
+                                if 'magnitudes' in data:
+                                    mags={x['band']: x['value'] for x in data['magnitudes']}
+                                    if 'V' in mags: mag=mags['V']
+                                    elif 'Kepler' in mags: mag=mags['Kepler']
+                                    elif 'Gaia' in mags: mag=mags['Gaia']
+                                    elif 'TESS' in mags: mag=mags['TESS']
+                                    elif 'B' in mags: mag=mags['B']
+                                    elif 'J' in mags: mag=mags['J']
+                                    elif 'H' in mags: mag=mags['H']
+                                    elif 'K' in mags: mag=mags['K']
+                                    else: mag=''                        
+                        
+                        else: errors['name'] = 'Object "'+name+'" NOT found in ExoFOP!'
                 else:
                     errors['name'] = 'Object "'+name+'" NOT found in ExoFOP!'
             
