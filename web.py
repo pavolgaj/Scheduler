@@ -2767,7 +2767,7 @@ def object_info():
     
     return render_template('object.html',obj=objects,prog=programs,P=P,t0=t0,day=datetime.now(timezone.utc).strftime('%Y-%m-%d'),time=datetime.now(timezone.utc).strftime('%H:%M'))
 
-    return render_template('object.html',obj=objects,prog=programs)
+
 	
 
 @app.route('/scheduler/proposal',methods=['GET'])
