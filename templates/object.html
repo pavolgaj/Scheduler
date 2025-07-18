@@ -150,10 +150,7 @@
                             <td></td>
                         </tr>
 
-
-                        {% for key in
-                        ['program_title','name','mode','strategy','calibration','readout','special_requests','instructions']
-                        %}
+                        {% for key in keys %}
                         <tr>
                             <td class="key">{{ key }}</td>
                             {% for pr in prog %}

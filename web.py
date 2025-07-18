@@ -88,6 +88,12 @@ def intro():
     gc.collect()
     return render_template('intro.html')
 
+@app.route('/scheduler/admins')
+def admins():
+    '''mail to admins'''
+    send=SendMail('')
+    mails=send.mail["to"]
+    return redirect('mailto:'+mails+'?subject=Scheduler DB') 
 @app.route('/scheduler/login', methods=['GET', 'POST'])
 def login():
     '''login page'''
@@ -2739,6 +2745,10 @@ def object_info():
     
     if not session.get('logged_in'):
         return redirect(url_for('login', next=request.path))
+    if session.get('logged_in')=='admin': 
+        keys=['program_title','code','name','institution','mail','mode','strategy','calibration','readout','special_requests','instructions']
+    else: 
+        keys=['program_title','name','institution','mode','strategy','calibration','readout','special_requests','instructions']
         
     if 'name' in request.args: name0=request.args['name']
     else: return 'Missing object name!'
@@ -2775,7 +2785,7 @@ def object_info():
     
     gc.collect()
     
-    return render_template('object.html',obj=objects,prog=programs,P=P,t0=t0,day=datetime.now(timezone.utc).strftime('%Y-%m-%d'),time=datetime.now(timezone.utc).strftime('%H:%M'))
+    return render_template('object.html',obj=objects,prog=programs,P=P,t0=t0,day=datetime.now(timezone.utc).strftime('%Y-%m-%d'),time=datetime.now(timezone.utc).strftime('%H:%M'),keys=keys)
 
 
 	
@@ -2786,6 +2796,10 @@ def proposal_info():
     
     if not session.get('logged_in'):
         return redirect(url_for('login', next=request.path))
+    if session.get('logged_in')=='admin': 
+        keys=['program_title','code','name','institution','mail','mode','strategy','calibration','readout','special_requests','instructions']
+    else: 
+        keys=['program_title','name','institution','mode','strategy','calibration','readout','special_requests','instructions']
         
     if 'name' in request.args: name=request.args['name'].strip()
     else: return 'Missing proposal name!'
@@ -2806,7 +2820,7 @@ def proposal_info():
     
     gc.collect()
     
-    return render_template('proposal.html',prog=program)
+    return render_template('proposal.html',prog=program,keys=keys)
 
 @app.route('/scheduler/check_output', methods=['GET'])
 def check_output():
