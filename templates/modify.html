@@ -304,7 +304,7 @@
                 exps = document.getElementsByName('exp');
                 nums = document.getElementsByName('number');
                 for (var i = 0; i < exps.length; i++) {
-                    allocTime += exps[i].value * nums[i].value;
+                    allocTime += exps[i].value * nums[i].value + 2*60;  //add time for slew
                 }
 
                 var totTime = document.getElementById('total_time').value;
@@ -315,7 +315,7 @@
                     }
                 }
 
-                if (allocTime > totTime * 3600) {
+                if (allocTime > totTime * 3600 - 3600) {
                     alert('Schedule is too long! Total allocated time is longer than available.');
                     return false;
                 }
