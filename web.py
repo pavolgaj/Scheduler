@@ -1402,7 +1402,7 @@ def scheduler():
                         #TODO remove later?
                     if not pd.isna(obj['full']['StartPhase']) or not pd.isna(obj['full']['EndPhase']):
                         #phase constraint for EB or exoplanets
-                        objPer=PeriodicEvent(epoch=Time(obj['full']['Epoch'],format='jd'),period=obj['full']['Period']*u.day)
+                        objPer=PeriodicEvent(epoch=Time(obj['full']['Epoch'],format='jd'),period=float(obj['full']['Period'])*u.day)
                         if pd.isna(obj['full']['StartPhase']): start=None
                         else: start=obj['full']['StartPhase']
                         if pd.isna(obj['full']['EndPhase']): end=None
@@ -2412,7 +2412,7 @@ def modify():
                     #TODO remove later?
                 if (not pd.isna(obj['full']['StartPhase']) or not pd.isna(obj['full']['EndPhase'])) and len(str(obj['full']['StartPhase']))+len(str(obj['full']['EndPhase']))>0:
                     #phase constraint for EB or exoplanets
-                    objPer=PeriodicEvent(epoch=Time(obj['full']['Epoch'],format='jd'),period=obj['full']['Period']*u.day)
+                    objPer=PeriodicEvent(epoch=Time(obj['full']['Epoch'],format='jd'),period=float(obj['full']['Period'])*u.day)
                     if pd.isna(obj['full']['StartPhase']) or len(str(obj['full']['StartPhase']))==0: start=None
                     else: start=float(obj['full']['StartPhase'])
                     if pd.isna(obj['full']['EndPhase']) or len(str(obj['full']['EndPhase']))==0: end=None
