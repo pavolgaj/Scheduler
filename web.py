@@ -2955,6 +2955,10 @@ def user():
             #read data from input file and save them in list
             file_content = [x.decode() for x in file.readlines()]
             csvreader = csv.DictReader(file_content)
+            if not (csvreader.fieldnames+['Supervisor'])==header.strip().split(','):
+                errors['data'].append('Incorrect CSV format. Check the template!')  
+                return render_template('user.html',obs=obs,lat=lat.value,lon=lon.value,alt=ele.value,minAlt=minAlt.value,airmass=airmass,moon=moon.value,readout=readout,slew=slew,start=time_start, end=time_end, errors=errors,observatories=observatories,scheduler=scheduler)
+            
             csvwriter = csv.DictWriter(output,fieldnames=csvreader.fieldnames)
             csvwriter.writeheader()
             for row in csvreader:
