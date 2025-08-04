@@ -2872,10 +2872,14 @@ def proposal_info():
     f.close()
     
     program={}
-    for prog in progs:
-        if name in progs[prog]['program_title']:
-            program=progs[prog]
-            break
+    if name[0]=='2':
+        #search by ID
+        if name in progs: program=progs[name]         
+    else:
+        for prog in progs:
+            if name in progs[prog]['program_title']:
+                program=progs[prog]
+                break
     
     if len(program)==0: return 'Proposal "'+name+'" not found!'        
     
