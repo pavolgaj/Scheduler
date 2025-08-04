@@ -1856,14 +1856,27 @@ def modify():
             df['de']=de
             
             if os.path.isfile('schedules/'+name+'_alt.png'):
-                #load saved images
-                f=open('schedules/'+name+'_alt.png','rb')
-                alt_plot=base64.b64encode(f.read()).decode('utf8')
-                f.close()
+                dt=datetime.fromtimestamp(os.path.getmtime('schedules/'+name+'.csv')) - datetime.fromtimestamp(os.path.getmtime('schedules/'+name+'_alt.png'))
+                if dt.total_seconds()>5:
+                    #old images
+                    alt_plot,sky_plot=web_plot(schedule)
                 
-                f=open('schedules/'+name+'_sky.png','rb')
-                sky_plot=base64.b64encode(f.read()).decode('utf8')
-                f.close()                             
+                    f=open('schedules/'+name+'_alt.png','wb')              
+                    f.write(base64.b64decode(alt_plot.encode('utf8')))
+                    f.close()
+                    
+                    f=open('schedules/'+name+'_sky.png','wb')              
+                    f.write(base64.b64decode(sky_plot.encode('utf8')))
+                    f.close()
+                else:
+                    #load saved images
+                    f=open('schedules/'+name+'_alt.png','rb')
+                    alt_plot=base64.b64encode(f.read()).decode('utf8')
+                    f.close()
+                    
+                    f=open('schedules/'+name+'_sky.png','rb')
+                    sky_plot=base64.b64encode(f.read()).decode('utf8')
+                    f.close()                             
             else: 
                 alt_plot,sky_plot=web_plot(schedule)
                 
@@ -2229,6 +2242,10 @@ def modify():
         if 'delete' in request.form:
             #delete schedule
             os.remove('schedules/'+name+'.csv')   
+            if os.path.isfile('schedules/'+name+'_alt.png'):
+                os.remove('schedules/'+name+'_alt.png')
+                os.remove('schedules/'+name+'_sky.png')
+                
             name=''
             schedules=[os.path.splitext(os.path.basename(x))[0] for x in  sorted(glob.glob('schedules/*.csv'), key=os.path.getmtime)][::-1]  
             
@@ -2772,14 +2789,27 @@ def show():
         df['de']=de
               
         if os.path.isfile('schedules/'+name+'_alt.png'):
-            #load saved images
-            f=open('schedules/'+name+'_alt.png','rb')
-            alt_plot=base64.b64encode(f.read()).decode('utf8')
-            f.close()
+            dt=datetime.fromtimestamp(os.path.getmtime('schedules/'+name+'.csv')) - datetime.fromtimestamp(os.path.getmtime('schedules/'+name+'_alt.png'))
+            if dt.total_seconds()>5:
+                #old images
+                alt_plot,sky_plot=web_plot(schedule)
             
-            f=open('schedules/'+name+'_sky.png','rb')
-            sky_plot=base64.b64encode(f.read()).decode('utf8')
-            f.close()                             
+                f=open('schedules/'+name+'_alt.png','wb')              
+                f.write(base64.b64decode(alt_plot.encode('utf8')))
+                f.close()
+                
+                f=open('schedules/'+name+'_sky.png','wb')              
+                f.write(base64.b64decode(sky_plot.encode('utf8')))
+                f.close()
+            else:
+                #load saved images
+                f=open('schedules/'+name+'_alt.png','rb')
+                alt_plot=base64.b64encode(f.read()).decode('utf8')
+                f.close()
+                
+                f=open('schedules/'+name+'_sky.png','rb')
+                sky_plot=base64.b64encode(f.read()).decode('utf8')
+                f.close()                             
         else: 
             alt_plot,sky_plot=web_plot(schedule)
             
