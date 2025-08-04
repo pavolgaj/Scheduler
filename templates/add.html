@@ -234,7 +234,7 @@
                 <br>
             </div>
             <div class="form-group">
-                <label for="ra"><u>RA</u>
+                <label for="ra"><u>RA</u> (J2000.0)
                 </label>
                 <!--  check only after submit -> in code        -->
                 <input type="text" id="ra" name="ra" value="{{ ra }}"
@@ -243,7 +243,7 @@
                 <!-- regex format pattern -->
             </div>
             <div class="form-group">
-                <label for="dec"><u>DEC</u>
+                <label for="dec"><u>DEC</u> (J2000.0)
                 </label>
                 <input type="text" id="dec" name="dec" value="{{ dec }}"
                     class="{{ 'error' if errors.get('dec') else 'normal' }}" pattern="-?\d+[\s:]\d+[\s:]\d+(\.\d+)?"

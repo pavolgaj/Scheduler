@@ -51,9 +51,9 @@
                 <li>Add object individually using a <a href="{{ url_for('new') }}" target="content_frame">form</a>.
                     Underline parts are mandatory! Target names searchable in <a
                         href="https://simbad.u-strasbg.fr/simbad/" target="_blank">Simbad DB</a> is preferable. <br>
-                    Coordinates and object magnitude could be obtained from Simbad if available. Coordinates have to be
+                    Coordinates and object magnitude could be obtained from Simbad if available. <b>Coordinates have to be
                     in
-                    the format "D M S" or "D:M:S" (or "H M S"/"H:M:S" in case of RA). <br>
+                    the format "D M S" or "D:M:S" (or "H M S"/"H:M:S" in case of RA) in epoch J2000.0.</b> <br>
                     Magnitude should be in the V filter or the most similar to it. <br>
                     Linear ephemeris (period and epoch) is mandatory if specific orbital phases should be observed (see
                     below). <a href="https://www.aavso.org/vsx/index.php?view=search.top" target="_blank">AAVSO VSX</a>
@@ -69,7 +69,7 @@
                     time and used filter). Write other comments related to observations in the "remarks" part. Indicate
                     the number of requested
                     nights (repeating of the specified observation).<br>
-                    Write the priority of the observations - lower number = higher priority. Priority "1" can be given
+                    <b>Write the priority of the observations - lower number = higher priority.</b> Priority "1" can be given
                     only
                     by DB admins on special requests. Standards (RV Standard and SpecPhot Standard) have priority lower
                     than
