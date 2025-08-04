@@ -69,8 +69,14 @@
                 background-color: #555;
             }
 
+            button:disabled, button[disabled]{
+              border: 1px solid #999999;
+              background-color: #cccccc;
+              color: #666666;
+            }
+
             .actions {
-                width: 45px;
+                width: 70px;
                 display: table-cel;
                 font-size: 0em;
                 justify-content: left;
@@ -159,6 +165,8 @@
                 filter = input.value.toUpperCase();
                 table = document.getElementById("my_table");
                 tr = table.getElementsByTagName("tr");
+                ids=document.getElementById("selected");
+                ids.value='';
                 for (i = 1; i < tr.length; i++) {
                     // Hide the row initially.
                     tr[i].style.display = "none";
@@ -169,6 +177,8 @@
                         if (cell) {
                             if (cell.innerHTML.toUpperCase().indexOf(filter) > -1) {
                                 tr[i].style.display = "";
+                                indexInput = tr[i].querySelector('input#id');
+                                ids.value=ids.value+indexInput.value+',';
                                 break;
                             }
                         }
@@ -202,7 +212,7 @@
             {% endif %}
 
             <br>
-            <input type="text" id="searchInput" name="searchInput" onkeyup="searchTab()" placeholder="Search for target.." title="Search for target in DB.">
+            <input type="text" id="searchInput" name="searchInput" onkeyup="searchTab()" value="{{ searchInput }}" placeholder="Search for target..." title="Search for target in DB.">
 
             <!-- Table for new objects -->
             {% if db=='new' %}
@@ -216,10 +226,17 @@
                 <button type="submit" name="delete_all" title="Delete all targets"
                     onclick="return confirm('Delete all targets?');">Delete all
                 </button>
+                <button type="submit" name="accept_select" title="Accept selected targets and move them to DB." 
+                    onclick="return confirm('Accept selected targets and move them to DB?');">Accept selected
+                </button>
+                <button type="submit" name="delete_select" title="Delete selected targets" 
+                    onclick="return confirm('Delete selected targets?');">Delete selected
+                </button>
             </center>
             <h2 style="color: red; font-weight: bold;">Any accept/delete action also saves all modifications in table!
             </h2>
             <br>
+            <input type="hidden" name="selected" id="selected">
             <table id="my_table">
                 <thead>
                     <tr>
@@ -228,7 +245,7 @@
                         <th style="display:none">id</th> <!-- id for correct sorting -->
                         {% for val in header %}
                         <th {% if loop.index0==0
-                            %}style="position: sticky; left: 55px; z-index: 2; background-color: white;" {% endif %}>
+                            %}style="position: sticky; left: 80px; z-index: 2; background-color: white;" {% endif %}>
                             {{ val }}
                         </th>
                         {% endfor %}
@@ -247,12 +264,21 @@
                             onclick="return confirm('Delete target \'{{ row['Target'] }}\'?');">
                             <img src="{{ url_for('static',filename='delete.svg') }}" alt="delete">
                         </button>
+                        <button type="button" class="modify-row" name="info" title="Info about observing program"
+                        onclick="window.open('{{ url_for('proposal_info', name = row['ProgramID']) }}', '_blank')"
+                        formtarget=”_blank”>
+                            <img src="{{ url_for('static',filename='info.svg') }}" alt="preview">
+                        </button>
                     </td>
                     <td style="display:none">
-                        <input type="text" name="id" value="{{ loop.index0 }}"> <!-- id for correct sorting -->
+                        <input type="hidden" name="id" id="id" value="{{ loop.index0 }}"> <!-- id for correct sorting -->
                     </td>
+                    <script>
+                    ids=document.getElementById("selected");
+                    ids.value=ids.value+'{{ loop.index0 }},';
+                    </script>
                     {% for col in header %}
-                    <td {% if loop.index0==0 %}class="fix" style="left: 55px;" {% endif %}>
+                    <td {% if loop.index0==0 %}class="fix" style="left: 80px;" {% endif %}>
                         <input type="text" name="{{ col }}" value="{{ row[col] }}">
                     </td>
                     {% endfor %}
@@ -283,11 +309,11 @@
                     <tr>
                         <!-- fix first 3 cols -->
                         <th style="position: sticky; left: 0px; z-index: 2; background-color: white;"></th>
-                        <th style="position: sticky; left: 35px; z-index: 2; background-color: white;">Done</th>
+                        <th style="position: sticky; left: 60px; z-index: 2; background-color: white;">Done</th>
                         <th style="display:none">id</th> <!-- id for correct sorting -->
                         {% for val in header %}
                         <th {% if loop.index0==0 %}
-                            style="position: sticky; left: 90px; z-index: 2; background-color: white;" {% endif %}>
+                            style="position: sticky; left: 115px; z-index: 2; background-color: white;" {% endif %}>
                             {{ val }}
                         </th>
                         {% endfor %}
@@ -301,8 +327,13 @@
                             onclick="return confirm('Delete target \'{{ row['Target'] }}\'?');">
                             <img src="{{ url_for('static',filename='delete.svg') }}" alt="delete">
                         </button>
+                        <button type="button" class="modify-row" name="info" title="Info about observing program"
+                        onclick="window.open('{{ url_for('proposal_info', name = row['ProgramID']) }}', '_blank')"
+                        formtarget=”_blank”>
+                            <img src="{{ url_for('static',filename='info.svg') }}" alt="preview">
+                        </button>
                     </td>
-                    <td class="fix" style="left: 35px;">
+                    <td class="fix" style="left: 60px;">
                         <center>
                             <input type="checkbox" name="Done" value="{{ loop.index0 }}" title="Observations finished."
                                 {% if row['Done']=='1' %}checked{% endif %}> <!-- if checked -> value from id -->
@@ -312,7 +343,7 @@
                         <input type="text" name="id" value="{{ loop.index0 }}"> <!-- id for correct sorting -->
                     </td>
                     {% for col in header %}
-                    <td {% if loop.index0==0 %} class="fix" style="left: 90px;" {% endif %}>
+                    <td {% if loop.index0==0 %} class="fix" style="left: 115px;" {% endif %}>
                         <input type="text" name="{{ col }}" value="{{ row[col] }}">
                     </td>
                     {% endfor %}
@@ -323,6 +354,16 @@
 
         </form>
         <br>
+        
+        {% if searchInput %}
+        <script>
+        // apply search filter after POST
+        window.onload = function () {
+            searchTab();
+        }
+        </script>
+        {% endif %}
+        
     </body>
     <script>
         // sorting table
