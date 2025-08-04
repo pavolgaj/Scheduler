@@ -17,7 +17,6 @@ import uuid
 import base64
 from datetime import datetime,timezone,timedelta
 import requests
-from bs4 import BeautifulSoup
 
 from make_stats import make_stats
 
@@ -38,6 +37,8 @@ import gc
 
 app = Flask(__name__,static_url_path='/scheduler')
 app.secret_key = 'e152logs'  # Used to secure the session
+
+app.config['TRAP_HTTP_EXCEPTIONS']=True
 
 #create cache
 cache = Cache(app,config={'CACHE_TYPE': 'RedisCache',"CACHE_DEFAULT_TIMEOUT": 3600,'CACHE_REDIS_URL': 'redis://localhost:6379/0'})
@@ -75,6 +76,26 @@ def health():
     
     gc.collect()
     return 'OK'
+
+if not app.debug:
+    #user error pages
+    @app.errorhandler(404)
+    def page_not_found(e):
+        return render_template('error.html',error=e.description), 404
+
+    @app.errorhandler(403)
+    def page_forbidden(e):
+        return render_template('error.html',error=e.description), 403
+
+    @app.errorhandler(500)
+    def server_error(e):
+        app.logger.exception(e)
+        return render_template('error.html',error=traceback.format_exc().splitlines()[-1]), 500
+
+    @app.errorhandler(Exception)
+    def error(e):
+        app.logger.exception(e)
+        return render_template('error.html',error=traceback.format_exc().splitlines()[-1]), 500
 
 @app.route("/scheduler")
 def main():

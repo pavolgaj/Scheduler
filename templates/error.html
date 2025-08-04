@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <title>Error Page</title>
+        <style>
+            body {
+                text-align: center;
+            }
+        </style>
+    </head>
+
+    <body>
+        <br>
+        <img src="{{ url_for('static',filename='telescope-down1.svg') }}" alt="error" style="height: 30vh">
+        <h1>Something's wrong here...</h1>
+        <br>
+        Description of error: <code>{{error}}</code>
+    </body>
+
+</html>
