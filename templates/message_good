@@ -1,4 +1,4 @@
-Following objects in your program "{{ program }}" (program ID: {{progID}}) have requested number of observations with good SNR (value in log is more than 10 - SNR of reduced spectra is at least 40).
+Following objects in your program "{{ program }}" (program ID: {{progID}}) observed last week have requested number of observations with good SNR (value in log is more than 10 - SNR of reduced spectra is at least 40).
 
 List of targets with number of observing and requested nights and mean SNR:
 {% for obj in objects %}{{ obj['name'] }}: {{ obj['observed'] }} / {{ obj['nights'] }}; snr: {{ obj['snr'] }}
