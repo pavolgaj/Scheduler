@@ -966,6 +966,8 @@ def admin():
     
     if request.method == 'POST':
         db=request.form['db']
+        searchInput=request.form['searchInput']
+        if not searchInput: searchInput=''
         
         if db=='new' and os.path.isfile('db/new_objects.csv'): 
             # working with new_objects
@@ -978,6 +980,7 @@ def admin():
             if 'id' in updated_data:
                 #get order after sorting
                 ids={int(i): updated_data['id'].index(i) for i in updated_data['id']}
+            else: ids={int(i): int(i) for i in range(len(updated_data))}
                 
             if 'download' in request.form:
                 #download csv -> without saving DB on server
@@ -1030,6 +1033,56 @@ def admin():
                     writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ProgramID','Done'])
                     writer.writerows(targets)
                     f.close()  
+                    
+            elif 'delete_select' in request.form:
+                #delete selected targets
+                # Get the data from the form and sort them based on original order                  
+                targets0=[{x: updated_data[x][ids[i]] for x in header.strip().split(',')+['ProgramID']} for i in sorted(ids)]
+                
+                selected=request.form['selected']
+                id_select=[int(x) for x in selected[:-1].split(',')]
+                targets=[]
+                if len(selected)>0:
+                    for id in ids:
+                        if not id in id_select: targets.append(targets0[id])
+                    
+                    f=open('db/new_objects.csv','w')
+                    writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ProgramID'])
+                    writer.writeheader()
+                    writer.writerows(targets)
+                    f.close()
+                
+            elif 'accept_select' in request.form:
+                #accept selected targets
+                # Get the data from the form and sort them based on original order                  
+                targets0=[{x: updated_data[x][ids[i]] for x in header.strip().split(',')+['ProgramID']} for i in sorted(ids)]
+                
+                selected=request.form['selected']
+                id_select=[int(x) for x in selected[:-1].split(',')]
+                targets=[]
+                if len(selected)>0:
+                    for id in ids:
+                        if not id in id_select: targets.append(targets0[id])
+                        else:
+                            target=dict(targets0[id]) 
+                            target['Done']='0'      
+                            tmp,errors=check(target)   #make data check
+                            
+                            if len(errors)==0:        
+                                #if data OK        
+                                if not os.path.isfile('db/objects.csv'):
+                                    f=open('db/objects.csv','w')
+                                    f.write(header.strip()+',ProgramID,Done\n')
+                                else: f=open('db/objects.csv','a')
+                                writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ProgramID','Done'])
+                                writer.writerow(target)
+                                f.close() 
+                    
+                    f=open('db/new_objects.csv','w')
+                    writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ProgramID'])
+                    writer.writeheader()
+                    writer.writerows(targets)
+                    f.close()
                 
             elif len(list(filter(r_del.match,request.form.keys())))>0:
                 #delete one target
@@ -1165,6 +1218,7 @@ def admin():
         
     else:
         db='new'
+        searchInput=''
     
     #load DB from file    
     if db=='new': 
@@ -1180,7 +1234,7 @@ def admin():
     f.close()
     
     gc.collect()
-    return render_template('admin_db.html', db=db, header=header.strip().split(',')+['ProgramID'], data=data, saved=saved, errors=errors)
+    return render_template('admin_db.html', db=db, header=header.strip().split(',')+['ProgramID'], data=data, saved=saved, errors=errors, searchInput=searchInput)
 
 @app.route("/scheduler/run", methods=['GET','POST'])
 def scheduler():
