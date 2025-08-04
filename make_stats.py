@@ -92,12 +92,12 @@ def make_stats():
             if 'arc-' in target.lower(): continue 
 
             #utilize similar objects names - spaces, lower/upper case etc.
-            if not target.lower().replace('-','').replace(' ','') in names: 
-                names[target.lower().replace('-','').replace(' ','')]=target
-                all_names[target.lower().replace('-','').replace(' ','')]=[target.replace(' ','_')]
-            elif not target.replace(' ','_') in all_names[target.lower().replace('-','').replace(' ','')]:
-                all_names[target.lower().replace('-','').replace(' ','')].append(target.replace(' ','_'))
-            target=names[target.lower().replace('-','').replace(' ','')]
+            if not target.lower().replace('-','').replace(' ','').replace('+','').replace('.','') in names: 
+                names[target.lower().replace('-','').replace(' ','').replace('+','').replace('.','')]=target
+                all_names[target.lower().replace('-','').replace(' ','').replace('+','').replace('.','')]=[target.replace(' ','_')]
+            elif not target.replace(' ','_') in all_names[target.lower().replace('-','').replace(' ','').replace('+','').replace('.','')]:
+                all_names[target.lower().replace('-','').replace(' ','').replace('+','').replace('.','')].append(target.replace(' ','_'))
+            target=names[target.lower().replace('-','').replace(' ','').replace('+','').replace('.','')]
             exp=float(obs['exposure'])
             inst=obs['instrument']
             #add obj to stats -> for specific exp. time
@@ -219,14 +219,14 @@ if __name__ == '__main__':
     reader = csv.DictReader(f)
     for row in reader:
         if not row['Target'] in objects:
-            objects[row['Target'].lower().replace('-','').replace(' ','').replace('_','')]={'supervisor': row['Supervisor'], 'program': get_program(row['ProgramID'])}
+            objects[row['Target'].lower().replace('-','').replace(' ','').replace('_','').replace('+','').replace('.','')]={'supervisor': row['Supervisor'], 'program': get_program(row['ProgramID'])}
     f.close()
 
     stats={}
     for obj in observed:
         n=len([x for x in observed[obj] if datetime.datetime.strptime(x,'%Y-%m-%d').date()>=start and datetime.datetime.strptime(x,'%Y-%m-%d').date()<=end])
         if n>0:
-            name=obj.lower().replace('-','').replace(' ','').replace('_','')
+            name=obj.lower().replace('-','').replace(' ','').replace('_','').replace('+','').replace('.','')
             stats[name]={'nights': n}
             if name in objects: 
                 stats[name]['supervisor']=objects[name]['supervisor']
@@ -242,7 +242,7 @@ if __name__ == '__main__':
                 reader = csv.DictReader(f)
                 for row in reader:
                     #utilize similar objects names - spaces, lower/upper case etc.
-                    if row['object'].lower().replace('?','').replace('ttarget-','').replace('ttarget_','').replace('-thar','').replace('_thar','').replace('_',' ').strip().replace('-','').replace(' ','')==name:
+                    if row['object'].lower().replace('?','').replace('ttarget-','').replace('ttarget_','').replace('-thar','').replace('_thar','').replace('_',' ').strip().replace('-','').replace(' ','').replace('+','').replace('.','')==name:
                         total+=float(row['exposure'])
                         number+=1
                 f.close() 

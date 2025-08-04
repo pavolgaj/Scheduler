@@ -3096,7 +3096,7 @@ def stats():
         n=int(tmp[3])
         last=tmp[4]
         #utilize similar objects names - spaces, lower/upper case etc.
-        tr=target.lower().replace('-','').replace(' ','')
+        tr=target.lower().replace('-','').replace(' ','').replace('+','').replace('.','')
         if tr in statistics:
             if inst in statistics[tr]:
                 statistics[tr][inst][exp]={'n':n,'last':last}
@@ -3179,9 +3179,9 @@ def search():
         t0=''
         f=open('db/objects.csv','r')
         reader = csv.DictReader(f)
-        name=target.lower().replace('-','').replace(' ','').replace('_','')
+        name=target.lower().replace('-','').replace(' ','').replace('_','').replace('+','').replace('.','')
         for row in reader:
-            if name==row['Target'].lower().replace('-','').replace(' ','').replace('_',''):
+            if name==row['Target'].lower().replace('-','').replace(' ','').replace('_','').replace('+','').replace('.',''):
                 if len(row['Period'])>0: 
                     P=row['Period']
                     t0=row['Epoch']
@@ -3191,7 +3191,7 @@ def search():
         obs={}
         obs_plot={'t':[],'exp':[],'snr':[]}
         #list all obs of selected obj
-        for night in sorted(modif_obs[target.lower().replace('-','').replace(' ','')])[::-1]:
+        for night in sorted(modif_obs[target.lower().replace('-','').replace(' ','').replace('+','').replace('.','')])[::-1]:
             obs[night]={}
             
             #read info from logs
@@ -3199,7 +3199,7 @@ def search():
             reader = csv.DictReader(f)
             for row in reader:
                 #utilize similar objects names - spaces, lower/upper case etc.
-                if target.lower().replace('-','').replace(' ','')==row['object'].replace('?','').replace('ttarget-','').replace('ttarget_','').replace('-thar','').replace('_thar','').replace('_',' ').strip().lower().replace('-','').replace(' ',''):
+                if target.lower().replace('-','').replace(' ',''.replace('+','').replace('.',''))==row['object'].replace('?','').replace('ttarget-','').replace('ttarget_','').replace('-thar','').replace('_thar','').replace('_',' ').strip().lower().replace('-','').replace(' ','').replace('+','').replace('.',''):
                     exp=row['exposure']
                     inst=row['instrument']
                     if inst in obs[night]:
