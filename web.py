@@ -715,6 +715,7 @@ def bulk():
                     else: 
                         row['ProgramID']=progID
                         row['Supervisor']=supervis
+                    row['Target']=row['Target'].strip()
                     objects.append(row['Target'])
                     csvwriter.writerow(row)
 
@@ -1512,6 +1513,12 @@ def scheduler():
                     df=df.rename(columns=cols)
                     df.to_csv('schedules/'+out+'.csv',index=False)
                     n_sch.append(len(df))
+                    
+                    
+                    #remove old figs
+                    if os.path.isfile('schedules/'+out+'_alt.png'):
+                        os.remove('schedules/'+out+'_alt.png')
+                        os.remove('schedules/'+out+'_sky.png')
                     
                     #remove already scheduled targets for next night scheduling
                     objectsS=[x.target.name for x in schedule.observing_blocks]
