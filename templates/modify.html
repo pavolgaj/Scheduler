@@ -505,7 +505,10 @@
                                         <th class="obj_th">OtherRequests</th>
                                     </thead>
                                     {% for row in objects %}
-                                    <tr data-row-id="{{ loop.index0 }}">
+                                    <tr data-row-id="{{ loop.index0 }}"
+title="Group: {{ row.Type }}
+Supervisor: {{ row.Supervisor }}
+Conditions: {{ row.Conditions }}">
                                         <td class="actions">
                                             <button type="submit" class="modify-row" name="add_{{ loop.index0 }}"
                                                 title="Add">
@@ -603,6 +606,7 @@
             <!-- table with observable obj -->
             <center>
                 <h2>Objects for observations</h2>
+                <h3 style="color: red;">Modifications of this table (removing or reordering rows) are applied only after running "Recalculate" or "Reschedule". Adding new target before it cancels these changes!</h3>
             </center>
             <table id="shedule_table">
                 <thead>
@@ -625,7 +629,11 @@
                     <th>Position</th>
                 </thead>
                 {% for row in schedule %}
-                <tr data-row-id="{{ loop.index0 }}">
+                <tr data-row-id="{{ loop.index0 }}"
+title="Group: {{ row._Type }}
+Supervisor: {{ row._Supervisor }}
+Conditions: {{ row._Conditions }}
+OtherRequests: {{ row._OtherRequests }}">
                     <td class="actions">
                         <button type="button" class="modify-row" name="delete_{{ row.index }}" title="Delete target"
                             onclick="deleteRow(this)">

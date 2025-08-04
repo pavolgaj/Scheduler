@@ -145,6 +145,7 @@
         </center>
         <table id="my_table">
             <thead>
+            <tr>
                 <th style="width: 50px;"></th>
                 <th>Target</th>
                 <th>RA</th>
@@ -161,9 +162,14 @@
                 <th>Azimuth</th>
                 <th>MoonDist</th>
                 <th>Position</th>
+            </tr>
             </thead>
             {% for row in schedule %}
-            <tr data-row-id="{{ loop.index0 }}">
+            <tr {% if row.Priority<3 %}style="font-weight: bold"{% endif %} data-row-id="{{ loop.index0 }}" 
+title="Group: {{ row._Type }}
+Supervisor: {{ row._Supervisor }}
+Conditions: {{ row._Conditions }}
+OtherRequests: {{ row._OtherRequests }}">
                 <td style="width: 50px;">{{ row.index }}
                     <input type="checkbox">
                     <button type="button" class="modify-row" name="info" title="Info about target"
