@@ -165,8 +165,10 @@
                 filter = input.value.toUpperCase();
                 table = document.getElementById("my_table");
                 tr = table.getElementsByTagName("tr");
+                {% if db=='new' %}
                 ids=document.getElementById("selected");
                 ids.value='';
+                {% endif %}
                 for (i = 1; i < tr.length; i++) {
                     // Hide the row initially.
                     tr[i].style.display = "none";
@@ -178,7 +180,9 @@
                             if (cell.innerHTML.toUpperCase().indexOf(filter) > -1) {
                                 tr[i].style.display = "";
                                 indexInput = tr[i].querySelector('input#id');
+                                {% if db=='new' %}
                                 ids.value=ids.value+indexInput.value+',';
+                                {% endif %}
                                 break;
                             }
                         }
