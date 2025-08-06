@@ -327,6 +327,30 @@
                 //on input change -> need recalc
                 var calc = document.getElementById('calc_test');
                 calc.value = 0;
+
+                var night = document.getElementById('night').value;
+                start = document.getElementById('start').value;
+
+                if (night && start) {
+                    dt0=new Date(night+'T'+start0+':00Z');
+                    dt=new Date(night+'T'+start+':00Z');
+
+                    if (dt0-new Date(night+'T00:00:00Z')>0.5*86400*1000) {
+                        dt0=new Date(dt0-86400*1000);
+                    }
+                    if (dt-new Date(night+'T00:00:00Z')>0.5*86400*1000) {
+                        dt=new Date(dt-86400*1000);
+                    }
+
+                    diff=dt-dt0;
+
+                    var totTime = document.getElementById('total_time').value;
+
+                    if (totTime != 16) {
+                        document.getElementById('total_time').value=totTime-diff/1000/3600;
+                        start0=start;
+                    }
+                }
             }
 
             function select_all() {
@@ -382,10 +406,10 @@
 
     </head>
 
-    <body>
+    <body>        
         <form method="post" id="main-form">
             <input type="hidden" name="calc_test" id="calc_test" value="{{ calc }}">
-            <input type="hidden" name="total_time" id="total_time" value="{{ total_time }}">
+            <input type="hidden" name="total_time" id="total_time" value="{{ total_time }}"> 
             <div>
                 <center>
                     <label for="name">Name of schedule</label>
@@ -574,6 +598,9 @@ Conditions: {{ row.Conditions }}">
                 <label for="start">Observation start</label>
                 <input type="time" name="start" id="start" value="{{ start }}" title="Time for observations start."
                     onchange="modify()">
+                <script>
+                    var start0="{{ start }}";
+                </script>
                 <button type="submit" name="twilight" id="twilight" title="Set time to astronomical twilight."
                     onclick="return checkTwilight()">Astronomical twilight</button>
             </div>
