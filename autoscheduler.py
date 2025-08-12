@@ -21,7 +21,7 @@ series = True
 name='autoschedule'
 
 if not os.path.isfile('db/objects.csv'):
-    raise "NO object DB"
+    raise Exception("NO object DB")
 objects0=load_objects('db/objects.csv',check=False)   #check in Simbad?
 
 use_group=[]
@@ -226,7 +226,7 @@ for obj in objects:
         blocks.append(ObservingBlock.from_exposures(FixedTarget(name=name1, coord=obj['target'].coord),obj['priority'],obj['exp']*u.second,obj['n_exp'],read_out,constraints=cons))
 
 if len(blocks)==0:
-    raise 'Schedule is EMPTY!'
+    raise Exception('Schedule is EMPTY!')
 
 #run scheduler
 constraintsM=[]
