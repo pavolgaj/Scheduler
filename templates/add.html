@@ -409,6 +409,17 @@
                 </select>
             </div>
             <div class="form-group">
+                <label for="freq">Frequency</label>
+                <select id="freq" name="freq" title="Frequency of observations." placeholder="Frequency of observations.">
+                    <option value="everynight" {% if freq=='everynight' %}selected{% endif %}>Every night</option>
+                    <option value="twiceweek" {% if freq=='twiceweek' %}selected{% endif %}>Twice a week</option>
+                    <option value="onceweek" {% if freq=='onceweek' %}selected{% endif %}>Once a week</option>
+                    <option value="twicemonth" {% if freq=='twicemonth' %}selected{% endif %}>Twice a month</option>
+                    <option value="oncemonth" {% if freq=='oncemonth' %}selected{% endif %}>Once a month</option>
+                    <option value="unspecified" {% if freq=='unspecified' %}selected{% endif %}>Unspecified</option>
+                </select>
+            </div>
+            <div class="form-group">
                 <label for="other">Other constr.</label>
                 <input type="text" id="other" name="other" value="{{ other }}"
                     title="Other constraints and requests for observation scheduling." placeholder="Other constraints and requests for observation scheduling">
@@ -419,7 +430,7 @@
                 <label for="supervis"><u>Supervisor</u>
                 </label>
                 <input type="text" id="supervis" name="supervis" value="{{ supervis }}"
-                    class="{{ 'error' if errors.get('supervis') else 'normal' }}" title="Name of target supervisor." placeholder="Name of target supervisor">
+                    class="{{ 'error' if errors.get('supervis') else 'normal' }}" title="Name of target supervisor. Use surname only!" placeholder="Name of target supervisor.">
             </div>
             <div class="form-group">
                 <label for="progID"><u>Program ID</u>

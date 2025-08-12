@@ -503,6 +503,16 @@
                                     <option value="poor" {% if condi=='poor' %}selected{% endif %}>Poor</option>
                                     <option value="na" {% if condi=='na' %}selected{% endif %}>Not given</option>
                                 </select><br><br>
+                                <label for="freq">Observation frequency</label><br>
+                                <select id="freq" name="freq" title="Frequency of observations.">
+                                    <option value="all" {% if freq=='all' %}selected{% endif %}>All</option>
+                                    <option value="everynight" {% if freq=='everynight' %}selected{% endif %}>Every night</option>
+                                    <option value="twiceweek" {% if freq=='twiceweek' %}selected{% endif %}>Twice a week</option>
+                                    <option value="onceweek" {% if freq=='onceweek' %}selected{% endif %}>Once a week</option>
+                                    <option value="twicemonth" {% if freq=='twicemonth' %}selected{% endif %}>Twice a month</option>
+                                    <option value="oncemonth" {% if freq=='oncemonth' %}selected{% endif %}>Once a month</option>
+                                    <option value="unspecified" {% if freq=='unspecified' %}selected{% endif %}>Unspecified</option>
+                                </select><br><br>
                                 <input type="checkbox" name="individual" id="individual" value="checked"
                                     title="Apply inidividual object constraints." {% if indiv %}checked{% endif %}
                                     style="min-width: 20px;">
@@ -526,6 +536,7 @@
                                         <th class="obj_th">Number</th>
                                         {% if obs %}<th class="obj_th">Observable</th>{% endif %}
                                         <th class="obj_th">Priority</th>
+                                        <th class="obj_th">Frequency</th>
                                         <th class="obj_th">OtherRequests</th>
                                     </thead>
                                     {% for row in objects %}
@@ -567,6 +578,7 @@ Conditions: {{ row.Conditions }}">
                                         <td>{{ obs[loop.index0] }}</td>
                                         {% endif %}
                                         <td>{{ row.Priority }}</td>
+                                        <td>{{ row.Frequency }}</td>
                                         <td>{{ row.OtherRequests }}</td>
                                     </tr>
                                     {% endfor %}
@@ -660,6 +672,7 @@ Conditions: {{ row.Conditions }}">
 title="Group: {{ row._Type }}
 Supervisor: {{ row._Supervisor }}
 Conditions: {{ row._Conditions }}
+Frequency: {{ row._Frequency }}
 OtherRequests: {{ row._OtherRequests }}">
                     <td class="actions">
                         <button type="button" class="modify-row" name="delete_{{ row.index }}" title="Delete target"

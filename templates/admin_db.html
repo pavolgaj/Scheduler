@@ -249,7 +249,7 @@
                         <th style="display:none">id</th> <!-- id for correct sorting -->
                         {% for val in header %}
                         <th {% if loop.index0==0
-                            %}style="position: sticky; left: 80px; z-index: 2; background-color: white;" {% endif %}>
+                            %}style="position: sticky; left: 100px; z-index: 2; background-color: white;" {% endif %}>
                             {{ val }}
                         </th>
                         {% endfor %}
@@ -273,6 +273,11 @@
                         formtarget=”_blank”>
                             <img src="{{ url_for('static',filename='info.svg') }}" alt="preview">
                         </button>
+                        <button type="button" class="modify-row" name="info" title="Search in Simbad"
+                        onclick="window.open('https://simbad.u-strasbg.fr/simbad/sim-basic?Ident={{ row.RA }}{% if not row.DEC[0]=='-' %}%2B{% endif %}{{ row.DEC | replace('+','') }}', '_blank')"
+                        formtarget=”_blank”>
+                            <img src="{{ url_for('static',filename='simbad.svg') }}" alt="simbad">
+                        </button>
                     </td>
                     <td style="display:none">
                         <input type="hidden" name="id" id="id" value="{{ loop.index0 }}"> <!-- id for correct sorting -->
@@ -282,7 +287,7 @@
                     ids.value=ids.value+'{{ loop.index0 }},';
                     </script>
                     {% for col in header %}
-                    <td {% if loop.index0==0 %}class="fix" style="left: 80px;" {% endif %}>
+                    <td {% if loop.index0==0 %}class="fix" style="left: 100px;" {% endif %}>
                         <input type="text" name="{{ col }}" value="{{ row[col] }}">
                     </td>
                     {% endfor %}
@@ -313,11 +318,11 @@
                     <tr>
                         <!-- fix first 3 cols -->
                         <th style="position: sticky; left: 0px; z-index: 2; background-color: white;"></th>
-                        <th style="position: sticky; left: 60px; z-index: 2; background-color: white;">Done</th>
+                        <th style="position: sticky; left: 80px; z-index: 2; background-color: white;">Done</th>
                         <th style="display:none">id</th> <!-- id for correct sorting -->
                         {% for val in header %}
                         <th {% if loop.index0==0 %}
-                            style="position: sticky; left: 115px; z-index: 2; background-color: white;" {% endif %}>
+                            style="position: sticky; left: 135px; z-index: 2; background-color: white;" {% endif %}>
                             {{ val }}
                         </th>
                         {% endfor %}
@@ -336,8 +341,13 @@
                         formtarget=”_blank”>
                             <img src="{{ url_for('static',filename='info.svg') }}" alt="preview">
                         </button>
+                        <button type="button" class="modify-row" name="info" title="Search in Simbad"
+                        onclick="window.open('https://simbad.u-strasbg.fr/simbad/sim-basic?Ident={{ row.RA }}{% if not row.DEC[0]=='-' %}%2B{% endif %}{{ row.DEC | replace('+','') }}', '_blank')"
+                        formtarget=”_blank”>
+                            <img src="{{ url_for('static',filename='simbad.svg') }}" alt="simbad">
+                        </button>
                     </td>
-                    <td class="fix" style="left: 60px;">
+                    <td class="fix" style="left: 80px;">
                         <center>
                             <input type="checkbox" name="Done" value="{{ loop.index0 }}" title="Observations finished."
                                 {% if row['Done']=='1' %}checked{% endif %}> <!-- if checked -> value from id -->
@@ -347,7 +357,7 @@
                         <input type="text" name="id" value="{{ loop.index0 }}"> <!-- id for correct sorting -->
                     </td>
                     {% for col in header %}
-                    <td {% if loop.index0==0 %} class="fix" style="left: 115px;" {% endif %}>
+                    <td {% if loop.index0==0 %} class="fix" style="left: 135px;" {% endif %}>
                         <input type="text" name="{{ col }}" value="{{ row[col] }}">
                     </td>
                     {% endfor %}

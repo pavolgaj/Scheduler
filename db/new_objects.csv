@@ -1,2 +1,2 @@
-Target,RA,DEC,Mag,Period,Epoch,ExpTime,Number,Nights,Priority,Type,Remarks,MoonPhase,StartPhase,EndPhase,StartDate,EndDate,Conditions,OtherRequests,Supervisor,ProgramID
-alf Cen,14 39 36.50,-60 50 02.30,-0.1,,,120,5,1,3,test,,,,,,,good,,example,1234
+Target,RA,DEC,Mag,Period,Epoch,ExpTime,Number,Nights,Priority,Type,Remarks,MoonPhase,StartPhase,EndPhase,StartDate,EndDate,Conditions,Frequency,OtherRequests,Supervisor,ProgramID
+alf Cen,14 39 36.50,-60 50 02.30,-0.1,,,120,5,1,3,test,,,,,,,good,twiceweek,,example,1234

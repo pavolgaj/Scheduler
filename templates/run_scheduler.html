@@ -115,7 +115,7 @@
             }
 
             .wrap {
-                word-wrap: break-word; 
+                word-wrap: break-word;
                 max-width: 300px;
                 white-space: wrap;
             }
@@ -333,11 +333,31 @@
                 azm_start_label.style.display = azm.checked ? 'inline-block' : 'none';
                 azm_end_label.style.display = azm.checked ? 'inline-block' : 'none';
             }
+            
+            {% if prior %}
+            oldprior=true;
+            {% else %}
+            oldprior=false;
+            {% endif %}
+
             function toggleNumber() {
                 //show/hide name for multiple nights
                 var number = document.getElementById('number');
                 var name = document.getElementById('name-div');
-                name.style.display = (number.value > 1) ? 'flex' : 'none';
+                var prior = document.getElementById('prior');
+
+                if (number.value > 1) {
+                    name.style.display = 'flex';
+                    if (! prior.disabled) { oldprior=prior.checked; }
+                    prior.checked=false;
+                    prior.disabled=true;
+                }
+                else {
+                    name.style.display = 'none';
+                    prior.disabled=false;
+                    prior.checked=oldprior;
+                }
+                //name.style.display = (number.value > 1) ? 'flex' : 'none';
             }
             // Run this function on page load to check if the checkbox was checked (loading from server)
             window.onload = function () {
@@ -486,6 +506,92 @@
                 </tr>
                 </table>
                 <br>
+            </div>
+
+            <div>
+                <label>Required observation frequency</label>
+                <table id="freq_table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Frequency</th>
+                            <th>Number of objects</th>
+                        </tr>
+                    </thead>
+                    <tr>
+                        <td>
+                            <center>
+                                <input type="checkbox" name="use_freq" value="everynight"
+                                    title="Include group of objects to scheduler." {% if 'everynight' in use_freq
+                                    %}checked{% endif %}>
+                            </center>
+                        </td>
+                        <td>Every night</td>
+                        <td>{{ freq['everynight'] }}</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <center>
+                                <input type="checkbox" name="use_freq" value="twiceweek"
+                                    title="Include group of objects to scheduler." {% if 'twiceweek' in use_freq
+                                    %}checked{% endif %}>
+                            </center>
+                        </td>
+                        <td>Twice a week</td>
+                        <td>{{ freq['twiceweek'] }}</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <center>
+                                <input type="checkbox" name="use_freq" value="onceweek"
+                                    title="Include group of objects to scheduler." {% if 'onceweek' in use_freq
+                                    %}checked{% endif %}>
+                            </center>
+                        </td>
+                        <td>Once a week</td>
+                        <td>{{ freq['onceweek'] }}</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <center>
+                                <input type="checkbox" name="use_freq" value="twicemonth"
+                                    title="Include group of objects to scheduler." {% if 'twicemonth' in use_freq
+                                    %}checked{% endif %}>
+                            </center>
+                        </td>
+                        <td>Twice a month</td>
+                        <td>{{ freq['twicemonth'] }}</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <center>
+                                <input type="checkbox" name="use_freq" value="oncemonth"
+                                    title="Include group of objects to scheduler." {% if 'oncemonth' in use_freq
+                                    %}checked{% endif %}>
+                            </center>
+                        </td>
+                        <td>Once a month</td>
+                        <td>{{ freq['oncemonth'] }}</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <center>
+                                <input type="checkbox" name="use_freq" value="unspecified"
+                                    title="Include group of objects to scheduler." {% if 'unspecified' in use_freq
+                                    %}checked{% endif %}>
+                            </center>
+                        </td>
+                        <td>Unspecified</td>
+                        <td>{{ freq['unspecified'] }}</td>
+                    </tr>
+                </table>
+                <br>
+                <div class="checkbox-wrapper">
+                    <label for="prior">Scale priorities</label>
+                    <input type="checkbox" name="prior" id="prior" value="checked"
+                        title="Scale priorities based on frequency and last observation." {% if prior %}checked{% endif
+                        %}>
+                </div>
             </div>
 
             <!-- table with object programs -->

@@ -40,6 +40,9 @@ app.secret_key = 'e152logs'  # Used to secure the session
 
 app.config['TRAP_HTTP_EXCEPTIONS']=True
 
+# Disable trailing slash strictness for all routes
+app.url_map.strict_slashes = False
+
 #create cache
 cache = Cache(app,config={'CACHE_TYPE': 'RedisCache',"CACHE_DEFAULT_TIMEOUT": 3600,'CACHE_REDIS_URL': 'redis://localhost:6379/0'})
 
@@ -176,7 +179,7 @@ def check_dns(text,min=None,max=None):
 
 
 #header for obj in DB
-header='Target,RA,DEC,Mag,Period,Epoch,ExpTime,Number,Nights,Priority,Type,Remarks,MoonPhase,StartPhase,EndPhase,StartDate,EndDate,Conditions,OtherRequests,Supervisor'
+header='Target,RA,DEC,Mag,Period,Epoch,ExpTime,Number,Nights,Priority,Type,Remarks,MoonPhase,StartPhase,EndPhase,StartDate,EndDate,Conditions,Frequency,OtherRequests,Supervisor'
 header+='\n'
 
 # Route for displaying the form
@@ -230,6 +233,7 @@ def new():
         time_start = request.form['time_start']
         time_end = request.form['time_end']
         condi = request.form['condi']  
+        freq = request.form['freq']  
         other = request.form['other'].strip()        
 
         supervis = request.form['supervis'].strip()
@@ -326,7 +330,7 @@ def new():
             else: errors['name'] = 'Name is required.'
             
             gc.collect()
-            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID,groups=groups)
+            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID,groups=groups,freq=freq)
         
         elif 'exofop' in request.form:
             #search obj in exofop - ra,dec,mag
@@ -375,7 +379,7 @@ def new():
             else: errors['name'] = 'Name is required.'
             
             gc.collect()
-            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID,groups=groups)
+            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID,groups=groups,freq=freq)
         
         elif 'vsx' in request.form:
             #search P,t0 in VSX cat
@@ -398,7 +402,7 @@ def new():
             else: errors['name'] = 'Name is required.'
             
             gc.collect()
-            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors,remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID,groups=groups)
+            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors,remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID,groups=groups,freq=freq)
         elif 'exoarch' in request.form:
             #search P,t0 in exoplanet archive
             if name:
@@ -418,7 +422,7 @@ def new():
             else: errors['name'] = 'Name is required.'
             
             gc.collect()
-            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID,groups=groups)
+            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID,groups=groups,freq=freq)
 
 
 
@@ -483,6 +487,7 @@ def new():
                 supervis='Standards'
                 night=''
                 condi=''
+                freq=''
             elif group=='SpecPhot Standard': 
                 progID=''
                 prior='0.5'
@@ -490,7 +495,9 @@ def new():
                 supervis='Standards'
                 night=''
                 condi=''
+                freq=''
 
+            name=name.replace('*','').strip()
             # save the data to a database
             tmp='"'+name+'"'+','
             tmp+=ra+','
@@ -526,6 +533,7 @@ def new():
                 else: tmp+=','
             else: tmp+=',,'
             tmp+=condi+','
+            tmp+=freq+','
             tmp+=other+','
             tmp+='"'+supervis+'",'
             tmp+=progID
@@ -559,7 +567,7 @@ def new():
             return redirect(url_for('success'))
 
     gc.collect()
-    return render_template('add.html', name='', ra='', dec='', mag='', per='', t0='', exp='', number=1, night=1, series=False, ic=False, phot=False, phot_input='', prior=3, group='', moon=False, moon_input='', phase=False, phase_start='', phase_end='', time=False, time_start='', time_end='', other='', supervis = '', email='', mess='', errors={}, remarks='', simcal='thar',readout='fast',condi='good',groups=groups)
+    return render_template('add.html', name='', ra='', dec='', mag='', per='', t0='', exp='', number=1, night=1, series=False, ic=False, phot=False, phot_input='', prior=3, group='', moon=False, moon_input='', phase=False, phase_start='', phase_end='', time=False, time_start='', time_end='', other='', supervis = '', email='', mess='', errors={}, remarks='', simcal='thar',readout='fast',condi='good',groups=groups,freq='unspecified')
 
 
 # Route for the success page
@@ -583,6 +591,7 @@ def check(row):
     if len(row['Target'])==0:
         errors.append('Missing name of target.')
         return row,errors
+    else: row['Target']=row['Target'].replace('*','').strip()
 
     if len(row['RA'])==0: errors.append(row['Target']+': missing RA.')
     else:
@@ -656,6 +665,10 @@ def check(row):
     if len(row['Conditions'])==0: row['Conditions']='good'
     elif row['Conditions'] not in ['excellent', 'good', 'poor']:
         errors.append(row['Target']+': wrong Conditions type. Available options: excellent, good, poor.')
+        
+    if len(row['Frequency'])==0: row['Frequency']='unspecified'
+    elif row['Frequency'] not in ['everynight', 'twiceweek', 'onceweek', 'twicemonth', 'oncemonth', 'unspecified']:
+        errors.append(row['Target']+': wrong Frequency option. Available options: everynight, twiceweek, onceweek, twicemonth, oncemonth, unspecified.')
     
     return row,errors
 
@@ -733,6 +746,8 @@ def bulk():
                     if row['Type'] in ['RV Standard','SpecPhot Standard']: 
                         row['ProgramID']=''   #TODO?
                         row['Supervisor']='Standards'
+                        row['Conditions']=''
+                        row['Frequency']=''
                     else: 
                         row['ProgramID']=progID
                         row['Supervisor']=supervis
@@ -1270,6 +1285,7 @@ def scheduler():
        
     groups={}
     condi={'excellent':0,'good':0,'poor':0,'na':0}
+    freq={'everynight':0, 'twiceweek':0, 'onceweek':0, 'twicemonth':0, 'oncemonth':0, 'unspecified':0}
     programs={}
     
     f=open('db/progID.json','r')
@@ -1304,7 +1320,9 @@ def scheduler():
         if group not in ['RV Standard','SpecPhot Standard']: 
             #ignore conditons for standards
             if pd.isna(obj['full']['Conditions']): condi['na']+=1
-            else: condi[obj['full']['Conditions']]+=1      
+            else: condi[obj['full']['Conditions']]+=1   
+            if pd.isna(obj['full']['Frequency']): freq['unspecified']+=1
+            else: freq[obj['full']['Frequency']]+=1   
     
     if request.method == 'POST':
         if 'run' in request.form:
@@ -1316,6 +1334,7 @@ def scheduler():
             series = (request.form.get('series')=='checked')
             scheduler=request.form['scheduler']      
             expF=request.form['exp']  
+            prior = (request.form.get('prior')=='checked')  #rescale priorities
             
             if not expF: expF=1
             else: expF=float(expF)
@@ -1326,6 +1345,9 @@ def scheduler():
             if not 'use_condi' in request.form: use_condi=[]    
             else: use_condi=request.form.to_dict(flat=False)['use_condi']     
             if 'na' in use_condi: use_condi.append('')
+            
+            if not 'use_freq' in request.form: use_freq=[]    
+            else: use_freq=request.form.to_dict(flat=False)['use_freq']     
             
             if not 'use_program' in request.form: use_program=[]    
             else: use_program=request.form.to_dict(flat=False)['use_program']     
@@ -1349,15 +1371,35 @@ def scheduler():
             n_sch=[]
             out_names=[]
             
+            #load last observations
+            make_stats()    
+            stats={}
+            if os.path.isfile('db/statistics.csv') and prior: 
+                f=open('db/statistics.csv','r')
+                lines=f.readlines()
+                f.close()
+                for l in lines[1:]:
+                    tmp=l.strip().split(',')
+                    target=tmp[0]
+                    last=datetime.strptime(tmp[4],'%Y-%m-%d')
+                    #utilize similar objects names - spaces, lower/upper case etc.
+                    tr=target.lower().replace('-','').replace(' ','').replace('+','').replace('.','').replace('_','')
+                    if tr in stats:
+                        if last>stats[tr]: stats[tr]=last
+                    else: stats[tr]=last
+                
+            
             #add selected objects by types and series
             objects1={}
             for obj in objects0:
                 if obj['full']['Done']==1: continue
                 if not series and obj['n_exp']=='series': continue
                 group=obj['full']['Type']  
-                condi=obj['full']['Conditions']  
                 if pd.isna(group): group='None'
+                condi=obj['full']['Conditions']  
                 if pd.isna(condi): condi=''
+                fr=obj['full']['Frequency']                
+                if pd.isna(fr): fr='unspecified'
                 
                 #add program name       
                 progID=obj['full']['ProgramID']
@@ -1365,10 +1407,54 @@ def scheduler():
                 if len(str(progID))==0: prog='not given'
                 elif str(progID) not in ids: prog='unknown' 
                 else: prog=ids[str(progID)]['program_title']
+                
+                plandate=datetime.strptime(date,'%Y-%m-%d')
         
                 if group in use_group and prog in use_program: 
-                    if condi in use_condi or group in ['RV Standard','SpecPhot Standard']:
+                    if (condi in use_condi and fr in use_freq) or group in ['RV Standard','SpecPhot Standard']:
                         #ignore conditons for standards
+                        
+                        #update priority based on last obs.
+                        tr=obj['full']['Target'].lower().replace('-','').replace(' ','').replace('+','').replace('.','').replace('_','')
+                        
+                        if tr in stats and group not in ['RV Standard','SpecPhot Standard']:
+                            last=stats[tr]
+                            if plandate>last: 
+                                #only for future planning
+                                diffdate=(plandate-last).days
+                                
+                                #specify interval for obs.
+                                if fr=='everynight': 
+                                    obsint=1
+                                    k=0.2
+                                elif fr=='twiceweek': 
+                                    obsint=3
+                                    k=0.1
+                                elif fr=='onceweek': obsint=7
+                                elif fr=='twicemonth': obsint=14
+                                elif fr=='oncemonth': obsint=30
+                                elif fr=='unspecified': obsint=10
+                                
+                                #modification of priority
+                                if obsint<5:
+                                    dprior=10-20/(1+np.exp(-k*(diffdate-obsint)))
+                                else:
+                                    dprior=20*(1-np.exp(-(diffdate-obsint)**2/obsint**2))
+                                    if obsint<diffdate: dprior*=-0.8
+                                if fr=='unspecified' and dprior<0: dprior=0
+                                
+                                obj['priority']+=dprior
+                                
+                                #always priority>1
+                                if fr=='everynight': obj['priority']=max(1.1,obj['priority'])
+                                elif fr=='twiceweek': obj['priority']=max(1.2,obj['priority'])
+                                elif fr=='onceweek': obj['priority']=max(1.3,obj['priority'])
+                                elif fr=='twicemonth': obj['priority']=max(1.4,obj['priority'])
+                                elif fr=='oncemonth': obj['priority']=max(1.5,obj['priority'])
+                                
+                                obj['priority']=round(obj['priority'],1)
+                                
+                        
                         mag=obj['full']['Mag']
                         
                         try: mag=float(mag)
@@ -1567,7 +1653,7 @@ def scheduler():
                 return render_template('multi_schedule.html', names=out_names, selected=n_selected, observable=n_obs, scheduled=n_sch)
     
     gc.collect()
-    return render_template('run_scheduler.html',night=datetime.now(timezone.utc).strftime('%Y-%m-%d'),number=1,name='',groups=groups,scheduler='StdPriority',use_group=groups,time=False,azm=False,position='both',condi=condi,use_condi=['good','poor','na'],programs=programs,exp=1)
+    return render_template('run_scheduler.html',night=datetime.now(timezone.utc).strftime('%Y-%m-%d'),number=1,name='',groups=groups,scheduler='StdPriority',use_group=groups,time=False,azm=False,position='both',condi=condi,use_condi=['good','poor','na'],programs=programs,exp=1,freq=freq,use_freq=['everynight', 'twiceweek', 'onceweek', 'twicemonth', 'oncemonth', 'unspecified'],prior=True)
 
 
 @app.route("/scheduler/new_schedule", methods=['GET','POST'])
@@ -1779,7 +1865,7 @@ def modify():
             cache.set(codeObj,dict(all_obj0))
             if len(all_obj0)==0: codeObj=''
         
-            return render_template('modify.html', schedules=schedules,name=name,schedule=[],code='',codeF='', alt_plot='',sky='',start='',night='',groups=groups,use_group=[],objects=[],obs=[],prev_plot='',indiv=True,modify=True, calc=1,total_time=16,all_obj=sorted(all_obj0.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj='',condi='all',scroll=False)
+            return render_template('modify.html', schedules=schedules,name=name,schedule=[],code='',codeF='', alt_plot='',sky='',start='',night='',groups=groups,use_group=[],objects=[],obs=[],prev_plot='',indiv=True,modify=True, calc=1,total_time=16,all_obj=sorted(all_obj0.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj='',condi='all',scroll=False,freq='all')
         
     
     if request.method=='POST':
@@ -1822,6 +1908,10 @@ def modify():
         if condi=='all': use_condi=['excellent','good','poor','']
         elif condi=='na': use_condi=['']
         else: use_condi=[condi]
+        
+        freq=request.form['freq']
+        if freq=='all': use_freq=['everynight', 'twiceweek', 'onceweek', 'twicemonth', 'oncemonth', 'unspecified']
+        else: use_freq=[freq]
         
         indiv = (request.form.get('individual')=='checked')
         
@@ -1947,10 +2037,12 @@ def modify():
                 group=prog
                 #group=obj['full']['Type']    
                 con=obj['full']['Conditions']
+                fr=obj['full']['Frequency']                
                 if pd.isna(group): group='None'
                 if pd.isna(con): con=''
+                if pd.isna(fr): fr='unspecified'
                 if group in use_group: 
-                    if con in use_condi or group in ['RV Standard','SpecPhot Standard']:
+                    if (con in use_condi and fr in use_freq) or group in ['RV Standard','SpecPhot Standard']:
                         #ignore conditons for standards
                         objects.append(obj)                
                 
@@ -2311,7 +2403,7 @@ def modify():
                 if codeF: objects=cache.get(codeF)
                 else: objects=[]
             
-                return render_template('modify.html', schedules=schedules,name=name,schedule=[],code='', codeF=codeF, alt_plot='',sky='',start=request.form['start'],night=request.form['night'],groups=groups,use_group=use_group,objects=objects,calc=0,total_time=16,all_obj=sorted(all_obj.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj=idObj,condi=condi,scroll=False)
+                return render_template('modify.html', schedules=schedules,name=name,schedule=[],code='', codeF=codeF, alt_plot='',sky='',start=request.form['start'],night=request.form['night'],groups=groups,use_group=use_group,objects=objects,calc=0,total_time=16,all_obj=sorted(all_obj.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj=idObj,condi=condi,scroll=False,freq=freq)
             else: ids=[int(i) for i in request.form.to_dict(flat=False)['id']]          
 
             df0=pd.DataFrame(cache.get(code)[0])
@@ -2420,7 +2512,7 @@ def modify():
                 if codeF: objects=cache.get(codeF)
                 else: objects=[]
             
-                return render_template('modify.html', schedules=schedules,name=name,schedule=[],code='', codeF=codeF, alt_plot='',sky='',start=request.form['start'],night=request.form['night'],groups=groups,use_group=use_group,objects=objects,all_obj=sorted(all_obj.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj=idObj)
+                return render_template('modify.html', schedules=schedules,name=name,schedule=[],code='', codeF=codeF, alt_plot='',sky='',start=request.form['start'],night=request.form['night'],groups=groups,use_group=use_group,objects=objects,all_obj=sorted(all_obj.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj=idObj,freq=freq,condi=condi)
             else: ids=[int(i) for i in request.form.to_dict(flat=False)['id']]          
 
             df0=pd.DataFrame(cache.get(code)[0])
@@ -2650,7 +2742,7 @@ def modify():
             output.headers["Content-type"] = "text/json"
             return output 
         
-        return render_template('modify.html', schedules=schedules,name=name,schedule=dfW,code=code, codeF=codeF,alt_plot=alt_plot,sky=sky_plot,start=startF,night=nightF,groups=groups,use_group=use_group,objects=objects,obs=obs,indiv=indiv,calc=calc,total_time=total_time,all_obj=sorted(all_obj.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj=idObj,condi=condi,scroll=scroll)
+        return render_template('modify.html', schedules=schedules,name=name,schedule=dfW,code=code, codeF=codeF,alt_plot=alt_plot,sky=sky_plot,start=startF,night=nightF,groups=groups,use_group=use_group,objects=objects,obs=obs,indiv=indiv,calc=calc,total_time=total_time,all_obj=sorted(all_obj.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj=idObj,condi=condi,scroll=scroll,freq=freq)
     else:
         all_obj=all_obj0
         
@@ -2660,7 +2752,7 @@ def modify():
     
     gc.collect()
     
-    return render_template('modify.html', schedules=schedules,name='',schedule=[],code='',codeF='', alt_plot='',sky='',start='',night='',groups=groups,use_group=[],objects=[],obs=[],indiv=True,calc=0,total_time=16,all_obj=sorted(all_obj.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj='',condi='all',scroll=False)
+    return render_template('modify.html', schedules=schedules,name='',schedule=[],code='',codeF='', alt_plot='',sky='',start='',night='',groups=groups,use_group=[],objects=[],obs=[],indiv=True,calc=0,total_time=16,all_obj=sorted(all_obj.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj='',condi='all',scroll=False,freq='all')
 
 @app.route("/scheduler/limits", methods=['GET'])
 def limits():
