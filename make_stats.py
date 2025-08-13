@@ -100,7 +100,14 @@ def make_stats():
             target=names[target.lower().replace('-','').replace(' ','').replace('+','').replace('.','')]
             exp=float(obs['exposure'])
             inst=obs['instrument']
+            snr=obs['snr']
             #add obj to stats -> for specific exp. time
+            if target in observations:
+                if not last in observations[target]:
+                    observations[target].append(last)
+            else: observations[target]=[last]
+            
+            if snr<5: continue  #ignore bad obs.
             if target in stats:
                 if inst in stats[target]:
                     if exp in stats[target][inst]:
@@ -111,10 +118,7 @@ def make_stats():
                 else: stats[target][inst]={exp:{'n':1,'last':last}}
             else: stats[target]={inst:{exp:{'n':1,'last':last}}}
 
-            if target in observations:
-                if not last in observations[target]:
-                    observations[target].append(last)
-            else: observations[target]=[last]
+            
         f.close()
 
     #save stats + name of last log
