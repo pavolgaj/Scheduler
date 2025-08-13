@@ -100,7 +100,8 @@ def make_stats():
             target=names[target.lower().replace('-','').replace(' ','').replace('+','').replace('.','')]
             exp=float(obs['exposure'])
             inst=obs['instrument']
-            snr=obs['snr']
+            if 'snr' in obs: snr=int(obs['snr'])
+            else: snr=10
             #add obj to stats -> for specific exp. time
             if target in observations:
                 if not last in observations[target]:
