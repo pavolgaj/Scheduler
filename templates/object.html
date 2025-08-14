@@ -214,7 +214,9 @@
                                 <td>{{ snr }}</td>
                             </tr>
                         </table>
+                        {% if nobs>0 %}
                         <a href="{{ url_for('search',target=obs_name)}}" target="_blank">Show all observations</a>
+                        {% endif %}
                     </div>
 
                 </td>
