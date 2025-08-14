@@ -194,7 +194,27 @@
                         {% if P and t0 %}
                         <script>phase()</script>
                         {% endif %}
+                        <br>
+                    </div>
 
+                    <div style="text-align: left;">
+                        <br>
+                        <h3>Previous observations</h3>
+                        <table>
+                            <tr>
+                                <td class="key">Number of nights</td>
+                                <td>{{ nobs }}</td>
+                            </tr>
+                            <tr>
+                                <td class="key">Last observation</td>
+                                <td>{{ last }}</td>
+                            </tr>
+                            <tr>
+                                <td class="key">Mean SNR</td>
+                                <td>{{ snr }}</td>
+                            </tr>
+                        </table>
+                        <a href="{{ url_for('search',target=obs_name)}}" target="_blank">Show all observations</a>
                     </div>
 
                 </td>

@@ -172,8 +172,8 @@ Supervisor: {{ row._Supervisor }}
 Conditions: {{ row._Conditions }}
 Frequency: {{ row._Frequency }}
 OtherRequests: {{ row._OtherRequests }}
-
-MoonDist (deg): {{ row.MoonSeparation | float() | round(0) | int() }}">
+{% if row.MoonSeparation %}
+MoonDist (deg): {{ row.MoonSeparation | float() | round(0) | int() }}{% endif %}">
                 <td style="width: 50px;">{{ row.index }}
                     <input type="checkbox">
                     <button type="button" class="modify-row" name="info" title="Info about target"

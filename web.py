@@ -1372,7 +1372,7 @@ def scheduler():
             out_names=[]
             
             #load last observations
-            make_stats()    
+            if prior: make_stats()    
             stats={}
             if os.path.isfile('db/statistics.csv') and prior: 
                 f=open('db/statistics.csv','r')
@@ -2759,6 +2759,11 @@ def limits():
     '''plot object in telescope limits'''
     from astropy.coordinates import Angle
     
+    gc.collect()
+    
+    if not session.get('logged_in'):
+        return redirect(url_for('login', next=request.path))
+    
     try:
         ha0=Angle(request.args.get('ha0'))
         ha1=Angle(request.args.get('ha1'))
@@ -2960,7 +2965,7 @@ def object_info():
     if 'done' in request.args: done=request.args['done']
     else: done='0'
     
-    name=name0.lower().replace(' ', '').replace('-','').replace('_','')
+    name=name0.lower().replace(' ', '').replace('-','').replace('_','').replace('+','').replace('.','')
     
     P=''
     t0=''
@@ -2986,10 +2991,49 @@ def object_info():
         prID=ob['ProgramID']
         if prID in progs: programs.append(progs[prID])
         else: programs.append({})
+        
+        
+    make_stats()    
+    last=''
+    nobs=0
+    snr=''
+    obs_name=''
+    if os.path.isfile('db/observations.json'): 
+        f=open('db/names.json','r')
+        names=json.load(f)
+        f.close()
+        
+        if name in names:
+            obs_name=names[name]
+            
+            f=open('db/observations.json','r')
+            obsAll=json.load(f)
+            f.close()
+            
+            if obs_name in obsAll:            
+                obs=obsAll[obs_name]
+                nobs=len(obs)
+                last=obs[-1]
+                
+                #read logs
+                snrs=[]
+                for night in obs:
+                    f=open('static/logs/'+night+'_log.csv','r')
+                    reader = csv.DictReader(f)
+                    for row in reader:
+                        #utilize similar objects names - spaces, lower/upper case etc.
+                        if name==row['object'].replace('?','').replace('ttarget-','').replace('ttarget_','').replace('-thar','').replace('_thar','').replace('_',' ').strip().lower().replace('-','').replace(' ','').replace('+','').replace('.',''):                  
+                            if 'snr' in row:
+                                if len(row['snr'])>0: snrs.append(float(row['snr']))
+                                else: continue                        
+                            else: continue  
+                    f.close() 
+                snr=round(np.mean(snrs),1)                
+
     
     gc.collect()
     
-    return render_template('object.html',obj=objects,prog=programs,P=P,t0=t0,day=datetime.now(timezone.utc).strftime('%Y-%m-%d'),time=datetime.now(timezone.utc).strftime('%H:%M'),keys=keys)
+    return render_template('object.html',obj=objects,prog=programs,P=P,t0=t0,day=datetime.now(timezone.utc).strftime('%Y-%m-%d'),time=datetime.now(timezone.utc).strftime('%H:%M'),keys=keys,last=last,nobs=nobs,snr=snr,obs_name=obs_name)
 
 
 	
@@ -3411,7 +3455,7 @@ def search():
             reader = csv.DictReader(f)
             for row in reader:
                 #utilize similar objects names - spaces, lower/upper case etc.
-                if target.lower().replace('-','').replace(' ',''.replace('+','').replace('.',''))==row['object'].replace('?','').replace('ttarget-','').replace('ttarget_','').replace('-thar','').replace('_thar','').replace('_',' ').strip().lower().replace('-','').replace(' ','').replace('+','').replace('.',''):
+                if target.lower().replace('-','').replace(' ','').replace('+','').replace('.','')==row['object'].replace('?','').replace('ttarget-','').replace('ttarget_','').replace('-thar','').replace('_thar','').replace('_',' ').strip().lower().replace('-','').replace(' ','').replace('+','').replace('.',''):
                     exp=row['exposure']
                     inst=row['instrument']
                     if inst in obs[night]:
@@ -3433,15 +3477,32 @@ def search():
 
 @app.route('/scheduler/test_limits',methods=['GET','POST'])
 def test_limits():
+    gc.collect()
+    if not session.get('logged_in'):
+        return redirect(url_for('login', next=request.path))
+    
+    ra0=None
+    
+    if request.method == 'GET':
+        if 'ra' in request.args:
+            ra0=request.args['ra']
+            dec0=request.args['dec']
+            date=datetime.now(tz=timezone.utc).strftime('%Y-%m-%d')
+            time=datetime.now(tz=timezone.utc).strftime('%H:%M')
+        
+    
     if request.method == 'POST':
         date=request.form['date']
         time=request.form['time']
-        
+        ra0=request.form['ra']
+        dec0=request.form['dec']
+    
+    if ra0 is not None:
         sign = lambda x: -1 if x < 0 else 1
-        ra=[float(x) for x in request.form['ra'].replace(':',' ').split()]
+        ra=[float(x) for x in ra0.replace(':',' ').split()]
         ra=sign(ra[0])*(abs(ra[0])+ra[1]/60+ra[2]/3600)*15
         
-        dec=[float(x) for x in request.form['dec'].replace(':',' ').split()]
+        dec=[float(x) for x in dec0.replace(':',' ').split()]
         dec=sign(dec[0])*(abs(dec[0])+dec[1]/60+dec[2]/3600)
         
         dt=Time(date+' '+time)
@@ -3488,7 +3549,9 @@ def test_limits():
         plot = base64.b64encode(buf.getvalue()).decode('utf8')
         buf.close()
         
-        return render_template('limits.html',ra=request.form['ra'],dec=request.form['dec'],date=date,time=time,plot=plot,east=east,west=west)
+        return render_template('limits.html',ra=ra0,dec=dec0,date=date,time=time,plot=plot,east=east,west=west)
+    
+    gc.collect()
     
     return render_template('limits.html',ra='',dec='',date='',time='')
 
