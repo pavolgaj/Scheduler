@@ -1581,6 +1581,7 @@ def scheduler():
                                 names[obj['target'].name]=0
                                 name1=obj['target'].name
                             blocks.append(ObservingBlock.from_exposures(FixedTarget(name=name1, coord=obj['target'].coord),obj['priority'],expF*obj['exp']*u.second,5,read_out,constraints=cons))
+                            if blocks[-1].duration<60*u.second: blocks[-1].duration=60*u.second   #fix for short blocks
                     else:
                         if obj['target'].name in names:  #repeating objects -> NOT replace debug plots
                             names[obj['target'].name]+=1
@@ -1589,6 +1590,7 @@ def scheduler():
                             names[obj['target'].name]=0
                             name1=obj['target'].name
                         blocks.append(ObservingBlock.from_exposures(FixedTarget(name=name1, coord=obj['target'].coord),obj['priority'],expF*obj['exp']*u.second,obj['n_exp'],read_out,constraints=cons))
+                        if blocks[-1].duration<60*u.second: blocks[-1].duration=60*u.second   #fix for short blocks
             
                 if len(blocks)==0:
                     return '<p>Schedule is EMPTY!</p>'+'<p>Selected objects: '+str(n_selected[0])+'<br>'+'Observable objects: '+str(n_obs[0])+'</p>'                    
@@ -2628,6 +2630,7 @@ def modify():
                     names[obj['target'].name]=0
                     name1=obj['target'].name
                 blocks.append(ObservingBlock.from_exposures(FixedTarget(name=name1, coord=obj['target'].coord),obj['priority'],obj['exp']*u.second,obj['n_exp'],read_out,constraints=cons))
+                if blocks[-1].duration<60*u.second: blocks[-1].duration=60*u.second   #fix for short blocks
             
             
             #run scheduler        

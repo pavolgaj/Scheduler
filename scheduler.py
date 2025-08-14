@@ -969,9 +969,9 @@ class StdPriorityScheduler(PriorityScheduler):
                         # idx can extend past end of _strided_open_time
                         _is_scheduled = False
                         break
-                    except ValueError:
-                        #transition is shorter than min. block size (time_res)
-                        continue
+                    # except ValueError:
+                    #     #transition is shorter than min. block size (time_res)
+                    #     continue
 
             if not _is_scheduled:
                 unscheduled_blocks.append(b)
