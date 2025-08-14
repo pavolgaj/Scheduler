@@ -253,8 +253,19 @@ cols={'target':'Target', 'ra':'RA', 'dec':'DEC', 'mag':'Mag','exposure (seconds)
 df=df.rename(columns=cols)
 df.to_csv('schedules/'+out+'.csv',index=False)
 
-#remove old figs
-if os.path.isfile('schedules/'+out+'_alt.png'):
-    os.remove('schedules/'+out+'_alt.png')
-    os.remove('schedules/'+out+'_sky.png')
 
+# #remove old figs
+# if os.path.isfile('schedules/'+out+'_alt.png'):
+#     os.remove('schedules/'+out+'_alt.png')
+
+#     os.remove('schedules/'+out+'_sky.png')
+
+plt.Figure()
+ax=plot_schedule(schedule,plottype='alt',moon=True,slots=True,res=40)
+plt.savefig('schedules/'+out+'_alt.png',dpi=150)
+plt.close()
+    
+plt.Figure()
+ax=plot_schedule(schedule,plottype='sky',moon=True,slots=True,res=40)
+plt.savefig('schedules/'+out+'_sky.png',dpi=150)
+plt.close())
