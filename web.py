@@ -1678,7 +1678,7 @@ def new_schedule():
     
     #cols to save in CSV
     cols={'target':'Target', 'ra':'RA', 'dec':'DEC', 'mag':'Mag','exposure (seconds)':'ExpTime', 'number exposures':'Number','_Remarks':'Remarks', 'start time (UTC)':'Start', 'end time (UTC)':'End','altitude':'Altitude', 'airmass':'Airmass', 'azimut':'Azimut','altitude-start':'AltitudeStart', 'airmass-start':'AirmassStart', 'azimut-start':'AzimutStart','altitude-end':'AltitudeEnd', 'airmass-end':'AirmassEnd', 'azimut-end':'AzimutEnd','position':'Position','priority':'Priority','moon-separation':'MoonSeparation'}
-    cols1=['Target','RA', 'DEC', 'Mag','ExpTime', 'Number','Remarks', 'Start', 'End','Position','Priority']   #for download
+    cols1=['Target','RA', 'DEC', 'Mag','ExpTime', 'Number','Remarks', 'Start', 'End','Position','Priority','Azimut','Altitude','Airmass']   #for download
   
     if not 'position' in df.columns: del(cols['position'])
     
@@ -1696,6 +1696,12 @@ def new_schedule():
             #download csv
             si = io.StringIO()    # create "file-like" output for writing
             
+            if 'AltitudeStart' in df.columns:
+                df['Altitude']=df.apply(lambda row: '%.0f - %.0f' %(float(row['AltitudeStart']),float(row['AltitudeEnd'])), axis=1)
+                df['Azimut']=df.apply(lambda row: '%.0f - %.0f' %(float(row['AzimutStart']),float(row['AzimutEnd'])), axis=1)
+                df['Airmass']=df.apply(lambda row: '%.1f - %.1f' %(float(row['AirmassStart']),float(row['AirmassEnd'])), axis=1)
+                                        
+            
             df[cols1].to_csv(si,index=False)
             output = make_response(si.getvalue())
             output.headers["Content-Disposition"] = "attachment; filename=schedule.csv"
@@ -1705,6 +1711,11 @@ def new_schedule():
         if 'json' in request.form:
             #download json
             si = io.StringIO()    # create "file-like" output for writing
+            
+            if 'AltitudeStart' in df.columns:
+                df['Altitude']=df.apply(lambda row: '%.0f - %.0f' %(float(row['AltitudeStart']),float(row['AltitudeEnd'])), axis=1)
+                df['Azimut']=df.apply(lambda row: '%.0f - %.0f' %(float(row['AzimutStart']),float(row['AzimutEnd'])), axis=1)
+                df['Airmass']=df.apply(lambda row: '%.1f - %.1f' %(float(row['AirmassStart']),float(row['AirmassEnd'])), axis=1)
             
             df[cols1].to_json(si,orient='records',index=False)
             output = make_response(si.getvalue())
@@ -1842,7 +1853,7 @@ def modify():
     
     #cols to save in CSV
     cols={'target':'Target', 'ra':'RA', 'dec':'DEC', 'mag':'Mag','exposure (seconds)':'ExpTime', 'number exposures':'Number','_Remarks':'Remarks', 'start time (UTC)':'Start', 'end time (UTC)':'End','altitude':'Altitude', 'airmass':'Airmass', 'azimut':'Azimut','altitude-start':'AltitudeStart', 'airmass-start':'AirmassStart', 'azimut-start':'AzimutStart','altitude-end':'AltitudeEnd', 'airmass-end':'AirmassEnd', 'azimut-end':'AzimutEnd','position':'Position','priority':'Priority','moon-separation':'MoonSeparation'}
-    cols1=['Target','RA', 'DEC', 'Mag','ExpTime', 'Number','Remarks', 'Start', 'End','Position','Priority']   #for download
+    cols1=['Target','RA', 'DEC', 'Mag','ExpTime', 'Number','Remarks', 'Start', 'End','Position','Priority','Altitude','Azimut','Airmass']   #for download
     
     #load config - based on observatory!
     config=load_config('lasilla_config.txt')
@@ -2693,6 +2704,11 @@ def modify():
             
             si = io.StringIO()    # create "file-like" output for writing
             
+            if 'AltitudeStart' in df.columns:
+                df['Altitude']=df.apply(lambda row: '%.0f - %.0f' %(float(row['AltitudeStart']),float(row['AltitudeEnd'])), axis=1)
+                df['Azimut']=df.apply(lambda row: '%.0f - %.0f' %(float(row['AzimutStart']),float(row['AzimutEnd'])), axis=1)
+                df['Airmass']=df.apply(lambda row: '%.1f - %.1f' %(float(row['AirmassStart']),float(row['AirmassEnd'])), axis=1)
+            
             df[cols1].to_csv(si,index=False)
             output = make_response(si.getvalue())
             output.headers["Content-Disposition"] = "attachment; filename=schedule.csv"
@@ -2703,6 +2719,11 @@ def modify():
             #download json
             df=cache.get(code)[0]
             si = io.StringIO()    # create "file-like" output for writing
+            
+            if 'AltitudeStart' in df.columns:
+                df['Altitude']=df.apply(lambda row: '%.0f - %.0f' %(float(row['AltitudeStart']),float(row['AltitudeEnd'])), axis=1)
+                df['Azimut']=df.apply(lambda row: '%.0f - %.0f' %(float(row['AzimutStart']),float(row['AzimutEnd'])), axis=1)
+                df['Airmass']=df.apply(lambda row: '%.1f - %.1f' %(float(row['AirmassStart']),float(row['AirmassEnd'])), axis=1)
             
             df[cols1].to_json(si,orient='records',index=False)
             output = make_response(si.getvalue())
@@ -2799,7 +2820,7 @@ def show():
     if len(schedules)==0: return('NO schedules to show!!!')
     
     #cols to save in CSV
-    cols=['Target','RA', 'DEC', 'Mag','ExpTime', 'Number','Remarks', 'Start', 'End','Position','Priority']
+    cols=['Target','RA', 'DEC', 'Mag','ExpTime', 'Number','Remarks', 'Start', 'End','Position','Priority','Altitude','Azimut','Airmass']
     
     if request.method=='POST':
         name=request.form['name']    
@@ -2811,6 +2832,11 @@ def show():
             #download csv
             si = io.StringIO()    # create "file-like" output for writing
             
+            if 'AltitudeStart' in df.columns:
+                df['Altitude']=df.apply(lambda row: '%.0f - %.0f' %(row['AltitudeStart'],row['AltitudeEnd']), axis=1)
+                df['Azimut']=df.apply(lambda row: '%.0f - %.0f' %(row['AzimutStart'],row['AzimutEnd']), axis=1)
+                df['Airmass']=df.apply(lambda row: '%.1f - %.1f' %(row['AirmassStart'],row['AirmassEnd']), axis=1)
+            
             df[cols].to_csv(si,index=False)
             output = make_response(si.getvalue())
             output.headers["Content-Disposition"] = "attachment; filename="+name+".csv"
@@ -2820,6 +2846,11 @@ def show():
         if 'json' in request.form:
             #download json
             si = io.StringIO()    # create "file-like" output for writing
+            
+            if 'AltitudeStart' in df.columns:
+                df['Altitude']=df.apply(lambda row: '%.0f - %.0f' %(row['AltitudeStart'],row['AltitudeEnd']), axis=1)
+                df['Azimut']=df.apply(lambda row: '%.0f - %.0f' %(row['AzimutStart'],row['AzimutEnd']), axis=1)
+                df['Airmass']=df.apply(lambda row: '%.1f - %.1f' %(row['AirmassStart'],row['AirmassEnd']), axis=1)
             
             df[cols].to_json(si,orient='records',index=False)
             output = make_response(si.getvalue())
