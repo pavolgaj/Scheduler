@@ -44,7 +44,19 @@ app.config['TRAP_HTTP_EXCEPTIONS']=True
 app.url_map.strict_slashes = False
 
 #create cache
-cache = Cache(app,config={'CACHE_TYPE': 'RedisCache',"CACHE_DEFAULT_TIMEOUT": 3600,'CACHE_REDIS_URL': 'redis://localhost:6379/0'})
+try:
+    import redis
+    
+    try:
+        r = redis.StrictRedis(host='localhost', port=6379, db=0)
+        r.ping()
+        cache_typ='redis'
+    except redis.ConnectionError: cache_typ='simple'
+        
+except ModuleNotFoundError: cache_typ='simple'
+
+if cache_typ=='redis': cache = Cache(app,config={'CACHE_TYPE': 'RedisCache',"CACHE_DEFAULT_TIMEOUT": 3600,'CACHE_REDIS_URL': 'redis://localhost:6379/0'})
+else: cache = Cache(app,config={'CACHE_TYPE': 'SimpleCache',"CACHE_DEFAULT_TIMEOUT": 3600})
 
 #md5 hash of passwords
 adminPassword = '21232f297a57a5a743894a0e4a801fc3'  # admin - CHANGE!
