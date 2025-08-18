@@ -163,6 +163,25 @@
                 calc.value = 0;
             }
 
+            // Function to move a row up by 5 lines
+            function moveUp5(btn) {
+                var row = btn.parentNode.parentNode;
+                var previousRow = row;
+
+                for (var i = 0; i < 5; i++) {
+                    if (previousRow && previousRow.tagName === 'TR') {                        
+                        if (previousRow.previousElementSibling==null) break;
+                        previousRow = previousRow.previousElementSibling;
+                    } else {
+                        break; // Stop if there are no more rows above
+                    }
+                }
+                row.parentNode.insertBefore(row, previousRow);
+
+                var calc = document.getElementById('calc_test');
+                calc.value = 0;
+            }
+
             // Function to move a row down
             function moveDown(btn) {
                 var row = btn.parentNode.parentNode;
@@ -174,6 +193,26 @@
                 var calc = document.getElementById('calc_test');
                 calc.value = 0;
             }
+
+            // Function to move a row down by 5 lines
+            function moveDown5(btn) {
+                var row = btn.parentNode.parentNode;
+                var nextRow = row;
+
+                for (var i = 0; i < 6; i++) {
+                    if (nextRow && nextRow.tagName === 'TR') {                        
+                        //if (nextRow.nextElementSibling==null) break;
+                        nextRow = nextRow.nextElementSibling;
+                    } else {
+                        break; // Stop if there are no more rows above
+                    }
+                }
+                row.parentNode.insertBefore(row,nextRow);
+
+                var calc = document.getElementById('calc_test');
+                calc.value = 0;
+            }
+
 
             // Function to delete a row
             function deleteRow(btn) {
@@ -322,6 +361,22 @@
 
                 return rerun();
             }
+
+            // function add_after() {
+            //     tab=document.getElementById('schedule_table');
+            //     rows=tab.rows.length-1;
+
+            //     ord=prompt("Add target after line",rows);
+            //     if (ord != null) {
+            //         if (! isInt(ord)) ord=rows;
+
+            //         if (ord>rows) ord=rows;
+            //         else if (ord<0) ord=0;   
+            //         document.getElementById('after').value=ord;                 
+            //     }
+
+            //     return (ord != null);
+            // }
 
             function modify() {
                 //on input change -> need recalc
@@ -546,7 +601,7 @@ Supervisor: {{ row.Supervisor }}
 Conditions: {{ row.Conditions }}">
                                         <td class="actions">
                                             <button type="submit" class="modify-row" name="add_{{ loop.index0 }}"
-                                                title="Add">
+                                                title="Add" > <!-- onclick='return add_after()' -->
                                                 <img src="{{ url_for('static',filename='add.svg') }}" alt="add">
                                             </button>
                                             <button type="submit" class="modify-row" name="preview_{{ loop.index0 }}"
@@ -599,8 +654,12 @@ Conditions: {{ row.Conditions }}">
                 </select>
                 <button type="submit" name="indiv" {% if not codeObj %}disabled
                     style="background-color:gray; color: black; cursor: default;" {% endif %}
-                    title="Add selected target to the schedule.">Add</button>
+                    title="Add selected target to the schedule.">Add</button>   <!-- onclick='return add_after()' -->
+                <!-- &nbsp;&nbsp;&nbsp;
+                <button type="submit" name="gap" title="Add gap/delay to the schedule.">Add gap</button> -->
+
             </div>
+            <!-- <input type="hidden" id="after" name="after"> -->
             <br>
 
             <div>
@@ -647,7 +706,7 @@ Conditions: {{ row.Conditions }}">
                 <h2>Objects for observations</h2>
                 <h3 style="color: red;">Modifications of this table (removing or reordering rows) are applied only after running "Recalculate" or "Reschedule". Adding new target before it cancels these changes!</h3>
             </center>
-            <table id="shedule_table">
+            <table id="schedule_table">
                 <thead>
                     <th></th>
                     <th></th>
@@ -683,9 +742,17 @@ OtherRequests: {{ row._OtherRequests }}">
                             onclick="moveUp(this)">
                             <img src="{{ url_for('static',filename='up.svg') }}" alt="up">
                         </button>
+                        <button type="button" class="modify-row" name="up5_{{ row.index }}" title="Move up by 5 rows"
+                            onclick="moveUp5(this)">
+                            <img src="{{ url_for('static',filename='up5.svg') }}" alt="up5">
+                        </button>
                         <button type="button" class="modify-row" name="down_{{ row.index }}" title="Move down"
                             onclick="moveDown(this)">
                             <img src="{{ url_for('static',filename='down.svg') }}" alt="down">
+                        </button>
+                        <button type="button" class="modify-row" name="down5_{{ row.index }}" title="Move down by 5 rows"
+                            onclick="moveDown5(this)">
+                            <img src="{{ url_for('static',filename='down5.svg') }}" alt="down5">
                         </button>
                     </td>
                     <td>
