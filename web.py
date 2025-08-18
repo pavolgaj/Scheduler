@@ -489,7 +489,7 @@ def new():
             if errors:
                 gc.collect()
                 
-                return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID,groups=groups)
+                return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID,groups=groups,freq=freq)
 
             #set priority for standards
             if group=='RV Standard': 
@@ -3019,7 +3019,7 @@ def object_info():
     f=open('db/objects.csv','r')
     reader = csv.DictReader(f)
     for obj in reader:
-        if obj['Done']==done and obj['Target'].lower().replace('-','').replace(' ','').replace('_','')==name: 
+        if (obj['Done']==done or done=='2') and obj['Target'].lower().replace('-','').replace(' ','').replace('_','')==name: 
             objects.append(obj)    #load object and select only obj. for observations
             if not (P and t0):
                 if obj['Period']: P=obj['Period']

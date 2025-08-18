@@ -110,12 +110,30 @@
             details summary:hover {
                 color: blue;
             }
+
+            .modify-row {
+                padding: 0px;
+                width: 20px;
+                height: 20px;
+                background-color: silver;
+                border-color: black;
+                border-width: 1px;
+                border-radius: 5px;
+                margin-right: 2px;
+            }
+
+            .modify-row img {
+                height: 17px;
+                display: block;
+                margin-left: auto;
+                margin-right: auto;
+            }
         </style>
         <!-- import basic jquery functions -> used for sorting -->
         <script src="{{ url_for('static', filename='jquery.min.js') }}"></script>
         <link href="{{ url_for('static', filename='select2.min.css') }}" rel="stylesheet" />
         <script src="{{ url_for('static', filename='select2.min.js') }}"></script>
-        <script src="{{ url_for('static',filename='plotly.min.js' ) }}"></script>        
+        <script src="{{ url_for('static',filename='plotly.min.js' ) }}"></script>
         <script>
             function popup() {
                 //show info about running, not block server
@@ -158,7 +176,13 @@
 
             <hr>
             <center>
-                <h2>Observations of {{target}}</h2>
+                <h2>Observations of {{target}}
+                    <button type="button" class="modify-row" name="info" title="Info about target"
+                        onclick="window.open('{{ url_for('object_info', name = target) }}&done=2', '_blank')"
+                        formtarget=”_blank”>
+                        <img src="{{ url_for('static',filename='info.svg') }}" alt="preview">
+                    </button>
+                </h2>
             </center>
 
             {% if obs_plot %}
@@ -167,19 +191,19 @@
             <br>
             <div>
                 <label for="period" style="display: inline;">Period</label>
-                <input type="text" id="period" name="period" title="Orbital period (days)."
-                    pattern="\d+(\.\d+)?$" value="{{ P }}" style="width: 130px;">
+                <input type="text" id="period" name="period" title="Orbital period (days)." pattern="\d+(\.\d+)?$"
+                    value="{{ P }}" style="width: 130px;">
                 <label for="epoch" style="display: inline;">Epoch</label>
-                <input type="text" id="epoch" name="epoch" title="Initial epoch in full JD."
-                    pattern="\d+(\.\d+)?$" value="{{ t0 }}"  style="width: 130px;">
-                Around 0: 
+                <input type="text" id="epoch" name="epoch" title="Initial epoch in full JD." pattern="\d+(\.\d+)?$"
+                    value="{{ t0 }}" style="width: 130px;">
+                Around 0:
                 <input type="checkbox" id="zero" title="Phase plot with 0 in the middle (from -0.5 to 0.5).">
                 <button type="button" name="phase" id="phase" onclick="phase_plot()" title="Make phase plot.">Phase
                     plot</button>
                 <button type="button" name="normal" id="normal" onclick="plot()" title="Make time plot.">Time
                     plot</button>
             </div>
-            
+
             <script type='text/javascript'>
                 const snr = {{ obs_plot['snr'] }};
                 const exp = {{ obs_plot['exp'] }};
@@ -196,16 +220,16 @@
                 const max = Math.max(...exp);
 
                 if (min === max) {
-                    var scale=10;
+                    var scale = 10;
                 }
-                else {                    
+                else {
                     var scale = exp.map(value => {
                         const ratio = (value - min) / (max - min); // Normalize to 0-1
-                        return 7 + ratio * (18-7);    
+                        return 7 + ratio * (18 - 7);
                     });
                 }
 
-                function plot() {                   
+                function plot() {
                     var plot = {
                         x: t,
                         y: snr,
@@ -219,17 +243,17 @@
                                 width: 1
                             },
                         },
-                        opacity: 0.9,                        
+                        opacity: 0.9,
                         customdata: exp,
                         hovertemplate: 'Exp.: %{customdata}<extra></extra>'
                     };
                     Plotly.newPlot('plot', [plot], { yaxis: { title: 'SNR' } }, { displayModeBar: true });
-                    }
+                }
 
                 function phase_plot() {
                     var jd = t.map(value => {
-                        const dt = new Date(value+"Z");
-                        return dt.valueOf()/86400000.0+2440587.5;
+                        const dt = new Date(value + "Z");
+                        return dt.valueOf() / 86400000.0 + 2440587.5;
                     });
                     const P = document.getElementById('period').value;
                     const t0 = document.getElementById('epoch').value;
@@ -246,7 +270,7 @@
                         return false;
                     }
 
-                    if (P<=0) {
+                    if (P <= 0) {
                         alert('Incorrect Period!');
                         return false;
                     }
@@ -257,15 +281,15 @@
                             return false;
                         }
 
-                        if (t0<2000000) {
+                        if (t0 < 2000000) {
                             alert('Epoch should be in full JD!');
                         }
                     }
 
                     var phase = jd.map(value => {
-                        var ph=((value-t0)%P)/P;
-                        if (zero==true && ph>0.5) {
-                            ph=ph-1;
+                        var ph = ((value - t0) % P) / P;
+                        if (zero == true && ph > 0.5) {
+                            ph = ph - 1;
                         }
                         return ph;
                     });
@@ -282,24 +306,24 @@
                                 width: 1
                             },
                         },
-                        opacity: 0.9,                        
+                        opacity: 0.9,
                         customdata: exp,
                         hovertemplate: 'Exp.: %{customdata}<extra></extra>'
                     };
-                    if (zero==true) {
-                        Plotly.newPlot('plot', [plot], { yaxis: { title: 'SNR' }, xaxis: { range: [-0.5,0.5], title: 'Phase' } }, { displayModeBar: true });
+                    if (zero == true) {
+                        Plotly.newPlot('plot', [plot], { yaxis: { title: 'SNR' }, xaxis: { range: [-0.5, 0.5], title: 'Phase' } }, { displayModeBar: true });
                     }
                     else {
-                        Plotly.newPlot('plot', [plot], { yaxis: { title: 'SNR' }, xaxis: { range: [0,1], title: 'Phase' } }, { displayModeBar: true });
+                        Plotly.newPlot('plot', [plot], { yaxis: { title: 'SNR' }, xaxis: { range: [0, 1], title: 'Phase' } }, { displayModeBar: true });
                     }
-                    }
+                }
             </script>
             <br>
-            
+
 
             <details>
                 <summary>List of observations</summary>
-            {% endif %}{% endif %}
+                {% endif %}{% endif %}
                 <br>
                 <table id="my_table">
                     <thead>
@@ -327,7 +351,7 @@
                     {% endfor %}
                     {% endfor %}
                 </table>
-            {% if obs_plot %}{% if obs_plot['t'] %}
+                {% if obs_plot %}{% if obs_plot['t'] %}
             </details>
             {% endif %}{% endif %}
             {% if errors %}

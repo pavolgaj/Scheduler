@@ -145,6 +145,18 @@
                         </tr>
                         {% endif %}
                         {% endfor %}
+                        <tr>
+                            <td class="key">Status</td>                            
+                            {% for ob in obj %}
+                            <td>
+                            {% if ob['Done']=='1' %}
+                            finished
+                            {% else %}
+                            observing
+                            {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
 
                         <tr class="spaceUnder">
                             <td></td>

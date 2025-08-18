@@ -40,6 +40,24 @@
             tr:nth-child(even) {
                 background-color: #dddddd;
             }
+
+            .modify-row {
+                padding: 0px;
+                width: 20px;
+                height: 20px;
+                background-color: silver;
+                border-color: black;
+                border-width: 1px;
+                border-radius: 5px;
+                margin-right: 2px;
+            }
+
+            .modify-row img {
+                height: 17px;
+                display: block;
+                margin-left: auto;
+                margin-right: auto;
+            }
         </style>
         <!-- import basic jquery functions -> used for sorting -->
         <script src="{{ url_for('static', filename='jquery.min.js') }}"></script>
@@ -63,16 +81,22 @@
                 {% for target, vals in stats.items() %}
                 {% for inst, tmp in vals.items() %}
                 {% if not inst=='name' %}
-                {% for exp, data in tmp.items() %}                
+                {% for exp, data in tmp.items() %}
                 <tr>
                     <!-- make href to obs obj and show obs in tab -->
-                    <td><a href="{{ url_for('search',target=vals['name'])}}">{{ vals['name'] }}</a></td>
+                    <td><a href="{{ url_for('search',target=vals['name'])}}">{{ vals['name'] }}</a>
+                        <button type="button" class="modify-row" name="info" title="Info about target"
+                            onclick="window.open('{{ url_for('object_info', name = vals.name) }}&done=2', '_blank')"
+                            formtarget=”_blank”>
+                            <img src="{{ url_for('static',filename='info.svg') }}" alt="preview">
+                        </button>
+                    </td>
                     <td>{{ inst }}</td>
                     <td>{{ exp }}</td>
                     <td>{{ data['n'] }}</td>
                     <td><a href="{{ url_for('static',filename='logs/')}}{{ data['last'] }}_log.pdf"
                             target="_blank">{{ data['last'] }}</a></td>
-                </tr>                
+                </tr>
                 {% endfor %}
                 {% endif %}
                 {% endfor %}
