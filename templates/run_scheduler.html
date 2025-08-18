@@ -279,6 +279,20 @@
                 return valid;
             }
 
+
+            function pollForDownload() {
+                // Poll the server every 10 seconds to check if the file is ready
+                // fix proxy error for long calculations...
+                const interval = setInterval(() => {
+                    fetch('{{ url_for('check_output') }}')
+                        .then(response => {
+                            if (response.status === 200) {
+                                clearInterval(interval);
+                            }
+                        });
+                }, 10000);
+            }
+
             function popup() {
                 //show info about running, not block server
                 var check = checkNum();
@@ -288,6 +302,8 @@
                     var text = document.createTextNode("Scheduler is calculating. Please, wait...");
                     myDialog.appendChild(text);
                     myDialog.showModal();
+
+                    pollForDownload();
                 }
                 return check;
             }
