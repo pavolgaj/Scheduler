@@ -306,9 +306,12 @@
                     if (!isInt(inp.value)) {
                         valid = false;
                     }
+                    else if (inp.value<0) {
+                        valid = false;
+                    }
                 });
                 if (!valid) {
-                    alert('Exposure time should be number!');
+                    alert('Exposure time should be positive number!');
                     return valid;
                 }
 
@@ -317,9 +320,12 @@
                     if (!isInt(inp.value)) {
                         valid = false;
                     }
+                    else if (inp.value<0) {
+                        valid = false;
+                    }
                 });
                 if (!valid) {
-                    alert('Number of exposure should be number!');
+                    alert('Number of exposure should be positive number!');
                     return valid;
                 }
                 return valid;
@@ -655,8 +661,8 @@ Conditions: {{ row.Conditions }}">
                 <button type="submit" name="indiv" {% if not codeObj %}disabled
                     style="background-color:gray; color: black; cursor: default;" {% endif %}
                     title="Add selected target to the schedule.">Add</button>   <!-- onclick='return add_after()' -->
-                <!-- &nbsp;&nbsp;&nbsp;
-                <button type="submit" name="gap" title="Add gap/delay to the schedule.">Add gap</button> -->
+                &nbsp;&nbsp;&nbsp;
+                <button type="submit" name="gap" title="Add gap/delay to the schedule.">Add gap</button>
 
             </div>
             <!-- <input type="hidden" id="after" name="after"> -->
@@ -742,14 +748,14 @@ OtherRequests: {{ row._OtherRequests }}">
                             onclick="moveUp(this)">
                             <img src="{{ url_for('static',filename='up.svg') }}" alt="up">
                         </button>
-                        <button type="button" class="modify-row" name="up5_{{ row.index }}" title="Move up by 5 rows"
-                            onclick="moveUp5(this)">
-                            <img src="{{ url_for('static',filename='up5.svg') }}" alt="up5">
-                        </button>
-                        <button type="button" class="modify-row" name="down_{{ row.index }}" title="Move down"
+                         <button type="button" class="modify-row" name="down_{{ row.index }}" title="Move down"
                             onclick="moveDown(this)">
                             <img src="{{ url_for('static',filename='down.svg') }}" alt="down">
                         </button>
+                        <button type="button" class="modify-row" name="up5_{{ row.index }}" title="Move up by 5 rows"
+                            onclick="moveUp5(this)">
+                            <img src="{{ url_for('static',filename='up5.svg') }}" alt="up5">
+                        </button>                       
                         <button type="button" class="modify-row" name="down5_{{ row.index }}" title="Move down by 5 rows"
                             onclick="moveDown5(this)">
                             <img src="{{ url_for('static',filename='down5.svg') }}" alt="down5">
@@ -760,14 +766,16 @@ OtherRequests: {{ row._OtherRequests }}">
                         <input type="hidden" name="id" id="id" value="{{ row.index }}">
                     </td>
                     <td>{{ row.Target }}
+                        {% if not row.Target=='Delay' %}
                         <button type="button" class="modify-row" name="info" title="Info about target"
                             onclick="window.open('{{ url_for('object_info', name = row.Target) }}', '_blank')"
                             formtarget=”_blank”>
                             <img src="{{ url_for('static',filename='info.svg') }}" alt="preview">
                         </button>
+                        {% endif %}
                     </td>
-                    <td>{{ row.RA.split('.')[0] }}</td>
-                    <td>{{ row.DEC.split('.')[0] }}</td>
+                    <td>{% if not row.Target=='Delay' %}{{ row.RA.split('.')[0] }}{% endif %}</td>
+                    <td>{% if not row.Target=='Delay' %}{{ row.DEC.split('.')[0] }}{% endif %}</td>
                     <td>{% if row.Mag is number %}
                         {{ row.Mag | round(1) }}
                         {% else %}
@@ -812,34 +820,35 @@ OtherRequests: {{ row._OtherRequests }}">
                         {{ row.End.split()[1][:row.End.split()[1].rfind(':')] }}
                         {% endif %}
                     </td>
-                    <td>{{ row.Priority }}</td>
-                    <td>{% if row.Altitude %}
+                    <td>{% if not row.Target=='Delay' %}{{ row.Priority }}{% endif %}</td>
+                    <td>{% if row.Altitude and not row.Target=='Delay' %}
                         {{ row.Altitude | float() | round(0) | int() }}
                         {% endif %}
-                        {% if row.AltitudeStart %}
+                        {% if row.AltitudeStart and not row.Target=='Delay' %}
                         {{ row.AltitudeStart | float() | round(0) | int() }} -
                         {{ row.AltitudeEnd | float() | round(0) | int() }}
                         {% endif %}
                     </td>
-                    <td>{% if row.Airmass %}
+                    <td>{% if row.Airmass and not row.Target=='Delay' %}
                         {{ row.Airmass | float() | round(1) }}
                         {% endif %}
-                        {% if row.AirmassStart %}
+                        {% if row.AirmassStart and not row.Target=='Delay' %}
                         {{ row.AirmassStart | float() | round(1) }} - {{ row.AirmassEnd | float() | round(1) }}
                         {% endif %}
                     </td>
-                    <td>{% if row.Azimut %}
+                    <td>{% if row.Azimut and not row.Target=='Delay'%}
                         {{ row.Azimut | float() | round(0) | int() }}
                         {% endif %}
-                        {% if row.AzimutStart %}
+                        {% if row.AzimutStart and not row.Target=='Delay' %}
                         {{ row.AzimutStart | float() | round(0) | int() }} -
                         {{ row.AzimutEnd | float() | round(0) | int() }}
                         {% endif %}
                     </td>
-                    <td>{% if row.MoonSeparation %}
+                    <td>{% if row.MoonSeparation and not row.Target=='Delay' %}
                         {{ row.MoonSeparation | float() | round(0) | int() }}
                         {% endif %}
                     </td>
+                    {% if not row.Target=='Delay' %}
                     <td {% if row.Position=='-' %}style="background-color: red; " {% endif %}>
                         <span style="display: inline-block; width: 30px">{{ row.Position }}</span>
                         {% if row.Position %}
@@ -850,6 +859,8 @@ OtherRequests: {{ row._OtherRequests }}">
                         </button>
                         {% endif %}
                     </td>
+                    {% else %} <td></td>
+                    {% endif %}
                 </tr>
                 {% endfor %}
             </table>

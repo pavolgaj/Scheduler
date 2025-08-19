@@ -166,6 +166,7 @@
             </tr>
             </thead>
             {% for row in schedule %}
+            {% if not row.Target=='Delay' %}
             <tr {% if row.Priority<3 %}style="font-weight: bold"{% endif %} data-row-id="{{ loop.index0 }}" 
 title="Group: {{ row._Type }}
 Supervisor: {{ row._Supervisor }}
@@ -233,6 +234,7 @@ MoonDist (deg): {{ row.MoonSeparation | float() | round(0) | int() }}{% endif %}
                     </button>
                 </td>
             </tr>
+            {% endif %}
             {% endfor %}
         </table>
         <br>

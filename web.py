@@ -1796,11 +1796,11 @@ def new_schedule():
     gc.collect()
     return render_template('schedule.html', selected=request.args.get('selected'),observable=request.args.get('observable'),scheduled=len(df),schedule=df.to_dict('records'), alt_plot=alt_plot,sky=sky_plot,user=request.args.get('user'))
 
-def web_plot(schedule):
+def web_plot(schedule,objects0={}):
     '''make output plots for web'''      
     #make alt plot
     plt.Figure()
-    ax=plot_schedule(schedule,plottype='alt',moon=True,slots=True,res=40)
+    ax=plot_schedule(schedule,plottype='alt',moon=True,slots=True,res=40,objects0=objects0)
     #save to "buffer" file
     buf=io.BytesIO()
     plt.savefig(buf,format='png',dpi=150)
@@ -1812,7 +1812,7 @@ def web_plot(schedule):
     
     #make sky plot
     plt.Figure()
-    ax=plot_schedule(schedule,plottype='sky',moon=True,res=40)
+    ax=plot_schedule(schedule,plottype='sky',moon=True,res=40,objects0=objects0)
     #save to "buffer" file
     buf=io.BytesIO()
     plt.savefig(buf,format='png',dpi=150)
@@ -2363,6 +2363,76 @@ def modify():
             new_obj['Remarks']=new_obj['_Remarks']
             del(new_obj['_Remarks'])
             
+            data[last+1]=new_obj
+                          
+                       
+            df=pd.DataFrame().from_dict(data,'index')
+            
+            cache.set(code,[pd.DataFrame(df),alt_plot,sky_plot])    #save in cache
+            
+            dfW=df.to_dict('records')
+            
+            calc=0
+            
+            if codeF: objects,obs=cache.get(codeF)
+            else: 
+                objects=[]
+                obs=[]
+                
+        if 'gap' in request.form:
+            #add gap/delay       
+            #get data
+            if code: 
+                df,alt_plot,sky_plot=cache.get(code)
+                data=df.to_dict('index')
+            else: 
+                code=str(uuid.uuid4())    #unique hash for different users     
+                data={}
+                alt_plot=''
+                sky_plot=''
+            
+            if len(data)>0: last=list(sorted(data.keys()))[-1]
+            else: last=-1
+            
+            new_obj={}
+            new_obj['index']=last+2
+            new_obj['Target']='Delay'
+            new_obj['_Target']='Delay'
+            new_obj['RA']=''
+            new_obj['DEC']=''
+            new_obj['Mag']=''
+            new_obj['duration (minutes)']=''
+            new_obj['Start']=''
+            new_obj['End']=''
+            new_obj['configuration']=''
+            if len(data)>0:
+                if 'Azimut' in data[last]:
+                    #old schedule
+                    new_obj['Altitude']=''
+                    new_obj['Airmass']=''
+                    new_obj['Azimut']=''
+                else:
+                    new_obj['AltitudeStart']=''
+                    new_obj['AirmassStart']=''
+                    new_obj['AzimutStart']=''
+                    new_obj['AltitudeEnd']=''
+                    new_obj['AirmassEnd']=''
+                    new_obj['AzimutEnd']=''  
+                    new_obj['MoonSeparation']=''
+            else:
+                new_obj['AltitudeStart']=''
+                new_obj['AirmassStart']=''
+                new_obj['AzimutStart']=''
+                new_obj['AltitudeEnd']=''
+                new_obj['AirmassEnd']=''
+                new_obj['AzimutEnd']=''            
+                new_obj['MoonSeparation']=''
+            new_obj['Priority']=''
+            new_obj['ExpTime']=0
+            new_obj['Number']=1
+            new_obj['Position']=''
+            new_obj['Remarks']=''
+            
             data[last+1]=new_obj            
             df=pd.DataFrame().from_dict(data,'index')
             
@@ -2479,6 +2549,28 @@ def modify():
             t00=0
             for i,obj in df.iterrows():  
                 objects0[str(obj['index'])]={'full':orig[orig['index']==obj['index']].squeeze(),'mag':obj['Mag']}    #save all values     
+                if obj['Target']=='Delay':
+                    #add empty space
+                    if len(schedule.scheduled_blocks)==0: 
+                        start+=np.float32(obj.ExpTime)*u.second*np.float32(obj.Number)
+                        continue
+                    else: t0=schedule.scheduled_blocks[-1].end_time
+                    
+                    last=schedule.scheduled_blocks[-1]
+                    coordinates=SkyCoord(last.target.ra,last.target.dec,frame='icrs')
+                    b=ObservingBlock.from_exposures(FixedTarget(name=str(obj['index']), coord=coordinates), 1, np.float32(obj.ExpTime)*u.second,obj.Number, 0)
+                    b.observer = observatory
+                    
+                    t0=schedule.scheduled_blocks[-1].end_time
+                    schedule.insert_slot(t0, b)
+                    
+                    lst0=observatory.local_sidereal_time(t0).deg*u.deg
+                    ha0.append((lst0-b.target.ra)%(360*u.deg))
+                    lst1=observatory.local_sidereal_time(schedule.scheduled_blocks[-1].end_time).deg*u.deg
+                    ha1.append((lst1-b.target.ra)%(360*u.deg)) 
+                    de.append(b.target.dec)
+                    continue
+                    
                 ra='{}h{}m{}s'.format(*obj.RA.replace(':',' ').replace(',','.').split())
                 dec='{}d{}m{}s'.format(*obj.DEC.replace(':',' ').replace(',','.').split())
                 coordinates=SkyCoord(ra,dec,frame='icrs')
@@ -2515,7 +2607,7 @@ def modify():
             df['ha1']=ha1
             df['de']=de
             
-            if 'plot' in request.form: alt_plot,sky_plot=web_plot(schedule)                
+            if 'plot' in request.form: alt_plot,sky_plot=web_plot(schedule,objects0)                
             else: alt_plot,sky_plot='',''
             cache.set(code,[pd.DataFrame(df),alt_plot,sky_plot])    #save in cache
             
@@ -2591,6 +2683,8 @@ def modify():
             orig['Remarks']=df['Remarks']
             objects1={}
             for i,obj in df.iterrows():  
+                if obj.Target=='Delay': continue
+                
                 tmp={'full':orig[orig['index']==obj['index']].squeeze(),'mag':obj['Mag']}    #save all values   
                 ra='{}h{}m{}s'.format(*obj.RA.replace(':',' ').replace(',','.').split())
                 dec='{}d{}m{}s'.format(*obj.DEC.replace(':',' ').replace(',','.').split())
@@ -2930,7 +3024,7 @@ def show():
         ha0=[]
         ha1=[]
         de=[]
-        for i,obj in df.iterrows():
+        for i,obj in df.iterrows():           
             ra='{}h{}m{}s'.format(*obj.RA.replace(':',' ').replace(',','.').split())
             dec='{}d{}m{}s'.format(*obj.DEC.replace(':',' ').replace(',','.').split())
             coordinates=SkyCoord(ra,dec,frame='icrs')

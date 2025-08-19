@@ -492,6 +492,13 @@ def plot_schedule(schedule,plottype='alt',show_night=True,legend=False,index=Tru
     i=0
     for slot in schedule.slots:
         if hasattr(slot.block, 'target'):
+            if slot.block.target.name in objects0: name=objects0[slot.block.target.name]['full']['Target']
+            else: name=slot.block.target.name
+            
+            if name=='Delay': 
+                i+=1
+                continue
+            
             #full track
             if plottype=='sky':
                 ax=plot_sky(slot.block.target, schedule.observer, stime,ax=ax,style_kwargs={'lw':1,'color':colors[i],'alpha':0.4})
