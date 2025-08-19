@@ -303,6 +303,11 @@
                 //show info about running, not block server
                 var check = checkNum();
                 if (check) {
+                    nights=document.getElementById('number');
+                    if (nights.value>1) {
+                        alert('Calculation can take a while! Process is running also in case of connection loss. Created schedules are saved automatically.')
+                    }
+
                     var myDialog = document.createElement("dialog");
                     myDialog.id = 'popup';
                     document.body.appendChild(myDialog)
