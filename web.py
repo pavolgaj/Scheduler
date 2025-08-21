@@ -631,6 +631,7 @@ def check(row):
 
     if len(row['Nights'])>0:
         if not is_int(row['Nights']): errors.append(row['Target']+': number of nights has to be number.')
+    else: row['Nights']=1
 
     if len(row['Priority'])==0: row['Priority']=3
     else:
