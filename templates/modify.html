@@ -768,7 +768,11 @@ OtherRequests: {{ row._OtherRequests }}">
                     <td>{{ row.Target }}
                         {% if not row.Target=='Delay' %}
                         <button type="button" class="modify-row" name="info" title="Info about target"
+                            {% if row.Start %}
+                            onclick="window.open('{{ url_for('object_info', name = row.Target, day = row.Start.split()[0], time = row.Start.split()[1][:row.Start.split()[1].rfind(':')]) }}', '_blank')"
+                            {% else %}
                             onclick="window.open('{{ url_for('object_info', name = row.Target) }}', '_blank')"
+                            {% endif %}
                             formtarget=”_blank”>
                             <img src="{{ url_for('static',filename='info.svg') }}" alt="preview">
                         </button>

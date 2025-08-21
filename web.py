@@ -3102,6 +3102,18 @@ def object_info():
     if 'name' in request.args: name0=request.args['name']
     else: return 'Missing object name!'
     
+    if 'day' in request.args: 
+        day=request.args['day']
+        try: datetime.strptime(day,'%Y-%m-%d')
+        except ValueError: day=datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    else: day=datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    
+    if 'time' in request.args: 
+        time=request.args['time']
+        try: datetime.strptime(time,'%H:%M')
+        except ValueError: time=datetime.now(timezone.utc).strftime('%H:%M')
+    else: time=datetime.now(timezone.utc).strftime('%H:%M')
+    
     if 'done' in request.args: done=request.args['done']
     else: done='0'
     
@@ -3173,7 +3185,7 @@ def object_info():
     
     gc.collect()
     
-    return render_template('object.html',obj=objects,prog=programs,P=P,t0=t0,day=datetime.now(timezone.utc).strftime('%Y-%m-%d'),time=datetime.now(timezone.utc).strftime('%H:%M'),keys=keys,last=last,nobs=nobs,snr=snr,obs_name=obs_name)
+    return render_template('object.html',obj=objects,prog=programs,P=P,t0=t0,day=day,time=time,keys=keys,last=last,nobs=nobs,snr=snr,obs_name=obs_name)
 
 
 	

@@ -178,7 +178,7 @@ MoonDist (deg): {{ row.MoonSeparation | float() | round(0) | int() }}{% endif %}
                 <td style="width: 50px;">{{ row.index }}
                     <input type="checkbox">
                     <button type="button" class="modify-row" name="info" title="Info about target"
-                        onclick="window.open('{{ url_for('object_info', name = row.Target) }}', '_blank')"
+                        onclick="window.open('{{ url_for('object_info', name = row.Target, day = row.Start.split()[0], time = row.Start.split()[1][:row.Start.split()[1].rfind(':')]) }}', '_blank')"
                         formtarget=”_blank”>
                         <img src="{{ url_for('static',filename='info.svg') }}" alt="preview">
                     </button>
