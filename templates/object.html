@@ -121,6 +121,8 @@
 
                 var phase = ((jd - t0) % P) / P;
 
+                if (phase < 0) phase = phase + 1;
+
                 ph = document.getElementById('phase');
                 ph.innerHTML = phase.toFixed(4)
             }
