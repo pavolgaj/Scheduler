@@ -288,6 +288,9 @@
 
                     var phase = jd.map(value => {
                         var ph = ((value - t0) % P) / P;
+                        if (ph < 0) {
+                            ph = ph + 1;
+                        }
                         if (zero == true && ph > 0.5) {
                             ph = ph - 1;
                         }
