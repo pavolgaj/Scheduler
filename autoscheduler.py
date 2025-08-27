@@ -13,7 +13,7 @@ from make_stats import make_stats
 
 date=datetime.now(timezone.utc).strftime('%Y-%m-%d')
 
-use_condi=['good','poor','na']
+use_condi=['good','poor','na','']
 use_freq=['everynight', 'twiceweek', 'onceweek', 'twicemonth', 'oncemonth', 'unspecified']
 prior=True #rescale priorities
 series = True
@@ -123,17 +123,9 @@ for obj in objects0:
                     elif fr=='twicemonth': obj['priority']=max(1.4,obj['priority'])
                     elif fr=='oncemonth': obj['priority']=max(1.5,obj['priority'])
 
-                    obj['priority']=round(obj['priority'],1)
+                    obj['priority']=round(obj['priority'],1)                    
 
-
-            mag=obj['full']['Mag']
-
-            try: mag=float(mag)
-            except ValueError:
-                objects1[str(uuid.uuid4())]=obj
-                continue
-
-            objects1[str(uuid.uuid4())]=obj
+            objects1[str(uuid.uuid4())]=obj            
 
 #load config - based on observatory!
 config=load_config('lasilla_config.txt')
