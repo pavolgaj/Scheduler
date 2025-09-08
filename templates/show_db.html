@@ -294,7 +294,10 @@
                 if (n === 0) {
                     return v.replace(" ", "").replace("-", "").replace("_", "");   //1st col with target name
                 }
-                if ($.isNumeric(v)) {
+                if (v.length==10 && !isNaN(Date.parse(v))) {
+                    v=Date.parse(v);  //date
+                } 
+                else if ($.isNumeric(v)) {
                     v = parseFloat(v, 10);
                 }
                 else if ($.isNumeric(v.slice(0, 3))) {
@@ -377,7 +380,10 @@
                 if (n === 0) {
                     return v.replace(" ", "").replace("-", "").replace("_", "");   //1st col with target name
                 }
-                if ($.isNumeric(v)) {
+                if (v.length==10 && !isNaN(Date.parse(v))) {
+                    v=Date.parse(v);  //date
+                } 
+                else if ($.isNumeric(v)) {
                     v = parseFloat(v, 10);
                 }
                 else if ($.isNumeric(v.slice(0, 3))) {

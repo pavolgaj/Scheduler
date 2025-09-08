@@ -997,8 +997,41 @@ def show_db():
             output.headers["Content-type"] = "text/csv"
             return output    
     
+    make_stats()
+
+    if os.path.isfile('db/observations.json'): 
+        f=open('db/observations.json','r')
+        obsAll=json.load(f)
+        f.close()
+        
+        f=open('db/names.json','r')
+        names=json.load(f)
+        f.close()
+    
+        for obj in data:
+            name=obj['Target'].lower().replace(' ', '').replace('-','').replace('_','').replace('+','').replace('.','')
+            
+            if name in names:
+                obs=obsAll[names[name]]
+                nobs=len(obs)
+                last=obs[-1]
+                obj['Observations']=str(nobs)
+                obj['Last']=last 
+                
+        for obj in done:
+            name=obj['Target'].lower().replace(' ', '').replace('-','').replace('_','').replace('+','').replace('.','')
+            
+            if name in names:
+                obs=obsAll[names[name]]
+                nobs=len(obs)
+                last=obs[-1]
+                obj['Observations']=str(nobs)
+                obj['Last']=last       
+    
+    headerWeb='Target,RA,DEC,Mag,Period,Epoch,ExpTime,Number,Nights,Observations,Last,Priority,Type,Remarks,MoonPhase,StartPhase,EndPhase,StartDate,EndDate,Conditions,Frequency,OtherRequests,Supervisor,Program'                
+    
     gc.collect()
-    return render_template('show_db.html', header=header.strip().split(',')+['Program'], data=data, done=done)
+    return render_template('show_db.html', header=headerWeb.split(','), data=data, done=done)
 
 
 
