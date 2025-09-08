@@ -294,7 +294,7 @@
                 if (n === 0) {
                     return v.replace(" ", "").replace("-", "").replace("_", "");   //1st col with target name
                 }
-                if (v.length==10 && !isNaN(Date.parse(v))) {
+                if (n>9 && v.length==10 && !isNaN(Date.parse(v))) {
                     v=Date.parse(v);  //date
                 } 
                 else if ($.isNumeric(v)) {
@@ -305,6 +305,9 @@
                 }
                 else if ($.isNumeric(v.slice(0, 2))) {
                     v = parseFloat(v.slice(0, 2), 10);     // RA/DEC -> number from 1st part
+                }
+                else if ($.isNumeric(v.slice(0, 1))) {
+                    v = parseFloat(v.slice(0, 1), 10);     // RA/DEC -> number from 1st part
                 }
                 else if (v === 'SERIES') {
                     v = 50;                                 // number of exp.=series -> set some big number
@@ -380,7 +383,7 @@
                 if (n === 0) {
                     return v.replace(" ", "").replace("-", "").replace("_", "");   //1st col with target name
                 }
-                if (v.length==10 && !isNaN(Date.parse(v))) {
+                if (n>9 && v.length==10 && !isNaN(Date.parse(v))) {
                     v=Date.parse(v);  //date
                 } 
                 else if ($.isNumeric(v)) {
@@ -391,6 +394,9 @@
                 }
                 else if ($.isNumeric(v.slice(0, 2))) {
                     v = parseFloat(v.slice(0, 2), 10);
+                }
+                else if ($.isNumeric(v.slice(0, 1))) {
+                    v = parseFloat(v.slice(0, 1), 10);     // RA/DEC -> number from 1st part
                 }
                 else if (v === 'SERIES') {
                     v = 50;
