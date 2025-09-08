@@ -951,51 +951,7 @@ def show_db():
         if obj['Done']=='1': done.append(obj) 
         else: data.append(obj)  
         all.append(obj)
-    f.close()
-            
-    if request.method == 'POST':
-        if 'download' in request.form:
-            #download full DB
-            #return send_file('db/objects.csv', as_attachment=True)
-            si = io.StringIO()  # create "file-like" output for writing
-            
-            writer=csv.DictWriter(si,fieldnames=header.strip().split(',')+['Done','Program'])
-            writer.writeheader()
-            writer.writerows([{x: o[x] for x in o if x not in ['ProgramID']} for o in all])
-            
-            #send output as response
-            output = make_response(si.getvalue())
-            output.headers["Content-Disposition"] = "attachment; filename=objects.csv"
-            output.headers["Content-type"] = "text/csv"
-            return output  
-        
-        elif 'observe' in request.form:
-            #download only observe part of DB (not finished obj)
-            si = io.StringIO()  # create "file-like" output for writing
-            
-            writer=csv.DictWriter(si,fieldnames=header.strip().split(',')+['Program'])
-            writer.writeheader()
-            writer.writerows([{x: o[x] for x in o if x not in ['Done','ProgramID']} for o in data])
-            
-            #send output as response
-            output = make_response(si.getvalue())
-            output.headers["Content-Disposition"] = "attachment; filename=objects-observe.csv"
-            output.headers["Content-type"] = "text/csv"
-            return output
-        
-        elif 'done' in request.form:
-            #download only finished part of DB
-            si = io.StringIO() # create "file-like" output for writing
-            
-            writer=csv.DictWriter(si,fieldnames=header.strip().split(',')+['Program'])
-            writer.writeheader()
-            writer.writerows([{x: o[x] for x in o if x not in ['Done','ProgramID']} for o in done])
-            
-            #send output as response
-            output = make_response(si.getvalue())
-            output.headers["Content-Disposition"] = "attachment; filename=objects-done.csv"
-            output.headers["Content-type"] = "text/csv"
-            return output    
+    f.close()            
     
     make_stats()
 
@@ -1028,10 +984,54 @@ def show_db():
                 obj['Observations']=str(nobs)
                 obj['Last']=last       
     
-    headerWeb='Target,RA,DEC,Mag,Period,Epoch,ExpTime,Number,Nights,Observations,Last,Priority,Type,Remarks,MoonPhase,StartPhase,EndPhase,StartDate,EndDate,Conditions,Frequency,OtherRequests,Supervisor,Program'                
+    header='Target,RA,DEC,Mag,Period,Epoch,ExpTime,Number,Nights,Observations,Last,Priority,Type,Remarks,MoonPhase,StartPhase,EndPhase,StartDate,EndDate,Conditions,Frequency,OtherRequests,Supervisor,Program'    
+    
+    if request.method == 'POST':
+        if 'download' in request.form:
+            #download full DB
+            #return send_file('db/objects.csv', as_attachment=True)
+            si = io.StringIO()  # create "file-like" output for writing
+            
+            writer=csv.DictWriter(si,fieldnames=header.strip().split(',')+['Done'])
+            writer.writeheader()
+            writer.writerows([{x: o[x] for x in o if x not in ['ProgramID']} for o in all])
+            
+            #send output as response
+            output = make_response(si.getvalue())
+            output.headers["Content-Disposition"] = "attachment; filename=objects.csv"
+            output.headers["Content-type"] = "text/csv"
+            return output  
+        
+        elif 'observe' in request.form:
+            #download only observe part of DB (not finished obj)
+            si = io.StringIO()  # create "file-like" output for writing
+            
+            writer=csv.DictWriter(si,fieldnames=header.strip().split(','))
+            writer.writeheader()
+            writer.writerows([{x: o[x] for x in o if x not in ['Done','ProgramID']} for o in data])
+            
+            #send output as response
+            output = make_response(si.getvalue())
+            output.headers["Content-Disposition"] = "attachment; filename=objects-observe.csv"
+            output.headers["Content-type"] = "text/csv"
+            return output
+        
+        elif 'done' in request.form:
+            #download only finished part of DB
+            si = io.StringIO() # create "file-like" output for writing
+            
+            writer=csv.DictWriter(si,fieldnames=header.strip().split(','))
+            writer.writeheader()
+            writer.writerows([{x: o[x] for x in o if x not in ['Done','ProgramID']} for o in done])
+            
+            #send output as response
+            output = make_response(si.getvalue())
+            output.headers["Content-Disposition"] = "attachment; filename=objects-done.csv"
+            output.headers["Content-type"] = "text/csv"
+            return output             
     
     gc.collect()
-    return render_template('show_db.html', header=headerWeb.split(','), data=data, done=done)
+    return render_template('show_db.html', header=header.split(','), data=data, done=done)
 
 
 
