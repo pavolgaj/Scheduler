@@ -61,7 +61,14 @@ if os.path.isfile('db/statistics.csv') and prior:
         if tr in stats:
             if last>stats[tr]: stats[tr]=last
         else: stats[tr]=last
-
+obs={}
+if os.path.isfile('db/observations.json'):
+    f=open('db/observations.json','r')
+    lines=json.load(f)
+    f.close()    
+    for obj in lines:
+        tr=obj.lower().replace('-','').replace(' ','').replace('+','').replace('.','').replace('_','')
+        obs[tr]=len(lines[obj]) 
 
 #add selected objects by types and series
 objects1={}
@@ -74,6 +81,8 @@ for obj in objects0:
     if pd.isna(condi): condi=''
     fr=obj['full']['Frequency']
     if pd.isna(fr): fr='unspecified'
+    nights=obj['full']['Nights']
+    if pd.isna(nights): nights=1000
 
     #add program name
     progID=obj['full']['ProgramID']
@@ -125,6 +134,12 @@ for obj in objects0:
 
                     obj['priority']=round(obj['priority'],1)                    
 
+                if tr in obs:
+                    #decrease priority if many observations done
+                    if obs[tr]>=6*nights: obj['priority']+=10
+                    elif obs[tr]>=4*nights: obj['priority']+=5
+                    elif obs[tr]>=2*nights: obj['priority']+=2 
+                    
             objects1[str(uuid.uuid4())]=obj            
 
 #load config - based on observatory!
