@@ -189,7 +189,7 @@
             {% set up=loop.index %} <!-- for different color of fixed col between rows -->
             <tr>
                 {% for col in header %}
-                <td>
+                <td {% if (col=='Nights' or col=='Target') and row['Observations'] and row['Nights'] %}{% if (row['Observations'] | int())>=(row['Nights'] | int()) %}style="background-color: lime;"{% endif %}{% endif %}>
                     <!-- compress output values = round floats and remove decimals from RA/DEC -->
                     {% if not '.' in row[col] %}
                     {{ row[col] }}
@@ -238,7 +238,7 @@
             {% set up=loop.index %} <!-- for different color of fixed col between rows -->
             <tr>
                 {% for col in header %}
-                <td>
+                <td {% if (col=='Nights' or col=='Target') and row['Observations'] and row['Nights'] %}{% if (row['Observations'] | int())>=(row['Nights'] | int()) %}style="background-color: lime;"{% endif %}{% endif %}>
                     <!-- compress output values = round floats and remove decimals from RA/DEC -->
                     {% if not '.' in row[col] %}
                     {{ row[col] }}
