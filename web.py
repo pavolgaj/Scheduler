@@ -265,6 +265,7 @@ def new():
                 dec=''
                 mag=''
                
+                Simbad.reset_votable_fields() 
                 try:
                     #astroquery>=0.4.8
                     Simbad.add_votable_fields("allfluxes")
@@ -272,7 +273,10 @@ def new():
                     #astroquery==0.4.7
                     Simbad.add_votable_fields("flux(V)",'flux(g)','flux(R)','flux(r)','flux(I)','flux(i)','flux(B)','flux(u)','flux(U)','flux(G)','flux(J)','flux(z)','flux(H)','flux(K)')
                 
-                result_table = Simbad.query_object(name)
+                #issue with fluxes                
+                try: result_table = Simbad.query_object(name)
+                except: result_table = None
+                
                 if result_table is None:
                     Simbad.reset_votable_fields()
                     result_table = Simbad.query_object(name)  #try to search without mag
