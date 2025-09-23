@@ -245,7 +245,7 @@
                 <thead>
                     <tr>
                         <!-- fix first 2 cols -->
-                        <th style="position: sticky; left: 0px; z-index: 2; background-color: white;"></th>
+                        <th style="position: sticky; left: 0px; z-index: 2; background-color: white; min-width: 100px;"></th>
                         <th style="display:none">id</th> <!-- id for correct sorting -->
                         {% for val in header %}
                         <th {% if loop.index0==0
@@ -317,7 +317,7 @@
                 <thead>
                     <tr>
                         <!-- fix first 3 cols -->
-                        <th style="position: sticky; left: 0px; z-index: 2; background-color: white;"></th>
+                        <th style="position: sticky; left: 0px; z-index: 2; background-color: white; min-width: 80px;"></th>
                         <th style="position: sticky; left: 80px; z-index: 2; background-color: white;">Done</th>
                         <th style="display:none">id</th> <!-- id for correct sorting -->
                         {% for val in header %}
