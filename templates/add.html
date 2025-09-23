@@ -214,7 +214,9 @@
             </li>{% endfor %}
         </ul>
         {% endif %}
-        <form method="post" class="left-align">
+        <form method="post" class="left-align" id="mainForm">
+            <input type="hidden" id="warn" name="warn" value="{{ warn }}">
+            <input type="checkbox" id="warnIgn" name="warnIgn" value="checked" style="display: none;">
             <center>
                 <h1>Add object to database</h1>
             </center>
@@ -463,6 +465,19 @@
             </li>{% endfor %}
         </ul>
         {% endif %}
+
+        
     </body>
+
+    <!-- show warnings -->
+        {% if warn %}
+        <script>
+            if (confirm('{{ warn }}Do you want to continue?'.replace(/;/g,'\n'))) {
+                ch=document.getElementById('warnIgn');
+                ch.checked = true;
+                document.querySelector('button[name="submit"]').click();
+            }
+        </script>
+        {% endif %}
 
 </html>

@@ -203,6 +203,8 @@ def new():
     
     groups=["Exoplanet","Eclipsing binary","Flaring star","Pulsating star","RV Standard","SpecPhot Standard"]
     
+    warn=''
+    
     if os.path.isfile('db/objects.csv'):
         f=open('db/objects.csv','r')
         reader = csv.DictReader(f)
@@ -252,6 +254,9 @@ def new():
         progID = request.form['progID'].strip()
         email = request.form['email'].strip()
         mess=request.form['mess'].strip()
+        
+        warnIgn=(request.form.get('warnIgn')=='checked')
+        warn0=request.form['warn'].strip()
 
         if 'simbad' in request.form:
             #search obj in simbad - ra,dec,mag
@@ -342,7 +347,7 @@ def new():
             else: errors['name'] = 'Name is required.'
             
             gc.collect()
-            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID,groups=groups,freq=freq)
+            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
         
         elif 'exofop' in request.form:
             #search obj in exofop - ra,dec,mag
@@ -391,7 +396,7 @@ def new():
             else: errors['name'] = 'Name is required.'
             
             gc.collect()
-            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID,groups=groups,freq=freq)
+            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
         
         elif 'vsx' in request.form:
             #search P,t0 in VSX cat
@@ -414,7 +419,7 @@ def new():
             else: errors['name'] = 'Name is required.'
             
             gc.collect()
-            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors,remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID,groups=groups,freq=freq)
+            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors,remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
         elif 'exoarch' in request.form:
             #search P,t0 in exoplanet archive
             if name:
@@ -434,7 +439,7 @@ def new():
             else: errors['name'] = 'Name is required.'
             
             gc.collect()
-            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID,groups=groups,freq=freq)
+            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
 
 
 
@@ -489,7 +494,63 @@ def new():
             if errors:
                 gc.collect()
                 
-                return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID,groups=groups,freq=freq)
+                return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
+            
+            name1=name.lower().replace(' ', '').replace('-','').replace('_','').replace('+','').replace('.','')
+
+            ra1='{}h{}m{}s'.format(*ra.replace(':',' ').replace(',','.').split())
+            dec1='{}d{}m{}s'.format(*dec.replace(':',' ').replace(',','.').split())
+            coordinates=SkyCoord(ra1,dec1,frame='icrs')
+
+            f=open('db/objects.csv','r')
+            reader = csv.DictReader(f)
+            dup=False
+            nameDup=''
+            for obj in reader:
+                if obj['Target'].lower().replace('-','').replace(' ','').replace('_','')==name1: 
+                    warn+='Object already in DB!;'
+                    dup=True
+                    break
+                elif not nameDup:
+                    #look for close targets
+                    ra1='{}h{}m{}s'.format(*obj['RA'].replace(':',' ').replace(',','.').split())
+                    dec1='{}d{}m{}s'.format(*obj['DEC'].replace(':',' ').replace(',','.').split())
+                    coord=SkyCoord(ra1,dec1,frame='icrs')
+                    
+                    dist=coord.separation(coordinates)
+                    
+                    if dist.value*3600<5: nameDup=obj['Target']                        
+            f.close() 
+            if (not dup) and nameDup: warn+='Close target '+nameDup+' already in DB!;'
+            
+            f=open('db/new_objects.csv','r')
+            reader = csv.DictReader(f)
+            dup=False
+            nameDup=''
+            for obj in reader:
+                if obj['Target'].lower().replace('-','').replace(' ','').replace('_','')==name1: 
+                    warn+='Object already submitted!;'
+                    dup=True
+                    break
+                elif not nameDup:
+                    #look for close targets
+                    ra1='{}h{}m{}s'.format(*obj['RA'].replace(':',' ').replace(',','.').split())
+                    dec1='{}d{}m{}s'.format(*obj['DEC'].replace(':',' ').replace(',','.').split())
+                    coord=SkyCoord(ra1,dec1,frame='icrs')
+                    
+                    dist=coord.separation(coordinates)
+                    
+                    if dist.value*3600<5: nameDup=obj['Target']   
+            f.close() 
+            if (not dup) and nameDup: warn+='Close target '+nameDup+' already submitted!;'
+                        
+            if not check_simbad(name,coordinates):
+                warn+='Given coordinates do NOT agree with values in Simbad!;'
+            
+            #some warning - different to old one...
+            if warn:
+                if not (warn==warn0 and warnIgn):
+                    return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
 
             #set priority for standards
             if group=='RV Standard': 
@@ -579,7 +640,7 @@ def new():
             return redirect(url_for('success'))
 
     gc.collect()
-    return render_template('add.html', name='', ra='', dec='', mag='', per='', t0='', exp='', number=1, night=1, series=False, ic=False, phot=False, phot_input='', prior=3, group='', moon=False, moon_input='', phase=False, phase_start='', phase_end='', time=False, time_start='', time_end='', other='', supervis = '', email='', mess='', errors={}, remarks='', simcal='thar',readout='fast',condi='good',groups=groups,freq='unspecified')
+    return render_template('add.html', name='', ra='', dec='', mag='', per='', t0='', exp='', number=1, night=1, series=False, ic=False, phot=False, phot_input='', prior=3, group='', moon=False, moon_input='', phase=False, phase_start='', phase_end='', time=False, time_start='', time_end='', other='', supervis = '', email='', mess='', errors={}, remarks='', simcal='thar',readout='fast',condi='good',groups=groups,freq='unspecified',warn='')
 
 
 # Route for the success page
@@ -692,6 +753,9 @@ def bulk():
     if not session.get('logged_in'):
         return redirect(url_for('login', next=request.path))
     
+    warn=''
+    filetext=''
+    
     if request.method == 'POST':
         errors = {}
 
@@ -701,13 +765,19 @@ def bulk():
             progID = request.form['progID'].strip()
             email = request.form['email'].strip()
             mess=request.form['mess'].strip()
+            
+            warnIgn=(request.form.get('warnIgn')=='checked')
+            warn0=request.form['warn'].strip()
+            filetext=request.form['filetext']
 
             #get file with obj
-            if 'file' not in request.files:
-                errors['file']="No file part."
-            file = request.files['file']
-            if file.filename == '':
-                errors['file']="No selected file."
+            file=False
+            if not filetext:
+                if 'file' not in request.files:
+                    errors['file']="No file part."
+                file = request.files['file']
+                if file.filename == '':
+                    errors['file']="No selected file."
 
             if not supervis:
                 errors['supervis'] = 'Supervisor is required.'
@@ -727,18 +797,21 @@ def bulk():
             if errors:
                 gc.collect()
                 
-                return render_template('import.html', supervis = supervis, email=email, mess=mess, errors=errors, progID=progID)
+                return render_template('import.html', supervis = supervis, email=email, mess=mess, errors=errors, progID=progID,warn=warn, filetext=filetext)
 
             output = io.StringIO()   # create "file-like" output for writing
             objects=[]
             errors['data']=[]
-            if file:
+            if file or filetext:
                 #read data from input file and save them in list
-                file_content = [x.decode() for x in file.readlines()]
+                if file: 
+                    file_content = [x.decode() for x in file.readlines()]
+                    filetext=''.join(file_content)
+                else: file_content=filetext.split('\n')
                 csvreader = csv.DictReader(file_content,restval='ERROR')
                 if not (csvreader.fieldnames+['Supervisor'])==header.strip().split(','):
                     errors['data'].append('Incorrect CSV format. Check the template!')  
-                    return render_template('import.html', supervis = supervis, email=email, mess=mess, errors=errors, progID=progID)  
+                    return render_template('import.html', supervis = supervis, email=email, mess=mess, errors=errors, progID=progID,warn=warn, filetext=filetext)  
                 csvwriter = csv.DictWriter(output,fieldnames=csvreader.fieldnames+['Supervisor','ProgramID'])
                 for row in csvreader:
                     #check inputs!!! 
@@ -767,6 +840,57 @@ def bulk():
                     row['Target']=row['Target'].strip()
                     objects.append(row['Target'])
                     csvwriter.writerow(row)
+                    
+                    name1=row['Target'].lower().replace(' ', '').replace('-','').replace('_','').replace('+','').replace('.','')
+
+                    ra1='{}h{}m{}s'.format(*row['RA'].replace(':',' ').replace(',','.').split())
+                    dec1='{}d{}m{}s'.format(*row['DEC'].replace(':',' ').replace(',','.').split())
+                    coordinates=SkyCoord(ra1,dec1,frame='icrs')
+
+                    f=open('db/objects.csv','r')
+                    reader = csv.DictReader(f)
+                    dup=False
+                    nameDup=''
+                    for obj in reader:
+                        if obj['Target'].lower().replace('-','').replace(' ','').replace('_','')==name1: 
+                            warn+=row['Target']+': Object already in DB!;'
+                            dup=True
+                            break
+                        elif not nameDup:
+                            #look for close targets
+                            ra1='{}h{}m{}s'.format(*obj['RA'].replace(':',' ').replace(',','.').split())
+                            dec1='{}d{}m{}s'.format(*obj['DEC'].replace(':',' ').replace(',','.').split())
+                            coord=SkyCoord(ra1,dec1,frame='icrs')
+                            
+                            dist=coord.separation(coordinates)
+                            
+                            if dist.value*3600<5: nameDup=obj['Target']                        
+                    f.close() 
+                    if (not dup) and nameDup: warn+=row['Target']+': Close target '+nameDup+' already in DB!;'
+                    
+                    f=open('db/new_objects.csv','r')
+                    reader = csv.DictReader(f)
+                    dup=False
+                    nameDup=''
+                    for obj in reader:
+                        if obj['Target'].lower().replace('-','').replace(' ','').replace('_','')==name1: 
+                            warn+=row['Target']+': Object already submitted!;'
+                            dup=True
+                            break
+                        elif not nameDup:
+                            #look for close targets
+                            ra1='{}h{}m{}s'.format(*obj['RA'].replace(':',' ').replace(',','.').split())
+                            dec1='{}d{}m{}s'.format(*obj['DEC'].replace(':',' ').replace(',','.').split())
+                            coord=SkyCoord(ra1,dec1,frame='icrs')
+                            
+                            dist=coord.separation(coordinates)
+                            
+                            if dist.value*3600<5: nameDup=obj['Target']   
+                    f.close() 
+                    if (not dup) and nameDup: warn+=row['Target']+': Close target '+nameDup+' already submitted!;'
+                                
+                    if not check_simbad(row['Target'],coordinates):
+                        warn+=row['Target']+': Given coordinates do NOT agree with values in Simbad!;'          
 
                 news=output.getvalue()  #loads contents of "output file"
             if len(errors['data'])==0: del(errors['data'])
@@ -774,7 +898,12 @@ def bulk():
             if errors:
                 gc.collect()
                 
-                return render_template('import.html', supervis = supervis, email=email, mess=mess, errors=errors, progID=progID)
+                return render_template('import.html', supervis = supervis, email=email, mess=mess, errors=errors, progID=progID,warn=warn, filetext=filetext)
+
+            #some warning - different to old one...
+            if warn:
+                if not (warn==warn0 and warnIgn):
+                    return render_template('import.html', supervis = supervis, email=email, mess=mess, errors=errors, progID=progID,warn=warn, filetext=filetext)
 
             # save the data to a database
             if not os.path.isfile('db/new_objects.csv'):
@@ -803,7 +932,7 @@ def bulk():
             return redirect(url_for('success'))
 
     gc.collect()
-    return render_template('import.html', supervis = '', email='', mess='', errors={}, progID='')
+    return render_template('import.html', supervis = '', email='', mess='', errors={}, progID='',warn=warn, filetext=filetext)
 
 @app.route("/scheduler/modif_obj", methods=['GET', 'POST'])
 def modif_obj():
