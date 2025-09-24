@@ -776,12 +776,18 @@ def bulk():
 
             #get file with obj
             file=False
-            if not filetext:
-                if 'file' not in request.files:
-                    errors['file']="No file part."
+            if 'file' not in request.files:
+                if not filetext: errors['file']="No file part."
+            else: 
                 file = request.files['file']
                 if file.filename == '':
-                    errors['file']="No selected file."
+                    if not filetext: errors['file']="No file selected."
+                    else: file=False
+                    
+            if file: 
+                #read data from input file and save them in list
+                file_content = [x.decode() for x in file.readlines()]
+                filetext=''.join(file_content)
 
             if not supervis:
                 errors['supervis'] = 'Supervisor is required.'
@@ -790,12 +796,23 @@ def bulk():
             if not progID:
                 errors['progID'] = 'Program ID is required.'   
             else:  
-                #TODO check?  
+                fID=open('progID.py','r')
+                exec(fID.read())
+                fID.close()
+                
                 f=open('db/progID.json','r')
                 ids=json.load(f)
                 f.close()       
                 
-                #if progID not in ids: errors['progID'] = 'Program ID is incorrect/unknown.'   
+                if len(progID)<14: errors['progID'] = 'Incorrect format of Program ID.'
+                else:
+                    try: dt=datetime.strptime(progID[:14],'%Y%m%d%H%M%S')
+                    except ValueError: errors['progID'] = 'Incorrect format of Program ID.'
+                
+                if not 'progID' in errors:
+                    if dt<datetime(2025,6,1,0,0,0) or dt>datetime.now()+timedelta(days=1):
+                        errors['progID'] = 'Incorrect format of Program ID.'
+                    elif progID not in ids: errors['progID'] = 'Program ID is incorrect/unknown.'      
             
 
             if errors:
@@ -806,31 +823,34 @@ def bulk():
             output = io.StringIO()   # create "file-like" output for writing
             objects=[]
             errors['data']=[]
-            if file or filetext:
+            if filetext:
                 #read data from input file and save them in list
-                if file: 
-                    file_content = [x.decode() for x in file.readlines()]
-                    filetext=''.join(file_content)
-                else: file_content=filetext.split('\n')
+                file_content=filetext.split('\n')
                 csvreader = csv.DictReader(file_content,restval='ERROR')
                 if not (csvreader.fieldnames+['Supervisor'])==header.strip().split(','):
                     errors['data'].append('Incorrect CSV format. Check the template!')  
-                    return render_template('import.html', supervis = supervis, email=email, mess=mess, errors=errors, progID=progID,warn=warn, filetext=filetext)  
+                    return render_template('import.html', supervis = supervis, email=email, mess=mess, errors=errors, progID=progID,warn=warn, filetext='')  
                 csvwriter = csv.DictWriter(output,fieldnames=csvreader.fieldnames+['Supervisor','ProgramID'])
                 for row in csvreader:
                     #check inputs!!! 
                     if 'Target' not in row:
                         errors['data'].append('Missing name of target.')
+                        filetext=''
                         continue
                     elif len(row['Target'])==0:
                         errors['data'].append('Missing name of target.')
+                        filetext=''
                         continue
                     
                     try: 
                         row,err=check(row)
                         errors['data']+=err
+                        if err: 
+                            filetext=''
+                            continue
                     except KeyError: 
-                        errors['data'].append(row['Target']+': incorrect row format. Check the template!')  
+                        errors['data'].append(row['Target']+': incorrect row format. Check the template!') 
+                        filetext='' 
                         continue                  
                    
                     if row['Type'] in ['RV Standard','SpecPhot Standard']: 
@@ -844,6 +864,8 @@ def bulk():
                     row['Target']=row['Target'].strip()
                     objects.append(row['Target'])
                     csvwriter.writerow(row)
+                    
+                    if len(errors['data'])>0: continue
                     
                     name1=row['Target'].lower().replace(' ', '').replace('-','').replace('_','').replace('+','').replace('.','')
 
@@ -902,7 +924,7 @@ def bulk():
             if errors:
                 gc.collect()
                 
-                return render_template('import.html', supervis = supervis, email=email, mess=mess, errors=errors, progID=progID,warn=warn, filetext=filetext)
+                return render_template('import.html', supervis = supervis, email=email, mess=mess, errors=errors, progID=progID,warn='', filetext=filetext)
 
             #some warning - different to old one...
             if warn:
