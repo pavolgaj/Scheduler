@@ -5,6 +5,7 @@ from astroquery.simbad import Simbad
 from astroquery.vizier import Vizier
 from astroquery.ipac.nexsci.nasa_exoplanet_archive import NasaExoplanetArchive
 import os
+import shutil
 from send_mail import SendMail
 import traceback
 import csv
@@ -620,7 +621,11 @@ def new():
             if not os.path.isfile('db/new_objects.csv'):
                 f=open('db/new_objects.csv','w')
                 f.write(header.strip()+',ProgramID\n')
-            else: f=open('db/new_objects.csv','a')
+            else: 
+                #make backup
+                shutil.copy2('db/new_objects.csv','db-backup/new_objects-'+datetime.now().strftime("%Y%m%d-%H%M%S")+'.csv')
+                
+                f=open('db/new_objects.csv','a')
             f.write(tmp)
             f.close()
             os.chmod('db/new_objects.csv', 0o666)
@@ -693,6 +698,7 @@ def check(row):
     if len(row['Number'])==0: row['Number']=1
     elif not row['Number']=='series':
         if not is_int(row['Number']): errors.append(row['Target']+': number of exp. has to be number or "series".')
+        elif not int(row['Number'])>0: errors.append(row['Target']+': number of exp. has to be positive number".')
 
     if len(row['Nights'])>0:
         if not is_int(row['Nights']): errors.append(row['Target']+': number of nights has to be number.')
@@ -935,7 +941,11 @@ def bulk():
             if not os.path.isfile('db/new_objects.csv'):
                 f=open('db/new_objects.csv','w')
                 f.write(header.strip()+',ProgramID\n')
-            else: f=open('db/new_objects.csv','a')
+            else: 
+                #make backup
+                shutil.copy2('db/new_objects.csv','db-backup/new_objects-'+datetime.now().strftime("%Y%m%d-%H%M%S")+'.csv')
+                
+                f=open('db/new_objects.csv','a')
             f.write(news)
             f.close()
             os.chmod('db/new_objects.csv', 0o666)
@@ -1019,6 +1029,9 @@ def modif_obj():
                         #correct ID, change status automatically                                               
                         obj['Done']=int(not (bool(int(obj['Done']))))  #change status
                         
+                        #make backup
+                        shutil.copy2('db/objects.csv','db-backup/objects-'+datetime.now().strftime("%Y%m%d-%H%M%S")+'.csv')
+                        
                         f=open('db/objects.csv','w')
                         writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ProgramID','Done'])
                         writer.writeheader()
@@ -1094,10 +1107,6 @@ def show_db():
     
     for obj in reader:
         #add program name       
-        f=open('db/progID.json','r')
-        ids=json.load(f)
-        f.close()
-        
         if len(obj['ProgramID'])==0: obj['Program']='not given'
         elif obj['ProgramID'] not in ids: obj['Program']='unknown' 
         else: obj['Program']=ids[obj['ProgramID']]['program_title']
@@ -1240,6 +1249,9 @@ def admin():
     
             elif 'delete_all' in request.form:
                 #delete all targets
+                #make backup
+                shutil.copy2('db/new_objects.csv','db-backup/new_objects-'+datetime.now().strftime("%Y%m%d-%H%M%S")+'.csv')
+                
                 f=open('db/new_objects.csv','w')
                 f.write(header.strip()+',ProgramID\n') 
                 f.close()
@@ -1255,6 +1267,9 @@ def admin():
                     tmp,err=check(target) 
                     errors+=err
                 
+                #make backup
+                shutil.copy2('db/new_objects.csv','db-backup/new_objects-'+datetime.now().strftime("%Y%m%d-%H%M%S")+'.csv')
+                
                 f=open('db/new_objects.csv','w')
                 writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ProgramID'])
                 writer.writeheader()                
@@ -1266,7 +1281,10 @@ def admin():
                     if not os.path.isfile('db/objects.csv'):
                         f=open('db/objects.csv','w')
                         f.write(header.strip()+',ProgramID,Done\n')
-                    else: f=open('db/objects.csv','a')                
+                    else: 
+                        #make backup
+                        shutil.copy2('db/objects.csv','db-backup/objects-'+datetime.now().strftime("%Y%m%d-%H%M%S")+'.csv')
+                        f=open('db/objects.csv','a')                
                                     
                     writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ProgramID','Done'])
                     writer.writerows(targets)
@@ -1283,6 +1301,9 @@ def admin():
                 if len(selected)>0:
                     for id in ids:
                         if not id in id_select: targets.append(targets0[id])
+                    
+                    #make backup
+                    shutil.copy2('db/new_objects.csv','db-backup/new_objects-'+datetime.now().strftime("%Y%m%d-%H%M%S")+'.csv')
                     
                     f=open('db/new_objects.csv','w')
                     writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ProgramID'])
@@ -1306,15 +1327,21 @@ def admin():
                             target['Done']='0'      
                             tmp,errors=check(target)   #make data check
                             
-                            if len(errors)==0:        
+                            if len(errors)==0: 
                                 #if data OK        
                                 if not os.path.isfile('db/objects.csv'):
                                     f=open('db/objects.csv','w')
                                     f.write(header.strip()+',ProgramID,Done\n')
-                                else: f=open('db/objects.csv','a')
+                                else: 
+                                    #make backup
+                                    shutil.copy2('db/objects.csv','db-backup/objects-'+datetime.now().strftime("%Y%m%d-%H%M%S")+'.csv')
+                                    f=open('db/objects.csv','a')
                                 writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ProgramID','Done'])
                                 writer.writerow(target)
                                 f.close() 
+                    
+                    #make backup
+                    shutil.copy2('db/new_objects.csv','db-backup/new_objects-'+datetime.now().strftime("%Y%m%d-%H%M%S")+'.csv')
                     
                     f=open('db/new_objects.csv','w')
                     writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ProgramID'])
@@ -1329,6 +1356,9 @@ def admin():
                 # Get the data from the form and sort them based on original order                  
                 targets=[{x: updated_data[x][ids[i]] for x in header.strip().split(',')+['ProgramID']} for i in sorted(ids)]
                 del(targets[id]) 
+                
+                #make backup
+                shutil.copy2('db/new_objects.csv','db-backup/new_objects-'+datetime.now().strftime("%Y%m%d-%H%M%S")+'.csv')
                 
                 f=open('db/new_objects.csv','w')
                 writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ProgramID'])
@@ -1352,12 +1382,19 @@ def admin():
                     if not os.path.isfile('db/objects.csv'):
                         f=open('db/objects.csv','w')
                         f.write(header.strip()+',ProgramID,Done\n')
-                    else: f=open('db/objects.csv','a')
+                    else: 
+                        #make backup
+                        shutil.copy2('db/objects.csv','db-backup/objects-'+datetime.now().strftime("%Y%m%d-%H%M%S")+'.csv')
+                    
+                        f=open('db/objects.csv','a')
                     writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ProgramID','Done'])
                     writer.writerow(target)
                     f.close() 
 
                     del(targets[id])    
+                
+                #make backup
+                shutil.copy2('db/new_objects.csv','db-backup/new_objects-'+datetime.now().strftime("%Y%m%d-%H%M%S")+'.csv')
                         
                 f=open('db/new_objects.csv','w')
                 writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ProgramID'])
@@ -1415,7 +1452,10 @@ def admin():
                     errors+=err
                 
                 if len(errors)==0:
-                    #if all data OK -> save
+                    #make backup
+                    shutil.copy2('db/objects.csv','db-backup/objects-'+datetime.now().strftime("%Y%m%d-%H%M%S")+'.csv')
+                    
+                    #if all data OK -> save                    
                     f=open('db/objects.csv','w')
                     writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ProgramID','Done'])
                     writer.writeheader()
@@ -1440,6 +1480,9 @@ def admin():
                 if len(errors)==0: del(targets[id])  #delete row
                 
                 if len(errors)==0:
+                    #make backup
+                    shutil.copy2('db/objects.csv','db-backup/objects-'+datetime.now().strftime("%Y%m%d-%H%M%S")+'.csv')
+                    
                     #if all data OK -> save
                     f=open('db/objects.csv','w')
                     writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ProgramID','Done'])
