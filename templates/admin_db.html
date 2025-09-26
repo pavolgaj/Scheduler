@@ -188,7 +188,38 @@
                         }
                     }
                 }
+
+                {% if db=='objects' %}
+                if (! filter) { updateRows(); }
+                {% endif %}
             }
+        
+        
+            function updateRows() {
+                // filter of rows in table
+
+                const table = document.getElementById('my_table');
+
+                if (!table) return;
+
+                const tbody = table.querySelector("tbody");
+                if (!tbody) return;
+
+                const rows = tbody.getElementsByTagName("tr");
+
+                const filter = document.getElementById('rows');
+                var start = parseInt(filter.value);
+                var end = start+100;
+
+                for (let i = 0; i < rows.length; i++) {
+                    if (i + 1 >= start && i + 1 <= end) {
+                    rows[i].style.display = ""; // show
+                    } else {
+                    rows[i].style.display = "none"; // hide
+                    }
+                }
+
+                }
         </script>
     </head>
 
@@ -313,6 +344,14 @@
             </center>
             <h2 style="color: red; font-weight: bold;">Any delete action also saves all modifications in table!</h2>
             <br>
+            <label for="rows">Rows to show:</label>
+            <select id="rows" name="rows" onchange="updateRows()">                
+                {% for i in range(0,data|length,100) %}
+                <option value="{{ i }}">{{ i }} - {{ i+100 }}</option>
+                {% endfor %}
+            </select>
+            <br>
+            <br>
             <table id="my_table">
                 <thead>
                     <tr>
@@ -369,14 +408,17 @@
         </form>
         <br>
         
-        {% if searchInput %}
+        
         <script>
         // apply search filter after POST
         window.onload = function () {
+            {% if searchInput %}
             searchTab();
+            {% elif db=='objects' and data %}
+            updateRows();
+            {% endif %}
         }
         </script>
-        {% endif %}
         
     </body>
     <script>
@@ -440,6 +482,16 @@
             $(function () {
 
                 $("#my_table th").click(function () {
+                    {% if db=='objects' and data %}
+                    if (! document.getElementById("searchInput").value) {
+                        const table = document.getElementById('my_table');
+                        const rows = table.getElementsByTagName("tr");
+                        for (let i = 0; i < rows.length; i++) {
+                            rows[i].style.display = ""; // show
+                        } 
+                    }
+                    {% endif %}
+
                     var headers = document.getElementsByTagName("th");    // get header
                     var old = -1;
                     for (var i = 0; i < headers.length; i++) {
@@ -473,9 +525,15 @@
                     else
                         $(this).text($(this).text() + " ▲")
 
+                    {% if db=='objects' and data %}
+                    if (! document.getElementById("searchInput").value) {
+                        updateRows();
+                    }
+                    {% endif %}
                 });
 
             });
+
     </script>
 
 </html>
