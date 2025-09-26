@@ -223,6 +223,7 @@ for obj in objects:
                 names[obj['target'].name]=0
                 name1=obj['target'].name
             blocks.append(ObservingBlock.from_exposures(FixedTarget(name=name1, coord=obj['target'].coord),obj['priority'],obj['exp']*u.second,5,read_out,constraints=cons))
+            if blocks[-1].duration<60*u.second: blocks[-1].duration=60*u.second   #fix for short blocks
     else:
         if obj['target'].name in names:  #repeating objects -> NOT replace debug plots
             names[obj['target'].name]+=1
@@ -231,6 +232,7 @@ for obj in objects:
             names[obj['target'].name]=0
             name1=obj['target'].name
         blocks.append(ObservingBlock.from_exposures(FixedTarget(name=name1, coord=obj['target'].coord),obj['priority'],obj['exp']*u.second,obj['n_exp'],read_out,constraints=cons))
+        if blocks[-1].duration<60*u.second: blocks[-1].duration=60*u.second   #fix for short blocks
 
 if len(blocks)==0:
     raise Exception('Schedule is EMPTY!')
