@@ -347,7 +347,7 @@
             <label for="rows">Rows to show:</label>
             <select id="rows" name="rows" onchange="updateRows()">                
                 {% for i in range(0,data|length,100) %}
-                <option value="{{ i }}">{{ i }} - {{ i+100 }}</option>
+                <option value="{{ i }}" {% if rows==i %}selected{% endif %}>{{ i }} - {{ i+100 }}</option>
                 {% endfor %}
             </select>
             <br>

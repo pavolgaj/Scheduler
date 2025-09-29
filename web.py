@@ -1210,11 +1210,13 @@ def admin():
     
     saved=False
     errors=[]
+    rows=0
+    searchInput='' 
     
     if request.method == 'POST':
         db=request.form['db']
         searchInput=request.form['searchInput']
-        if not searchInput: searchInput=''
+        if not searchInput: searchInput='' 
         
         if db=='new' and os.path.isfile('db/new_objects.csv'): 
             # working with new_objects
@@ -1408,6 +1410,10 @@ def admin():
         elif db=='objects' and os.path.isfile('db/objects.csv'):  
             #working with objects
             
+            rows=request.form.get('rows')
+            if not rows: rows=0
+            rows=int(rows)
+            
             r_del = re.compile("delete_*")   #regex delete row buttons 
             
             updated_data = request.form.to_dict(flat=False)           
@@ -1492,7 +1498,7 @@ def admin():
                 
             if len(errors)>0:
                 #if some error reload displayed data - NO saved in file!
-                return render_template('admin_db.html', db=db, header=header.strip().split(',')+['ProgramID'], data=targets, saved=saved, errors=errors)
+                return render_template('admin_db.html', db=db, header=header.strip().split(',')+['ProgramID'], data=targets, saved=saved, errors=errors, searchInput=searchInput, rows=rows)
                                
             
             if os.path.isfile('db/objects.csv'): os.chmod('db/objects.csv', 0o666)            
@@ -1503,10 +1509,10 @@ def admin():
     
     #load DB from file    
     if db=='new': 
-        if not os.path.isfile('db/new_objects.csv'): return render_template('admin_db.html', db=db, header=header.strip().split(',')+['ProgramID'], data=[], saved=saved, errors=errors)
+        if not os.path.isfile('db/new_objects.csv'): return render_template('admin_db.html', db=db, header=header.strip().split(',')+['ProgramID'], data=[], saved=saved, errors=errors, searchInput=searchInput, rows=rows)
         f=open('db/new_objects.csv','r')
     elif db=='objects': 
-        if not os.path.isfile('db/objects.csv'): return render_template('admin_db.html', db=db, header=header.strip().split(',')+['ProgramID'], data=[], saved=saved, errors=errors)
+        if not os.path.isfile('db/objects.csv'): return render_template('admin_db.html', db=db, header=header.strip().split(',')+['ProgramID'], data=[], saved=saved, errors=errors, searchInput=searchInput, rows=rows)
         f=open('db/objects.csv','r')
     reader = csv.DictReader(f)
     data=[]
@@ -1515,7 +1521,7 @@ def admin():
     f.close()
     
     gc.collect()
-    return render_template('admin_db.html', db=db, header=header.strip().split(',')+['ProgramID'], data=data, saved=saved, errors=errors, searchInput=searchInput)
+    return render_template('admin_db.html', db=db, header=header.strip().split(',')+['ProgramID'], data=data, saved=saved, errors=errors, searchInput=searchInput, rows=rows)
 
 @app.route("/scheduler/run", methods=['GET','POST'])
 def scheduler():
