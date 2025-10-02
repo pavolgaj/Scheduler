@@ -612,6 +612,7 @@ def new():
             else: tmp+=',,'
             tmp+=condi+','
             tmp+=freq+','
+            if len(other)>0: other='"'+other+'"'
             tmp+=other+','
             tmp+='"'+supervis+'",'
             tmp+=progID
