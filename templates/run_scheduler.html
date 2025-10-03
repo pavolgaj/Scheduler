@@ -644,7 +644,7 @@
                             <th class="progHead"></th>
                             <th class="progHead">Program</th>
                             <th class="progHead">Service<br>mode</th>
-                            <th class="progHead">Readout</th>
+                            <!-- <th class="progHead">Readout</th> -->
                             <th class="progHead">Number of<br>objects</th>
                         </tr>
                     </thead>
@@ -671,7 +671,7 @@
                             <img src="{{ url_for('static',filename='delete.svg') }}" alt="no">
                             {% endif %}
                         </td>
-                        <td>{{ obj['readout'] }}</td>
+                        <!-- <td>{{ obj['readout'] }}</td> -->
                         <td>{{ obj['n'] }}</td>
                     </tr>
                     {% endfor %}

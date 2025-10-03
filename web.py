@@ -231,7 +231,7 @@ def new():
         series = (request.form.get('series')=='checked')
         simcal=request.form['simcal']
         ic = (request.form.get('ic')=='checked')
-        readout=request.form['readout']
+        # readout=request.form['readout']
         phot = (request.form.get('phot')=='checked')
         phot_input = request.form['phot_input'].strip()
         remarks = request.form['remarks'].strip()
@@ -352,7 +352,7 @@ def new():
             else: errors['name'] = 'Name is required.'
             
             gc.collect()
-            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
+            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
         
         elif 'exofop' in request.form:
             #search obj in exofop - ra,dec,mag
@@ -401,7 +401,7 @@ def new():
             else: errors['name'] = 'Name is required.'
             
             gc.collect()
-            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
+            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
         
         elif 'vsx' in request.form:
             #search P,t0 in VSX cat
@@ -424,7 +424,7 @@ def new():
             else: errors['name'] = 'Name is required.'
             
             gc.collect()
-            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors,remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
+            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors,remarks=remarks, simcal=simcal,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
         elif 'exoarch' in request.form:
             #search P,t0 in exoplanet archive
             if name:
@@ -444,7 +444,7 @@ def new():
             else: errors['name'] = 'Name is required.'
             
             gc.collect()
-            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
+            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
 
 
 
@@ -499,7 +499,7 @@ def new():
             if errors:
                 gc.collect()
                 
-                return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
+                return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
             
             name1=name.lower().replace(' ', '').replace('-','').replace('_','').replace('+','').replace('.','')
 
@@ -555,7 +555,7 @@ def new():
             #some warning - different to old one...
             if warn:
                 if not (warn==warn0 and warnIgn):
-                    return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,readout=readout,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
+                    return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
 
             #set priority for standards
             if group=='RV Standard': 
@@ -590,7 +590,7 @@ def new():
             tmp+=prior+','
             tmp+='"'+group+'"'+','
             notes=''
-            notes+=readout+'; '
+            # notes+=readout+'; '
             if ic: notes+='IC (FE); '
             if simcal=='thar': notes+='sim. ThAr; '
             elif simcal=='ic': notes+='sim. IC (CU); '
@@ -650,7 +650,7 @@ def new():
             return redirect(url_for('success'))
 
     gc.collect()
-    return render_template('add.html', name='', ra='', dec='', mag='', per='', t0='', exp='', number=1, night=1, series=False, ic=False, phot=False, phot_input='', prior=3, group='', moon=False, moon_input='', phase=False, phase_start='', phase_end='', time=False, time_start='', time_end='', other='', supervis = '', email='', mess='', errors={}, remarks='', simcal='thar',readout='fast',condi='good',groups=groups,freq='unspecified',warn='')
+    return render_template('add.html', name='', ra='', dec='', mag='', per='', t0='', exp='', number=1, night=1, series=False, ic=False, phot=False, phot_input='', prior=3, group='', moon=False, moon_input='', phase=False, phase_start='', phase_end='', time=False, time_start='', time_end='', other='', supervis = '', email='', mess='', errors={}, remarks='', simcal='thar',condi='good',groups=groups,freq='unspecified',warn='')
 
 
 # Route for the success page
@@ -1562,10 +1562,10 @@ def scheduler():
             programs[prog]={'n':1}
             if prog in ['not given','unknown']:
                 programs[prog]['service']=False
-                programs[prog]['readout']='unknown'
+                # programs[prog]['readout']='unknown'
             else:
                 programs[prog]['service']=(True if ids[str(progID)]['mode'].split()[0]=='service' else False)
-                programs[prog]['readout']=ids[str(progID)]['readout'].split()[0].lower()
+                # programs[prog]['readout']=ids[str(progID)]['readout'].split()[0].lower()
         
         
         if group not in ['RV Standard','SpecPhot Standard']: 
@@ -3349,9 +3349,9 @@ def object_info():
     if not session.get('logged_in'):
         return redirect(url_for('login', next=request.path))
     if session.get('logged_in')=='admin': 
-        keys=['program_title','code','name','institution','mail','mode','strategy','calibration','readout','special_requests','instructions']
+        keys=['program_title','code','name','institution','mail','mode','strategy','calibration','special_requests','instructions']
     else: 
-        keys=['program_title','name','institution','mode','strategy','calibration','readout','special_requests','instructions']
+        keys=['program_title','name','institution','mode','strategy','calibration','special_requests','instructions']
         
     if 'name' in request.args: name0=request.args['name']
     else: return 'Missing object name!'
@@ -3451,9 +3451,9 @@ def proposal_info():
     if not session.get('logged_in'):
         return redirect(url_for('login', next=request.path))
     if session.get('logged_in')=='admin': 
-        keys=['program_title','code','name','institution','mail','mode','strategy','calibration','readout','special_requests','instructions']
+        keys=['program_title','code','name','institution','mail','mode','strategy','calibration','special_requests','instructions']
     else: 
-        keys=['program_title','name','institution','mode','strategy','calibration','readout','special_requests','instructions']
+        keys=['program_title','name','institution','mode','strategy','calibration','special_requests','instructions']
         
     if 'name' in request.args: name=request.args['name'].strip()
     else: return 'Missing proposal name!'
