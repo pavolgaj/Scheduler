@@ -350,6 +350,8 @@
                 <option value="{{ i }}" {% if rows==i %}selected{% endif %}>{{ i }} - {{ i+100 }}</option>
                 {% endfor %}
             </select>
+            &nbsp;&nbsp;&nbsp;
+            <button type="button" name="changes" title="Show list of requested changes." onclick="window.open('{{ url_for('changes') }}', '_blank')">Requested changes</button>
             <br>
             <br>
             <table id="my_table">

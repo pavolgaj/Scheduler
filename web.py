@@ -1044,7 +1044,12 @@ def modif_obj():
                         result='Status changed automatically!'
                     else:
                         #incorrect ID, send request to admin
-                        result='Program ID incorrect or missing! Status will be changed manually by admins.'                      
+                        result='Program ID incorrect or missing! Status will be changed manually by admins.' 
+                        
+                        f=open('db/changes.txt','a')  
+                        f.write(f'{obj["Target"]} ({obj["RA"]}, {obj["DEC"]}; {obj["Number"]} x {obj["ExpTime"]} s) with programID {obj["ProgramID"]} - change status to "{("observation finished" if status=="done" else "observations running")}"\n')
+                        f.close()
+                                           
                     
                     #send mail to admins and supervisior of added obj
                     send=SendMail(email)
@@ -1066,6 +1071,13 @@ def modif_obj():
                 
                 else:
                     #bigger change, send request to admin
+                    f=open('db/changes.txt','a')  
+                    f.write(f'{obj["Target"]} ({obj["RA"]}, {obj["DEC"]}; {obj["Number"]} x {obj["ExpTime"]} s) with programID {obj["ProgramID"]} - requested changes "{mess}"')
+                    if not status==status0:
+                        f.write(f' and change status to "{("observation finished" if status=="done" else "observations running")}"')
+                    f.write('\n')
+                    f.close()
+                    
                     send=SendMail(email)
                   
                     send.message=render_template('message_change',supervisor=supervis,name=obj['Target'],ra=obj['RA'],dec=obj['DEC'],mag=obj['Mag'],exp=obj['ExpTime'],number=obj['Number'],night=obj['Nights'],prior=obj['Priority'],group=obj['Type'],notes=obj['Remarks'],progID=progID,status=('observation finished' if status=='done' else 'observations running')+(' (not changed)' if status==status0 else ''),message=mess)
@@ -1198,7 +1210,46 @@ def show_db():
     gc.collect()
     return render_template('show_db.html', header=header.split(','), data=data, done=done)
 
-
+@app.route("/scheduler/changes", methods=['GET', 'POST'])
+def changes():
+    '''show list of requested changes in DB'''
+    #require admin login
+    if not session.get('logged_in'):
+        return redirect(url_for('login', next=request.path))
+    if not session.get('logged_in')=='admin':
+        return redirect(url_for('login', next=request.path))
+    
+    gc.collect()
+    
+    if request.method == "POST":
+        changes = request.form.get("changes")
+        
+        f=open('db/changes.txt','w')
+        f.write(changes)
+        f.close()        
+    
+    if not os.path.isfile('db/changes.txt'): return 'NO changes requested!'
+    
+    f=open('db/changes.txt','r')
+    lines=[x.strip() for x in f.readlines()]
+    f.close()
+    
+    if len(lines)==0: return 'NO changes requested!'
+    
+    #all lines empty - clean file
+    n=0
+    for l in lines: 
+        n+=len(l)
+        if n>0: break
+    
+    if n==0:
+        f=open('db/changes.txt','w')
+        f.close()    
+        return 'NO changes requested!'
+    
+    gc.collect()    
+    
+    return render_template("changes.html", text="\n".join(lines))
 
 @app.route("/scheduler/admin", methods=['GET', 'POST'])
 def admin():

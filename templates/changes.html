@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Add new object
+        </title>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 50px;
+            }
+
+            form {
+                width: 90%;
+                min-width: 500px;
+                margin: 0 auto;
+                padding: 20px;
+                border: 1px solid #ccc;
+                border-radius: 10px;
+                background-color: #f9f9f9;
+            }
+
+            textarea {
+                min-height: 200px;
+                max-height: 600px;
+                border-radius: 5px;
+                width: 100%;
+                white-space: pre;       /* preserve spaces and newlines */
+                overflow-x: auto;       /* enable horizontal scrolling */
+            }
+
+            button {
+                padding: 10px 20px;
+                border: none;
+                border-radius: 5px;
+                background-color: #333;
+                color: white;
+                cursor: pointer;
+            }
+
+            button:hover {
+                background-color: #555;
+            }
+        </style>
+    </head>
+
+    <body>
+        <center>
+            <h1>Requested changes of objects DB</h1>
+        </center>
+        <form method="POST">
+            <center><button type="submit">Save list</button></center><br>
+            <textarea name="changes">{{ text }}</textarea>
+        </form>
+    </body>
+
+</html>
