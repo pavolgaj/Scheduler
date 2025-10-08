@@ -3430,7 +3430,7 @@ def object_info():
     f=open('db/objects.csv','r')
     reader = csv.DictReader(f)
     for obj in reader:
-        if (obj['Done']==done or done=='2') and obj['Target'].lower().replace('-','').replace(' ','').replace('_','')==name: 
+        if (obj['Done']==done or done=='2') and obj['Target'].lower().replace('-','').replace(' ','').replace('_','').replace('.','')==name: 
             objects.append(obj)    #load object and select only obj. for observations
             if not (P and t0):
                 if obj['Period']: P=obj['Period']
