@@ -594,6 +594,7 @@ def new():
             if ic: notes+='IC (FE); '
             if simcal=='thar': notes+='sim. ThAr; '
             elif simcal=='ic': notes+='sim. IC (CU); '
+            elif not ic: notes+='NO sim. calib.; '
             if phot: notes+='photometry: '+phot_input+'; '
             notes+=remarks
             if len(notes)>0: notes='"'+notes+'"'
