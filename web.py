@@ -1043,11 +1043,13 @@ def modif_obj():
                         f.close() 
                         
                         result='Status changed automatically!'
+                        subject='AUTOMATIC Change of observing status'
                     else:
                         #incorrect ID, send request to admin
-                        result='Program ID incorrect or missing! Status will be changed manually by admins.' 
+                        result='Program ID incorrect or missing! Status will be changed manually by admins.'                         
+                        subject='REQUEST for Change of observing status'     
                         
-                        f=open('db/changes.txt','a')  
+                        f=open('db/changes.txt','a')              
                         f.write(f'{obj["Target"]} ({obj["RA"]}, {obj["DEC"]}; {obj["Number"]} x {obj["ExpTime"]} s) with programID {obj["ProgramID"]} - change status to "{("observation finished" if status=="done" else "observations running")}"\n')
                         f.close()
                                            
@@ -1057,7 +1059,7 @@ def modif_obj():
                   
                     send.message=render_template('message_status',supervisor=supervis,name=obj['Target'],ra=obj['RA'],dec=obj['DEC'],mag=obj['Mag'],exp=obj['ExpTime'],number=obj['Number'],night=obj['Nights'],prior=obj['Priority'],group=obj['Type'],notes=obj['Remarks'],progID=progID,result=result,status=('observation finished' if status=='done' else 'observations running'))
             
-                    send.mail["subject"]='Change of observing status'
+                    send.mail["subject"]=subject
 
                     try:
                         send.run()
@@ -1083,7 +1085,7 @@ def modif_obj():
                   
                     send.message=render_template('message_change',supervisor=supervis,name=obj['Target'],ra=obj['RA'],dec=obj['DEC'],mag=obj['Mag'],exp=obj['ExpTime'],number=obj['Number'],night=obj['Nights'],prior=obj['Priority'],group=obj['Type'],notes=obj['Remarks'],progID=progID,status=('observation finished' if status=='done' else 'observations running')+(' (not changed)' if status==status0 else ''),message=mess)
             
-                    send.mail["subject"]='Change of observing target'
+                    send.mail["subject"]='REQUEST for Change of observing target'
 
                     try:
                         send.run()
