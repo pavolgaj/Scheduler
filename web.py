@@ -131,6 +131,12 @@ def admins():
     send=SendMail('')
     mails=send.mail["to"]
     return redirect('mailto:'+mails+'?subject=Scheduler DB') 
+@app.route('/scheduler/logout', methods=['GET'])
+def logout():
+    session['logged_in'] = None
+    return render_template('intro.html')
+
+
 @app.route('/scheduler/login', methods=['GET', 'POST'])
 def login():
     '''login page'''
