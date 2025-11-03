@@ -220,6 +220,24 @@
                 }
 
                 }
+                
+            function deleteRow(target) {
+                num=saveRowNum();
+                if (num) {
+                    return confirm("Delete target '"+target+"'?");
+                }
+                return false;
+            }   
+                
+            function saveRowNum() {
+                // test number of displayed rows -> save only if no more than 100 rows (possible problem...)
+                const num=$('#my_table tr:visible').length;
+                if (num > 101) {
+                    alert("Not show more than 100 rows when saving DB!!!")
+                    return false;
+                }
+                return true;
+            }
         </script>
     </head>
 
@@ -339,9 +357,10 @@
                 <h1>Objects in database</h1>
                 <button type="submit" name="download" title="Download">Download CSV
                 </button>
-                <button type="submit" name="save" title="Save DB">Save DB
+                <button type="submit" name="save" title="Save DB" onclick="return saveRowNum();">Save DB
                 </button>
             </center>
+            <h2 style="color: red; font-weight: bold;">Not show more than 100 rows when saving DB!!!</h2>
             <h2 style="color: red; font-weight: bold;">Any delete action also saves all modifications in table!</h2>
             <br>
             <label for="rows">Rows to show:</label>
@@ -374,7 +393,7 @@
                     <!-- fix first 3 cols -->
                     <td class="actions" style="position: sticky; left: 0px; z-index: 0; background-color: inherit;">
                         <button type="submit" class="modify-row" name="delete_{{ loop.index0 }}" title="Delete target"
-                            onclick="return confirm('Delete target \'{{ row['Target'] }}\'?');">
+                            onclick="return deleteRow('{{ row['Target'] }}')">                              
                             <img src="{{ url_for('static',filename='delete.svg') }}" alt="delete">
                         </button>
                         <button type="button" class="modify-row" name="info" title="Info about observing program"
@@ -448,6 +467,10 @@
             function getVal(elm) {
                 let v = $(elm).children('td').eq(n).find("input").val().toUpperCase();   // sort using value in input
                 {% if db == 'objects' %}
+                if (n === 1) {
+                    // checkboxes for done
+                    return $(elm).children('td').eq(n).find("input")[0].checked;
+                }
                 if (n === 3) {
                     {% else %}
                     if (n === 2) {
