@@ -1139,7 +1139,7 @@ def show_db():
         all.append(obj)
     f.close()            
     
-    make_stats()
+    make_stats()        
 
     if os.path.isfile('db/observations.json'): 
         f=open('db/observations.json','r')
@@ -1149,6 +1149,8 @@ def show_db():
         f=open('db/names.json','r')
         names=json.load(f)
         f.close()
+        
+        plandate=datetime.now(timezone.utc).replace(tzinfo=None)
     
         for obj in data:
             name=obj['Target'].lower().replace(' ', '').replace('-','').replace('_','').replace('+','').replace('.','')
@@ -1160,6 +1162,53 @@ def show_db():
                 obj['Observations']=str(nobs)
                 obj['Last']=last 
                 
+                if obj['Type'] in ['RV Standard','SpecPhot Standard'] or len(obj['Nights'].strip())==0:
+                    continue
+                
+                if int(obj['Observations'])>0: 
+                    #calculated priorities
+                    diffdate=(plandate-datetime.strptime(last,'%Y-%m-%d')).days
+
+                    fr=obj['Frequency']
+                    if pd.isna(fr): fr='unspecified'
+                    if len(fr.strip())==0: fr='unspecified'
+
+                    #specify interval for obs.
+                    if fr=='everynight':
+                        obsint=1
+                        k=0.2
+                    elif fr=='twiceweek':
+                        obsint=3
+                        k=0.1
+                    elif fr=='onceweek': obsint=7
+                    elif fr=='twicemonth': obsint=14
+                    elif fr=='oncemonth': obsint=30
+                    elif fr=='unspecified': obsint=10
+                    
+                    #modification of priority
+                    if obsint<5:
+                        dprior=10-20/(1+np.exp(-k*(diffdate-obsint)))
+                    else:
+                        dprior=20*(1-np.exp(-(diffdate-obsint)**2/obsint**2))
+                        if obsint<diffdate: dprior*=-0.8
+                    if fr=='unspecified' and dprior<0: dprior=0
+
+                    obj['NewPriority']=float(obj['Priority'])+dprior
+
+                    #always priority>1
+                    if fr=='everynight': obj['NewPriority']=max(1.1,obj['NewPriority'])
+                    elif fr=='twiceweek': obj['NewPriority']=max(1.2,obj['NewPriority'])
+                    elif fr=='onceweek': obj['NewPriority']=max(1.3,obj['NewPriority'])
+                    elif fr=='twicemonth': obj['NewPriority']=max(1.4,obj['NewPriority'])
+                    elif fr=='oncemonth': obj['NewPriority']=max(1.5,obj['NewPriority'])
+
+                    #decrease priority if many observations done
+                    if int(obj['Observations'])>=6*int(obj['Nights']): obj['NewPriority']+=10
+                    elif int(obj['Observations'])>=4*int(obj['Nights']): obj['NewPriority']+=5
+                    elif int(obj['Observations'])>=2*int(obj['Nights']): obj['NewPriority']+=2 
+                    
+                    obj['NewPriority']='%.1f' %obj['NewPriority']
+                
         for obj in done:
             name=obj['Target'].lower().replace(' ', '').replace('-','').replace('_','').replace('+','').replace('.','')
             
@@ -1168,9 +1217,10 @@ def show_db():
                 nobs=len(obs)
                 last=obs[-1]
                 obj['Observations']=str(nobs)
-                obj['Last']=last       
+                obj['Last']=last                  
+                     
     
-    header='Target,RA,DEC,Mag,Period,Epoch,ExpTime,Number,Nights,Observations,Last,Priority,Type,Remarks,MoonPhase,StartPhase,EndPhase,StartDate,EndDate,Conditions,Frequency,OtherRequests,Supervisor,Program'    
+    header='Target,RA,DEC,Mag,Period,Epoch,ExpTime,Number,Nights,Observations,Last,Priority,NewPriority,Type,Remarks,MoonPhase,StartPhase,EndPhase,StartDate,EndDate,Conditions,Frequency,OtherRequests,Supervisor,Program'    
     
     if request.method == 'POST':
         if 'download' in request.form:
@@ -1206,7 +1256,7 @@ def show_db():
             #download only finished part of DB
             si = io.StringIO() # create "file-like" output for writing
             
-            writer=csv.DictWriter(si,fieldnames=header.strip().split(','))
+            writer=csv.DictWriter(si,fieldnames=header.replace('NewPriority,','').strip().split(','))
             writer.writeheader()
             writer.writerows([{x: o[x] for x in o if x not in ['Done','ProgramID']} for o in done])
             
@@ -3421,6 +3471,7 @@ def object_info():
         try: datetime.strptime(day,'%Y-%m-%d')
         except ValueError: day=datetime.now(timezone.utc).strftime('%Y-%m-%d')
     else: day=datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    plandate=datetime.strptime(day,'%Y-%m-%d')
     
     if 'time' in request.args: 
         time=request.args['time']
@@ -3494,7 +3545,55 @@ def object_info():
                                 else: continue                        
                             else: continue  
                     f.close() 
-                snr=round(np.mean(snrs),1)                
+                snr=round(np.mean(snrs),1)       
+                
+                #calculated priorities
+                diffdate=(plandate-datetime.strptime(last,'%Y-%m-%d')).days
+                #if diffdate<0: diffdate=0 #in past 
+
+                for ob in objects:
+                    if len(ob['Nights'].strip())==0: continue
+                    
+                    fr=ob['Frequency']
+                    if pd.isna(fr): fr='unspecified'
+                    if len(fr.strip())==0: fr='unspecified'
+
+                    #specify interval for obs.
+                    if fr=='everynight':
+                        obsint=1
+                        k=0.2
+                    elif fr=='twiceweek':
+                        obsint=3
+                        k=0.1
+                    elif fr=='onceweek': obsint=7
+                    elif fr=='twicemonth': obsint=14
+                    elif fr=='oncemonth': obsint=30
+                    elif fr=='unspecified': obsint=10
+                    
+                    #modification of priority
+                    if obsint<5:
+                        dprior=10-20/(1+np.exp(-k*(diffdate-obsint)))
+                    else:
+                        dprior=20*(1-np.exp(-(diffdate-obsint)**2/obsint**2))
+                        if obsint<diffdate: dprior*=-0.8
+                    if fr=='unspecified' and dprior<0: dprior=0
+                    
+                    if diffdate<0: dprior=0  #in past  
+                    ob['NewPriority']=float(ob['Priority'])+dprior
+
+                    #always priority>1
+                    if fr=='everynight': ob['NewPriority']=max(1.1,ob['NewPriority'])
+                    elif fr=='twiceweek': ob['NewPriority']=max(1.2,ob['NewPriority'])
+                    elif fr=='onceweek': ob['NewPriority']=max(1.3,ob['NewPriority'])
+                    elif fr=='twicemonth': ob['NewPriority']=max(1.4,ob['NewPriority'])
+                    elif fr=='oncemonth': ob['NewPriority']=max(1.5,ob['NewPriority'])
+
+                    #decrease priority if many observations done
+                    if nobs>=6*int(ob['Nights']): ob['NewPriority']+=10
+                    elif nobs>=4*int(ob['Nights']): ob['NewPriority']+=5
+                    elif nobs>=2*int(ob['Nights']): ob['NewPriority']+=2 
+                    
+                    ob['NewPriority']='%.1f' %ob['NewPriority']        
 
     
     gc.collect()

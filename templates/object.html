@@ -137,8 +137,9 @@
             <tr>
                 <td style="width: 60%; max-width: 2000px;">
                     <table>
-                        {% for key in obj[0] %}
-                        {% if key not in ['Target','Done','ProgramID'] %}
+                        {% for key in ['RA','DEC','Mag','Period','Epoch','ExpTime','Number','Nights','Priority','NewPriority','Type','Remarks',
+                        'MoonPhase','StartPhase','EndPhase','StartDate','EndDate','Conditions','Frequency','OtherRequests','Supervisor'] %}
+                        {% if key in obj[0] %}
                         <tr>
                             <td class="key">{{ key }}</td>
                             {% for ob in obj %}

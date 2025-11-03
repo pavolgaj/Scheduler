@@ -228,9 +228,11 @@
             <thead>
                 <tr>
                     {% for val in header %}
+                    {% if not val=='NewPriority' %}
                     <th class="doneHead" {% if loop.index0==0 %}
                         style="position: sticky; left: 0px; z-index: 2; background-color: white;" {% endif %}>{{ val }}
                     </th>
+                    {% endif %}
                     {% endfor %}
                 </tr>
             </thead>
@@ -238,6 +240,7 @@
             {% set up=loop.index %} <!-- for different color of fixed col between rows -->
             <tr>
                 {% for col in header %}
+                {% if not col=='NewPriority' %}
                 <td {% if (col=='Nights' or col=='Target') and row['Observations'] and row['Nights'] %}{% if (row['Observations'] | int())>=(row['Nights'] | int()) %}style="background-color: lime;"{% endif %}{% endif %}>
                     <!-- compress output values = round floats and remove decimals from RA/DEC -->
                     {% if not '.' in row[col] %}
@@ -263,6 +266,7 @@
                     </button>
                     {% endif %}
                 </td>
+                {% endif %}
                 {% endfor %}
             </tr>
             {% endfor %}
