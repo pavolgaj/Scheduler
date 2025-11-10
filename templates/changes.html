@@ -23,15 +23,6 @@
                 background-color: #f9f9f9;
             }
 
-            textarea {
-                min-height: 200px;
-                max-height: 600px;
-                border-radius: 5px;
-                width: 100%;
-                white-space: pre;       /* preserve spaces and newlines */
-                overflow-x: auto;       /* enable horizontal scrolling */
-            }
-
             button {
                 padding: 10px 20px;
                 border: none;
@@ -44,6 +35,60 @@
             button:hover {
                 background-color: #555;
             }
+
+            table {
+                font-family: arial, sans-serif;
+                border-collapse: collapse;
+                width: 100%;
+            }
+
+            td,
+            th {
+                border: 1px solid black;
+                text-align: left;
+                padding: 8px;
+                /* white-space: nowrap; */
+                word-wrap: break-word; 
+            }
+
+            tr:nth-child(even) {
+                background-color: #dddddd;
+            }
+
+            thead th {
+                /* fix header */
+                position: sticky;
+                top: 0;
+                /* Stick the header to the top */
+                z-index: 1;
+                /* Ensure the header stays on top */
+                background-color: white;
+            }
+
+            .actions {
+                width: 70px;
+                display: table-cel;
+                /* font-size: 0em; */
+                justify-content: left;
+            }
+
+            .modify-row {
+                padding: 0px;
+                width: 20px;
+                height: 20px;
+                background-color: silver;
+                border-color: black;
+                border-width: 1px;
+                border-radius: 5px;
+                margin-right: 2px;
+            }
+
+            .modify-row img {
+                height: 17px;
+                display: block;
+                margin-left: auto;
+                margin-right: auto;
+            }
         </style>
     </head>
 
@@ -52,8 +97,35 @@
             <h1>Requested changes of objects DB</h1>
         </center>
         <form method="POST">
-            <center><button type="submit">Save list</button></center><br>
-            <textarea name="changes">{{ text }}</textarea>
+            <!-- <center><button type="submit">Save list</button></center><br> -->
+            <!-- <textarea name="changes">{{ text }}</textarea> -->
+            <table>
+                <thead>
+                    <tr>
+                        <th class="actions">Solved?</th>
+                        <th>Target</th>
+                        <th>Requested changes</th>
+                    </tr>
+                </thead>
+                {% for obj in objs %}
+                <tr data-row-id="{{ loop.index0 }}">
+                    <td class="actions">
+                        <button type="submit" class="modify-row" name="accept_{{ loop.index0 }}"
+                            title="Mark request as solved. You need to make changes manually in DB!"
+                            onclick="return confirm('Mark this request as solved? You need to make changes manually in DB!');">
+                            <img src="{{ url_for('static',filename='accept.svg') }}" alt="accept">
+                        </button>
+                        <button type="submit" class="modify-row" name="delete_{{ loop.index0 }}" title="Decline request."
+                            onclick="return confirm('Decline this request?');">
+                            <img src="{{ url_for('static',filename='delete.svg') }}" alt="delete">
+                        </button>
+                    </td>
+                    <td>{{ obj['target'] }}</td>
+                    <td>{{ obj['changes'] }}</td>
+                </tr>
+                {% endfor %}
+
+            </table>
         </form>
     </body>
 

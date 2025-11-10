@@ -1056,11 +1056,24 @@ def modif_obj():
                     else:
                         #incorrect ID, send request to admin
                         result='Program ID incorrect or missing! Status will be changed manually by admins.'                         
-                        subject=obj['Target']+': REQUEST for Change of observing status'     
+                        subject=obj['Target']+': REQUEST for Change of observing status'  
                         
-                        f=open('db/changes.txt','a')              
-                        f.write(f'{obj["Target"]} ({obj["RA"]}, {obj["DEC"]}; {obj["Number"]} x {obj["ExpTime"]} s) with programID {obj["ProgramID"]} - change status to "{("observation finished" if status=="done" else "observations running")}"\n')
-                        f.close()
+                        writeheader=False
+                        if not os.path.isfile('db/changes.csv'): 
+                            writeheader=True
+                        
+                        f=open('db/changes.csv','a') 
+                        writer = csv.DictWriter(f, fieldnames=['target','changes','mail'])
+                        
+                        if writeheader: writer.writeheader()
+                        writer.writerow({'target': f'{obj["Target"]} ({obj["RA"]}, {obj["DEC"]}; {obj["Number"]} x {obj["ExpTime"]} s) with programID {obj["ProgramID"]}',
+                                            'changes': f'change status to "{("observation finished" if status=="done" else "observations running")}"',
+                                            'mail': email})
+                        f.close()     
+                        
+                        # f=open('db/changes.txt','a')              
+                        # f.write(f'{obj["Target"]} ({obj["RA"]}, {obj["DEC"]}; {obj["Number"]} x {obj["ExpTime"]} s) with programID {obj["ProgramID"]} - change status to "{("observation finished" if status=="done" else "observations running")}"\n')
+                        # f.close()
                                            
                     
                     #send mail to admins and supervisior of added obj
@@ -1083,12 +1096,22 @@ def modif_obj():
                 
                 else:
                     #bigger change, send request to admin
-                    f=open('db/changes.txt','a')  
-                    f.write(f'{obj["Target"]} ({obj["RA"]}, {obj["DEC"]}; {obj["Number"]} x {obj["ExpTime"]} s) with programID {obj["ProgramID"]} - requested changes "{mess}"')
+                    writeheader=False
+                    if not os.path.isfile('db/changes.csv'): 
+                        writeheader=True
+                            
+                    f=open('db/changes.csv','a') 
+                    writer = csv.DictWriter(f, fieldnames=['target','changes','mail'])
+                    
+                    if writeheader: writer.writeheader()
+                    mess1=mess
                     if not status==status0:
-                        f.write(f' and change status to "{("observation finished" if status=="done" else "observations running")}"')
-                    f.write('\n')
-                    f.close()
+                        mess1+=f' and change status to "{("observation finished" if status=="done" else "observations running")}"'
+                    
+                    writer.writerow({'target': f'{obj["Target"]} ({obj["RA"]}, {obj["DEC"]}; {obj["Number"]} x {obj["ExpTime"]} s) with programID {obj["ProgramID"]}',
+                                      'changes': mess1,
+                                      'mail': email})
+                    f.close()                    
                     
                     send=SendMail(email)
                   
@@ -1284,34 +1307,66 @@ def changes():
     gc.collect()
     
     if request.method == "POST":
-        changes = request.form.get("changes")
+        r_acc = re.compile("accept_*")
+        r_del = re.compile("delete_*")
         
-        f=open('db/changes.txt','w')
-        f.write(changes)
-        f.close()        
+        acc=list(filter(r_acc.match,request.form.keys()))
+        dele=list(filter(r_del.match,request.form.keys()))
+        
+        if len(acc+dele)>0:
+            id=int((acc+dele)[0].split('_')[1])
+            
+            f=open('db/changes.csv','r')
+            reader = csv.DictReader(f)
+            objs = [row for row in reader]    
+            f.close()      
+            
+            #send mail to admins and supervisior of added obj
+            send=SendMail(objs[id]['mail'])
+            
+            if acc: 
+                send.message='Request of following target was solved and accepted!\n\n'
+            if dele:
+                send.message='Request of following target was declined!\n\n'
+            send.message+=objs[id]['target']+'\n\n'
+            send.message+=objs[id]['changes']
+            
+            if acc:
+                send.mail["subject"]=objs[id]['target'].split('(')[0].strip()+': SOLVED Change of observing target' 
+                
+            if dele:
+                send.mail["subject"]=objs[id]['target'].split('(')[0].strip()+': DECLINED Change of observing target' 
+            
+            del(objs[id]) 
+                
+            f=open('db/changes.csv','w')
+            writer = csv.DictWriter(f, fieldnames=['target','changes','mail'])
+            writer.writeheader()
+            writer.writerows(objs)            
+            f.close() 
+            
+            try:
+                send.run()
+            except:
+                traceback.print_exc()
+                send.mail['cc']=''
+                try: send.send_mail("ERROR: exception", traceback.format_exc())
+                except: pass   #incorrect mail config
+                
+            gc.collect()       
     
-    if not os.path.isfile('db/changes.txt'): return 'NO changes requested!'
+    if not os.path.isfile('db/changes.csv'): return 'NO changes requested!'
     
-    f=open('db/changes.txt','r')
-    lines=[x.strip() for x in f.readlines()]
+    f=open('db/changes.csv','r')
+    reader = csv.DictReader(f)
+    objs = [row for row in reader]    
     f.close()
     
-    if len(lines)==0: return 'NO changes requested!'
-    
-    #all lines empty - clean file
-    n=0
-    for l in lines: 
-        n+=len(l)
-        if n>0: break
-    
-    if n==0:
-        f=open('db/changes.txt','w')
-        f.close()    
-        return 'NO changes requested!'
+    if len(objs)==0: return 'NO changes requested!'
     
     gc.collect()    
     
-    return render_template("changes.html", text="\n".join(lines))
+    return render_template("changes.html", objs=objs)
 
 @app.route("/scheduler/admin", methods=['GET', 'POST'])
 def admin():
