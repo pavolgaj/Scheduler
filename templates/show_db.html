@@ -173,9 +173,15 @@
             title="Search for target in DB.">
         <!-- table with observable obj -->
         <center>
-            <h2 id="observable">Objects for observations</h2>
-            <a href="#finished"><button>Skip to Finished objects</button></a>
-        </center>        
+            <h2 id="observable">Objects for observations</h2>            
+            <form method="post">
+                <a href="#finished"><button type="button">Skip to Finished objects</button></a>
+                <button type="submit" name="observe"
+                    title="Download objects with needed observatios (not finished).">Download observation targets
+                </button>
+            </form>
+        </center>   
+        <br>     
         <table id="my_table">
             <thead>
                 <tr>
@@ -224,8 +230,13 @@
         <!-- table with finished obj -->
         <center>
             <h2 id="finished">Finished objects</h2>
-            <a href="#observable"><button>Skip to Objects for observations</button></a>
+            <form method="post">
+                <a href="#observable"><button type="button">Skip to Objects for observations</button></a>
+                <button type="submit" name="done" title="Download finished objects in DB">Download finished
+                </button>
+            </form>
         </center>
+        <br>
         <table id="done_table">
             <thead>
                 <tr>
