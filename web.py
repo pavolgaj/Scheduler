@@ -802,6 +802,9 @@ def bulk():
                 #read data from input file and save them in list
                 file_content = [x.decode() for x in file.readlines()]
                 filetext=''.join(file_content)
+                
+                if len(file_content)>100: 
+                    errors['file'] = 'Maximum number of targets to upload is 100!'    
 
             if not supervis:
                 errors['supervis'] = 'Supervisor is required.'
@@ -1824,6 +1827,13 @@ def scheduler():
                                 elif fr=='oncemonth': obj['priority']=max(1.5,obj['priority'])
                                 
                                 obj['priority']=round(obj['priority'],1)
+                                
+                                #for series+priority=1 -> always 1
+                                if obj['full']['Priority']==1 and dprior<0: 
+                                    obj['priority']=1
+                                if obj['full']['Priority']==1 and obj['n_exp']=='series':
+                                    obj['priority']=1
+                                
                         
                             if tr in obs:
                                 #decrease priority if many observations done
@@ -3539,7 +3549,7 @@ def object_info():
                     reader = csv.DictReader(f)
                     for row in reader:
                         #utilize similar objects names - spaces, lower/upper case etc.
-                        if name==row['object'].replace('?','').replace('ttarget-','').replace('ttarget_','').replace('-thar','').replace('_thar','').replace('_',' ').strip().lower().replace('-','').replace(' ','').replace('+','').replace('.',''):                  
+                        if name==row['object'].replace('?','').replace('ttarget-','').replace('ttarget_','').replace('-thar','').replace('_thar','').replace('_',' ').replace('-ThAr','').replace('_ThAr','').strip().lower().replace('-','').replace(' ','').replace('+','').replace('.',''):                  
                             if 'snr' in row:
                                 if len(row['snr'])>0: snrs.append(float(row['snr']))
                                 else: continue                        
@@ -4020,7 +4030,7 @@ def search():
             reader = csv.DictReader(f)
             for row in reader:
                 #utilize similar objects names - spaces, lower/upper case etc.
-                if target.lower().replace('-','').replace(' ','').replace('+','').replace('.','')==row['object'].replace('?','').replace('ttarget-','').replace('ttarget_','').replace('-thar','').replace('_thar','').replace('_',' ').strip().lower().replace('-','').replace(' ','').replace('+','').replace('.',''):
+                if target.lower().replace('-','').replace(' ','').replace('+','').replace('.','')==row['object'].replace('?','').replace('ttarget-','').replace('ttarget_','').replace('-thar','').replace('_thar','').replace('-ThAr','').replace('_ThAr','').replace('_',' ').strip().lower().replace('-','').replace(' ','').replace('+','').replace('.',''):
                     exp=row['exposure']
                     inst=row['instrument']
                     if inst in obs[night]:

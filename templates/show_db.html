@@ -173,8 +173,9 @@
             title="Search for target in DB.">
         <!-- table with observable obj -->
         <center>
-            <h2>Objects for observations</h2>
-        </center>
+            <h2 id="observable">Objects for observations</h2>
+            <a href="#finished"><button>Skip to Finished objects</button></a>
+        </center>        
         <table id="my_table">
             <thead>
                 <tr>
@@ -222,7 +223,8 @@
 
         <!-- table with finished obj -->
         <center>
-            <h2>Finished objects</h2>
+            <h2 id="finished">Finished objects</h2>
+            <a href="#observable"><button>Skip to Objects for observations</button></a>
         </center>
         <table id="done_table">
             <thead>

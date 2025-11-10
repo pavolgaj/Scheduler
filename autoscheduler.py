@@ -132,7 +132,13 @@ for obj in objects0:
                     elif fr=='twicemonth': obj['priority']=max(1.4,obj['priority'])
                     elif fr=='oncemonth': obj['priority']=max(1.5,obj['priority'])
 
-                    obj['priority']=round(obj['priority'],1)                    
+                    obj['priority']=round(obj['priority'],1)      
+                    
+                    #for series+priority=1 -> always 1
+                    if obj['full']['Priority']==1 and dprior<0: 
+                        obj['priority']=1
+                    if obj['full']['Priority']==1 and obj['n_exp']=='series':
+                        obj['priority']=1
 
                 if tr in obs:
                     #decrease priority if many observations done
