@@ -85,7 +85,7 @@ for obj in objects:
                         if float(row['snr'])>snr:
                             if obs not in good: good.append(obs)
                             #break
-                        if float(row['snr'])>snrQ:
+                        elif float(row['snr'])>snrQ:
                             if obs not in quest: quest.append(obs)
                     else: break
                 else: break
