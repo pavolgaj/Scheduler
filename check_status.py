@@ -13,7 +13,7 @@ from make_stats import make_stats
 snr=10  # limit snr
 snrQ=5  #limit for worse snr
 
-lastweek=False
+lastweek=True
 
 make_stats()
 
