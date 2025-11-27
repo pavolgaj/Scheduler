@@ -1382,6 +1382,30 @@ def admin():
     rows=0
     searchInput='' 
     
+    tooltips={'Target': 'name of object (use name findable in Simbad if possible).',
+            'RA': 'right accession in format "H M S" or "H:M:S" in epoch J2000.0.',
+            'DEC': 'declination in format "D M S" or "D:M:S" in epoch J2000.0.',
+            'Mag': 'magnitude of target in V (or another close filter).',
+            'Period': 'orbital period in days.',
+            'Epoch': 'initial epoch in full JD.',
+            'ExpTime': 'exposure time in seconds.',
+            'Number': 'number of exposure (per 1 night). Use "series" for taking a series.',
+            'Nights': 'number of requested observing nights.',
+            'Priority': 'priority of target. Lower number = bigger priority. The highest priority = 1. Priorities <1 are for standards only!',
+            'Type': 'group of objects.',
+            'Remarks': 'all remarks to observation: usage of iodine cell (IC), settings of simultaneous calibration (ThAr, IC), parameters for simultaneous photometry (e.g. filter, exposure).',
+            'MoonPhase': 'Constraint on maximum acceptable Moon phase (illumination). From 0 to 1 (full Moon). Leave empty if NO limit.',
+            'StartPhase': 'Constraint on start orbital phase of binary star or exoplanet. From 0 to 1. Use start value bigger than end one for interval around phase 0. Leave empty if NO limit.',
+            'EndPhase': 'Constraint on end orbital phase of binary star or exoplanet. From 0 to 1. Use start value bigger than end one for interval around phase 1. Leave empty if NO limit.',
+            'StartDate': '''Constraint on start of observing period. Use format "Y-m-d H:M:S" or "Y-m-d'T'H:M:S" (time 00:00:00 is recommended). Leave empty if NO limit.''',
+            'EndDate': '''Constraint on end of observing period. Use format "Y-m-d H:M:S" or "Y-m-d'T'H:M:S" (time 23:59:59 is recommended). Leave empty if NO limit.''',
+            'Conditions': 'Required observing conditions (excellent, good, poor).',
+            'Frequency': 'Frequency of observations (everynight, twiceweek, onceweek, twicemonth, oncemonth, unspecified).',
+            'OtherRequests': 'Other constraints and requests for observation scheduling. Leave empty if NOT aplicable.',
+            'Supervisor': 'Name of target supervisor. Use surname only!',
+            'ProgramID': 'Program ID (obtained from AsU).'
+    }
+    
     if request.method == 'POST':
         db=request.form['db']
         searchInput=request.form['searchInput']
@@ -1690,7 +1714,7 @@ def admin():
     f.close()
     
     gc.collect()
-    return render_template('admin_db.html', db=db, header=header.strip().split(',')+['ProgramID'], data=data, saved=saved, errors=errors, searchInput=searchInput, rows=rows)
+    return render_template('admin_db.html', db=db, header=header.strip().split(',')+['ProgramID'], data=data, saved=saved, errors=errors, searchInput=searchInput, rows=rows,tooltips=tooltips)
 
 @app.route("/scheduler/run", methods=['GET','POST'])
 def scheduler():

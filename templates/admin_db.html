@@ -361,7 +361,7 @@
                     </script>
                     {% for col in header %}
                     <td {% if loop.index0==0 %}class="fix" style="left: 100px;" {% endif %}>
-                        <input type="text" name="{{ col }}" value="{{ row[col] }}">
+                        <input type="text" name="{{ col }}" value="{{ row[col] }}" {% if col in tooltips %}title="{{ tooltips[col] }}"{% endif %}>
                     </td>
                     {% endfor %}
                 </tr>
@@ -433,7 +433,7 @@
                     </td>
                     <td class="fix" style="left: 80px;">
                         <center>
-                            <input type="checkbox" name="Done" value="{{ loop.index0 }}" title="Observations finished."
+                            <input type="checkbox" name="Done" value="{{ loop.index0 }}" title="Observations finished?"
                                 {% if row['Done']=='1' %}checked{% endif %}> <!-- if checked -> value from id -->
                         </center>
                     </td>
@@ -442,7 +442,7 @@
                     </td>
                     {% for col in header %}
                     <td {% if loop.index0==0 %} class="fix" style="left: 135px;" {% endif %}>
-                        <input type="text" name="{{ col }}" value="{{ row[col] }}">
+                        <input type="text" name="{{ col }}" value="{{ row[col] }}" {% if col in tooltips %}title="{{ tooltips[col] }}"{% endif %}>
                     </td>
                     {% endfor %}
                 </tr>
