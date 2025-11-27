@@ -69,10 +69,11 @@
                 background-color: #555;
             }
 
-            button:disabled, button[disabled]{
-              border: 1px solid #999999;
-              background-color: #cccccc;
-              color: #666666;
+            button:disabled,
+            button[disabled] {
+                border: 1px solid #999999;
+                background-color: #cccccc;
+                color: #666666;
             }
 
             .actions {
@@ -165,17 +166,17 @@
                 filter = input.value.toUpperCase();
                 table = document.getElementById("my_table");
                 tr = table.getElementsByTagName("tr");
-                {% if db=='new' %}
-                ids=document.getElementById("selected");
-                ids.value='';
+                {% if db == 'new' %}
+                ids = document.getElementById("selected");
+                ids.value = '';
                 {% endif %}
 
-                var n=0;
+                var n = 0;
                 for (i = 1; i < tr.length; i++) {
                     // Hide the row initially.
                     tr[i].style.display = "none";
 
-                    if (n>100) {
+                    if (n > 100) {
                         //show no more than 100 rows
                         continue;
                     }
@@ -183,31 +184,31 @@
                     td = tr[i].getElementsByTagName("td");
                     for (var j = 0; j < td.length; j++) {
                         cell = tr[i].getElementsByTagName("td")[j];
-                        if (cell) {                            
+                        if (cell) {
                             if (cell.innerHTML.toUpperCase().indexOf(filter) > -1) {
                                 tr[i].style.display = "";
                                 indexInput = tr[i].querySelector('input#id');
-                                {% if db=='new' %}
-                                ids.value=ids.value+indexInput.value+',';
+                                {% if db == 'new' %}
+                                ids.value = ids.value + indexInput.value + ',';
                                 {% endif %}
-                                n+=1;
+                                n += 1;
                                 break;
-                            }                            
+                            }
                         }
                     }
                 }
 
-                {% if db=='objects' %}
-                if (! filter) { updateRows(); }
+                {% if db == 'objects' %}
+                if (!filter) { updateRows(); }
                 {% endif %}
             }
-        
-        
+
+
             function updateRows() {
                 // filter of rows in table
-                {% if db=='new' %}
-                ids=document.getElementById("selected");
-                ids.value='';
+                {% if db == 'new' %}
+                ids = document.getElementById("selected");
+                ids.value = '';
                 {% endif %}
 
                 const table = document.getElementById('my_table');
@@ -221,39 +222,50 @@
 
                 const filter = document.getElementById('rows');
                 var start = parseInt(filter.value);
-                var end = start+100;
+                var end = start + 100;
 
                 for (let i = 0; i < rows.length; i++) {
                     if (i + 1 >= start && i + 1 <= end) {
                         rows[i].style.display = ""; // show
                         indexInput = rows[i].querySelector('input#id');
-                        {% if db=='new' %}
-                        ids.value=ids.value+indexInput.value+',';
+                        {% if db == 'new' %}
+                        ids.value = ids.value + indexInput.value + ',';
                         {% endif %}
                     } else {
                         rows[i].style.display = "none"; // hide
                     }
                 }
 
-                }
-                
+            }
+
             function deleteRow(target) {
-                num=saveRowNum();
+                num = saveRowNum();
                 if (num) {
-                    return confirm("Delete target '"+target+"'?");
+                    return confirm("Delete target '" + target + "'?");
                 }
                 return false;
-            }   
-                
+            }
+
             function saveRowNum() {
                 // test number of displayed rows -> save only if no more than 100 rows (possible problem...)
-                const num=$('#my_table tr:visible').length;
+                const num = $('#my_table tr:visible').length;
                 if (num > 101) {
                     alert("Not show more than 100 rows when saving DB!!!")
                     return false;
                 }
                 return true;
             }
+
+            function details() {
+                var w = window.open();
+                var html = '<html><body><ul>';
+                {% for key in tooltips %}
+                html=html+'<li><b>{{ key }}</b> - {{ tooltips[key] }}</li>'
+                {% endfor %}
+                html=html+'</ul></body></html>'
+                w.document.write(html);
+            }
+
         </script>
     </head>
 
@@ -281,7 +293,8 @@
             {% endif %}
 
             <br>
-            <input type="text" id="searchInput" name="searchInput" onkeyup="searchTab()" value="{{ searchInput }}" placeholder="Search for target..." title="Search for target in DB.">
+            <input type="text" id="searchInput" name="searchInput" onkeyup="searchTab()" value="{{ searchInput }}"
+                placeholder="Search for target..." title="Search for target in DB.">
 
             <!-- Table for new objects -->
             {% if db=='new' %}
@@ -295,10 +308,10 @@
                 <button type="submit" name="delete_all" title="Delete all targets"
                     onclick="return confirm('Delete all targets?');">Delete all
                 </button>
-                <button type="submit" name="accept_select" title="Accept selected targets and move them to DB." 
+                <button type="submit" name="accept_select" title="Accept selected targets and move them to DB."
                     onclick="return confirm('Accept selected targets and move them to DB?');">Accept selected
                 </button>
-                <button type="submit" name="delete_select" title="Delete selected targets" 
+                <button type="submit" name="delete_select" title="Delete selected targets"
                     onclick="return confirm('Delete selected targets?');">Delete selected
                 </button>
             </center>
@@ -306,11 +319,14 @@
             </h2>
             <br>
             <label for="rows">Rows to show:</label>
-            <select id="rows" name="rows" onchange="updateRows()">                
+            <select id="rows" name="rows" onchange="updateRows()">
                 {% for i in range(0,data|length,100) %}
                 <option value="{{ i }}" {% if rows==i %}selected{% endif %}>{{ i }} - {{ i+100 }}</option>
                 {% endfor %}
             </select>
+            &nbsp;&nbsp;&nbsp;
+            <button type="button" name="info" title="Show requirement on data format."
+                onclick="details()">Format info</button>
             <br>
             <br>
             <input type="hidden" name="selected" id="selected">
@@ -318,7 +334,8 @@
                 <thead>
                     <tr>
                         <!-- fix first 2 cols -->
-                        <th style="position: sticky; left: 0px; z-index: 2; background-color: white; min-width: 100px;"></th>
+                        <th style="position: sticky; left: 0px; z-index: 2; background-color: white; min-width: 100px;">
+                        </th>
                         <th style="display:none">id</th> <!-- id for correct sorting -->
                         {% for val in header %}
                         <th {% if loop.index0==0
@@ -342,26 +359,28 @@
                             <img src="{{ url_for('static',filename='delete.svg') }}" alt="delete">
                         </button>
                         <button type="button" class="modify-row" name="info" title="Info about observing program"
-                        onclick="window.open('{{ url_for('proposal_info', name = row['ProgramID']) }}', '_blank')"
-                        formtarget=”_blank”>
+                            onclick="window.open('{{ url_for('proposal_info', name = row['ProgramID']) }}', '_blank')"
+                            formtarget=”_blank”>
                             <img src="{{ url_for('static',filename='info.svg') }}" alt="preview">
                         </button>
                         <button type="button" class="modify-row" name="info" title="Search in Simbad"
-                        onclick="window.open('https://simbad.u-strasbg.fr/simbad/sim-basic?Ident={{ row.RA }}{% if not row.DEC[0]=='-' %}%2B{% endif %}{{ row.DEC | replace('+','') }}', '_blank')"
-                        formtarget=”_blank”>
+                            onclick="window.open('https://simbad.u-strasbg.fr/simbad/sim-basic?Ident={{ row.RA }}{% if not row.DEC[0]=='-' %}%2B{% endif %}{{ row.DEC | replace('+','') }}', '_blank')"
+                            formtarget=”_blank”>
                             <img src="{{ url_for('static',filename='simbad.svg') }}" alt="simbad">
                         </button>
                     </td>
                     <td style="display:none">
-                        <input type="hidden" name="id" id="id" value="{{ loop.index0 }}"> <!-- id for correct sorting -->
+                        <input type="hidden" name="id" id="id" value="{{ loop.index0 }}">
+                        <!-- id for correct sorting -->
                     </td>
                     <script>
-                    ids=document.getElementById("selected");
-                    ids.value=ids.value+'{{ loop.index0 }},';
+                        ids = document.getElementById("selected");
+                        ids.value = ids.value + '{{ loop.index0 }},';
                     </script>
                     {% for col in header %}
                     <td {% if loop.index0==0 %}class="fix" style="left: 100px;" {% endif %}>
-                        <input type="text" name="{{ col }}" value="{{ row[col] }}" {% if col in tooltips %}title="{{ tooltips[col] }}"{% endif %}>
+                        <input type="text" name="{{ col }}" value="{{ row[col] }}" {% if col in tooltips
+                            %}title="{{ tooltips[col] }}" {% endif %}>
                     </td>
                     {% endfor %}
                 </tr>
@@ -388,20 +407,25 @@
             <h2 style="color: red; font-weight: bold;">Any delete action also saves all modifications in table!</h2>
             <br>
             <label for="rows">Rows to show:</label>
-            <select id="rows" name="rows" onchange="updateRows()">                
+            <select id="rows" name="rows" onchange="updateRows()">
                 {% for i in range(0,data|length,100) %}
                 <option value="{{ i }}" {% if rows==i %}selected{% endif %}>{{ i }} - {{ i+100 }}</option>
                 {% endfor %}
             </select>
             &nbsp;&nbsp;&nbsp;
-            <button type="button" name="changes" title="Show list of requested changes." onclick="window.open('{{ url_for('changes') }}', '_blank')">Requested changes</button>
+            <button type="button" name="info" title="Show requirement on data format."
+                onclick="details()">Format info</button>
+            &nbsp;&nbsp;&nbsp;
+            <button type="button" name="changes" title="Show list of requested changes."
+                onclick="window.open('{{ url_for('changes') }}', '_blank')">Requested changes</button>
             <br>
             <br>
             <table id="my_table">
                 <thead>
                     <tr>
                         <!-- fix first 3 cols -->
-                        <th style="position: sticky; left: 0px; z-index: 2; background-color: white; min-width: 80px;"></th>
+                        <th style="position: sticky; left: 0px; z-index: 2; background-color: white; min-width: 80px;">
+                        </th>
                         <th style="position: sticky; left: 80px; z-index: 2; background-color: white;">Done</th>
                         <th style="display:none">id</th> <!-- id for correct sorting -->
                         {% for val in header %}
@@ -417,17 +441,17 @@
                     <!-- fix first 3 cols -->
                     <td class="actions" style="position: sticky; left: 0px; z-index: 0; background-color: inherit;">
                         <button type="submit" class="modify-row" name="delete_{{ loop.index0 }}" title="Delete target"
-                            onclick="return deleteRow('{{ row['Target'] }}')">                              
+                            onclick="return deleteRow('{{ row['Target'] }}')">
                             <img src="{{ url_for('static',filename='delete.svg') }}" alt="delete">
                         </button>
                         <button type="button" class="modify-row" name="info" title="Info about observing program"
-                        onclick="window.open('{{ url_for('proposal_info', name = row['ProgramID']) }}', '_blank')"
-                        formtarget=”_blank”>
+                            onclick="window.open('{{ url_for('proposal_info', name = row['ProgramID']) }}', '_blank')"
+                            formtarget=”_blank”>
                             <img src="{{ url_for('static',filename='info.svg') }}" alt="preview">
                         </button>
                         <button type="button" class="modify-row" name="info" title="Search in Simbad"
-                        onclick="window.open('https://simbad.u-strasbg.fr/simbad/sim-basic?Ident={{ row.RA }}{% if not row.DEC[0]=='-' %}%2B{% endif %}{{ row.DEC | replace('+','') }}', '_blank')"
-                        formtarget=”_blank”>
+                            onclick="window.open('https://simbad.u-strasbg.fr/simbad/sim-basic?Ident={{ row.RA }}{% if not row.DEC[0]=='-' %}%2B{% endif %}{{ row.DEC | replace('+','') }}', '_blank')"
+                            formtarget=”_blank”>
                             <img src="{{ url_for('static',filename='simbad.svg') }}" alt="simbad">
                         </button>
                     </td>
@@ -442,7 +466,8 @@
                     </td>
                     {% for col in header %}
                     <td {% if loop.index0==0 %} class="fix" style="left: 135px;" {% endif %}>
-                        <input type="text" name="{{ col }}" value="{{ row[col] }}" {% if col in tooltips %}title="{{ tooltips[col] }}"{% endif %}>
+                        <input type="text" name="{{ col }}" value="{{ row[col] }}" {% if col in tooltips
+                            %}title="{{ tooltips[col] }}" {% endif %}>
                     </td>
                     {% endfor %}
                 </tr>
@@ -452,19 +477,19 @@
 
         </form>
         <br>
-        
-        
+
+
         <script>
-        // apply search filter after POST
-        window.onload = function () {
-            {% if searchInput %}
-            searchTab();
-            {% elif data %}
-            updateRows();
-            {% endif %}
-        }
+            // apply search filter after POST
+            window.onload = function () {
+                {% if searchInput %}
+                searchTab();
+                {% elif data %}
+                updateRows();
+                {% endif %}
+            }
         </script>
-        
+
     </body>
     <script>
         // sorting table
@@ -501,9 +526,9 @@
                         {% endif %}
                         return v.replace(" ", "").replace("-", "").replace("_", "");   //col with target name
                     }
-                    if (n>9 && v.length==10 && !isNaN(Date.parse(v))) {
-                        v=Date.parse(v);  //date
-                    } 
+                    if (n > 9 && v.length == 10 && !isNaN(Date.parse(v))) {
+                        v = Date.parse(v);  //date
+                    }
                     else if ($.isNumeric(v)) {
                         v = parseFloat(v, 10);
                     }
@@ -531,13 +556,13 @@
             $(function () {
 
                 $("#my_table th").click(function () {
-                    {% if db=='objects' and data %}
-                    if (! document.getElementById("searchInput").value) {
+                    {% if db == 'objects' and data %}
+                    if (!document.getElementById("searchInput").value) {
                         const table = document.getElementById('my_table');
                         const rows = table.getElementsByTagName("tr");
                         for (let i = 0; i < rows.length; i++) {
                             rows[i].style.display = ""; // show
-                        } 
+                        }
                     }
                     {% endif %}
 
@@ -574,8 +599,8 @@
                     else
                         $(this).text($(this).text() + " ▲")
 
-                    {% if db=='objects' and data %}
-                    if (! document.getElementById("searchInput").value) {
+                    {% if db == 'objects' and data %}
+                    if (!document.getElementById("searchInput").value) {
                         updateRows();
                     }
                     {% endif %}
