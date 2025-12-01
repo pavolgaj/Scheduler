@@ -1313,6 +1313,8 @@ def changes():
         acc=list(filter(r_acc.match,request.form.keys()))
         dele=list(filter(r_del.match,request.form.keys()))
         
+        mess=request.form['mess']
+        
         if len(acc+dele)>0:
             id=int((acc+dele)[0].split('_')[1])
             
@@ -1329,7 +1331,8 @@ def changes():
             if dele:
                 send.message='Request of following target was declined!\n\n'
             send.message+=objs[id]['target']+'\n\n'
-            send.message+=objs[id]['changes']
+            send.message+=objs[id]['changes']+'\n\n'
+            send.message+=mess
             
             if acc:
                 send.mail["subject"]=objs[id]['target'].split('(')[0].strip()+': SOLVED Change of observing target' 

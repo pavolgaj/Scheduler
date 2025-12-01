@@ -91,6 +91,14 @@
                 margin-right: auto;
             }
         </style>
+        <script>
+            function question(text) {
+                let mess=prompt(text+'\n\nMessage to supervisor:',"");
+                if (mess == null) { return false; }
+                document.getElementById('mess').value=mess;
+                return true;
+            }
+        </script>
     </head>
 
     <body>
@@ -100,6 +108,7 @@
         <form method="POST">
             <!-- <center><button type="submit">Save list</button></center><br> -->
             <!-- <textarea name="changes">{{ text }}</textarea> -->
+            <input type="hidden" id="mess" name="mess" value="">
             <table>
                 <thead>
                     <tr>
@@ -113,11 +122,11 @@
                     <td class="actions">
                         <button type="submit" class="modify-row" name="accept_{{ loop.index0 }}"
                             title="Mark request as solved. You need to make changes manually in DB!"
-                            onclick="return confirm('Mark this request as solved? You need to make changes manually in DB!');">
+                            onclick="return question('Mark this request as solved? You need to make changes manually in DB!');">
                             <img src="{{ url_for('static',filename='accept.svg') }}" alt="accept">
                         </button>
                         <button type="submit" class="modify-row" name="delete_{{ loop.index0 }}" title="Decline request."
-                            onclick="return confirm('Decline this request?');">
+                            onclick="return question('Decline this request?');">
                             <img src="{{ url_for('static',filename='delete.svg') }}" alt="delete">
                         </button>
                     </td>
