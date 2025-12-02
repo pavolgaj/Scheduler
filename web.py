@@ -645,8 +645,11 @@ def new():
             if series: number='series'
             send.message=render_template('message',supervisor=supervis.replace('"',''),name=name.replace('"',''),ra=ra,dec=dec,mag=mag,exp=exp,number=number,night=night,prior=prior,group=group.replace('"',''),notes=notes.replace('"',''),message=mess,progID=progID)
             
+            send.mail["subject"]=name.replace('"','')+': New object in E152 database' 
+            
             try:
                 send.run()
+                #send.check()
             except:
                 traceback.print_exc()
                 send.mail['cc']=''
@@ -1421,11 +1424,17 @@ def admin():
             r_del = re.compile("delete_*")
             r_acc = re.compile("accept_*")
             
+            #answer to PI
+            mess=request.form['mess']
+            
             updated_data = request.form.to_dict(flat=False)  # get all data from form
             if 'id' in updated_data:
                 #get order after sorting
                 ids={int(i): updated_data['id'].index(i) for i in updated_data['id']}
             else: ids={int(i): int(i) for i in range(len(updated_data))}
+            
+            acc=[]
+            decl=[]
                 
             if 'download' in request.form:
                 #download csv -> without saving DB on server
@@ -1447,6 +1456,11 @@ def admin():
     
             elif 'delete_all' in request.form:
                 #delete all targets
+                
+                # Get the data from the form and sort them based on original order   
+                targets=[{**{x: updated_data[x][ids[i]] for x in header.strip().split(',')+['ProgramID']}, 'Done': '0'} for i in sorted(ids)]
+                decl=targets
+                
                 #make backup
                 shutil.copy2('db/new_objects.csv','db-backup/new_objects-'+datetime.now().strftime("%Y%m%d-%H%M%S")+'.csv')
                 
@@ -1488,6 +1502,8 @@ def admin():
                     writer.writerows(targets)
                     f.close()  
                     
+                    acc=targets
+                    
             elif 'delete_select' in request.form:
                 #delete selected targets
                 # Get the data from the form and sort them based on original order                  
@@ -1499,6 +1515,7 @@ def admin():
                 if len(selected)>0:
                     for id in ids:
                         if not id in id_select: targets.append(targets0[id])
+                        else: decl.append(targets0[id])
                     
                     #make backup
                     shutil.copy2('db/new_objects.csv','db-backup/new_objects-'+datetime.now().strftime("%Y%m%d-%H%M%S")+'.csv')
@@ -1537,6 +1554,8 @@ def admin():
                                 writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ProgramID','Done'])
                                 writer.writerow(target)
                                 f.close() 
+                                
+                                acc.append(dict(target))
                     
                     #make backup
                     shutil.copy2('db/new_objects.csv','db-backup/new_objects-'+datetime.now().strftime("%Y%m%d-%H%M%S")+'.csv')
@@ -1553,6 +1572,8 @@ def admin():
                 
                 # Get the data from the form and sort them based on original order                  
                 targets=[{x: updated_data[x][ids[i]] for x in header.strip().split(',')+['ProgramID']} for i in sorted(ids)]
+                
+                decl.append(dict(targets[id]))
                 del(targets[id]) 
                 
                 #make backup
@@ -1588,6 +1609,8 @@ def admin():
                     writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ProgramID','Done'])
                     writer.writerow(target)
                     f.close() 
+                    
+                    acc.append(dict(target))
 
                     del(targets[id])    
                 
@@ -1599,7 +1622,38 @@ def admin():
                 writer.writeheader()
                 writer.writerows(targets)
                 f.close() 
-                
+            
+            
+            if len(acc)+len(decl)>0:
+                #send mail to admins and supervisior of added obj
+                f=open('db/progID.json','r')
+                progs=json.load(f)
+                f.close()
+
+                for target in acc+decl:          
+                    #accepted/removed target          
+                    send=SendMail(progs[target['ProgramID']]['mail'])                                    
+                        
+                    send.message=render_template('message',supervisor=target['Supervisor'],name=target['Target'],ra=target['RA'],dec=target['DEC'],mag=target['Mag'],exp=target['ExpTime'],number=target['Number'],night=target['Nights'],prior=target['Priority'],group=target['Type'],notes=target['Remarks'],message=mess,progID=target['ProgramID']).replace('Additional comments:','Comments from admin:')
+                    
+                    if acc: 
+                        #accepted target
+                        send.message='Following target was accepted and added in E152 database!\n\n'+send.message
+                        send.mail["subject"]=target['Target']+': ACCEPTED object in E152 database'                         
+                    if decl:
+                        #removed target
+                        send.message='Following target was rejected!\n\n'+send.message
+                        send.mail["subject"]=target['Target']+': DECLINED object in E152 database'
+                                                
+                    try:
+                        send.run()
+                        #send.check()
+                    except:
+                        traceback.print_exc()
+                        send.mail['cc']=''
+                        try: send.send_mail("ERROR: exception", traceback.format_exc())
+                        except: pass   #incorrect mail config
+                    
             if os.path.isfile('db/objects.csv'): os.chmod('db/objects.csv', 0o666)
             if os.path.isfile('db/new_objects.csv'): os.chmod('db/new_objects.csv', 0o666)
             

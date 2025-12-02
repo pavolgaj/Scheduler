@@ -266,6 +266,12 @@
                 w.document.write(html);
             }
 
+            function question(text) {
+                let mess=prompt(text+'\n\nMessage to supervisor:',"");
+                if (mess == null) { return false; }
+                document.getElementById('mess').value=mess;
+                return true;
+            }
         </script>
     </head>
 
@@ -276,6 +282,8 @@
                 <option value="new" {% if db=='new' %}selected{% endif %}>New objects</option>
                 <option value="objects" {% if db=='objects' %}selected{% endif %}>Objects in DB</option>
             </select>
+
+            <input type="hidden" id="mess" name="mess" value="">
 
             {% if errors %}
             <script>
@@ -303,16 +311,16 @@
                 <button type="submit" name="download" title="Download">Download CSV
                 </button>
                 <button type="submit" name="accept_all" title="Accept all targets and move them to DB."
-                    onclick="return confirm('Accept all targets and move them to DB?');">Accept all
+                    onclick="return question('Accept all targets and move them to DB?');">Accept all
                 </button>
                 <button type="submit" name="delete_all" title="Delete all targets"
-                    onclick="return confirm('Delete all targets?');">Delete all
+                    onclick="return question('Delete all targets?');">Delete all
                 </button>
                 <button type="submit" name="accept_select" title="Accept selected targets and move them to DB."
-                    onclick="return confirm('Accept selected targets and move them to DB?');">Accept selected
+                    onclick="return question('Accept selected targets and move them to DB?');">Accept selected
                 </button>
                 <button type="submit" name="delete_select" title="Delete selected targets"
-                    onclick="return confirm('Delete selected targets?');">Delete selected
+                    onclick="return question('Delete selected targets?');">Delete selected
                 </button>
             </center>
             <h2 style="color: red; font-weight: bold;">Any accept/delete action also saves all modifications in table!
@@ -351,11 +359,11 @@
                     <td class="actions" style="position: sticky; left: 0px; z-index: 0; background-color: inherit;">
                         <button type="submit" class="modify-row" name="accept_{{ loop.index0 }}"
                             title="Accept target and move it to DB."
-                            onclick="return confirm('Accept target \'{{ row['Target'] }}\'?');">
+                            onclick="return question('Accept target \'{{ row['Target'] }}\'?');">
                             <img src="{{ url_for('static',filename='accept.svg') }}" alt="accept">
                         </button>
                         <button type="submit" class="modify-row" name="delete_{{ loop.index0 }}" title="Delete target"
-                            onclick="return confirm('Delete target \'{{ row['Target'] }}\'?');">
+                            onclick="return question('Delete target \'{{ row['Target'] }}\'?');">
                             <img src="{{ url_for('static',filename='delete.svg') }}" alt="delete">
                         </button>
                         <button type="button" class="modify-row" name="info" title="Info about observing program"
