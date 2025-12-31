@@ -190,11 +190,11 @@
                 //check values in inputs (number)                
                 let valid = true;
 
-                var input = document.getElementById('number');
-                if (!isInt(input.value)) {
+                var number = document.getElementById('number');
+                if (!isInt(number.value)) {
                     valid = false;
                 }
-                else if ((input.value < 1) || (input.value) > 10) {
+                else if ((number.value < 1) || (number.value) > 10) {
                     valid = false;
                 }
 
@@ -257,23 +257,25 @@
                     }
                 }
 
-                var night = document.getElementById('night');                
+                var night = document.getElementById('night');
                 if (night.validity['badInput']) {
                     valid = false;
                     alert('Incorrect date format!');
                 }
-                else if (valid) { 
+                else if (valid) {
                     var prior = document.getElementById('prior');
-                    var now=new Date();
-                    var nightDate=new Date(night.value);
-                    if (prior.checked && ((nightDate-now)/86400/1000>1) || (nightDate-now)/86400/1000<-1) {
-                        valid=confirm('Scheduler will be calculated for the future or past with scaling priorities based on the frequencies. Results can be incorrect without generated NightLog for previous night. Do you really want to continue?');
+                    var now = new Date();
+                    var nightDate = new Date(night.value);
+                    if (prior.checked && ((nightDate - now) / 86400 / 1000 > 1) || (nightDate - now) / 86400 / 1000 < -1) {
+                        valid = confirm('Scheduler will be calculated for the future or past with scaling priorities based on the frequencies. Results can be incorrect without generated NightLog for previous night. Do you really want to continue?');
                     }
-                    else if ((nightDate-now)/86400/1000<-1) {
-                        valid=confirm('Scheduler will be calculated for the past. Do you really want to continue?');
+                    else if ((nightDate - now) / 86400 / 1000 < -1) {
+                        valid = confirm('Scheduler will be calculated for the past. Do you really want to continue?');
                     }
 
-
+                    if (prior.checked) {
+                        valid = confirm('Priorities will be scaled taking into account also scheduled nights. Do you want to continue?');
+                    }
                 }
 
                 return valid;
@@ -303,9 +305,9 @@
                 //show info about running, not block server
                 var check = checkNum();
                 if (check) {
-                    nights=document.getElementById('number');
-                    if (nights.value>1) {
-                        alert('Calculation can take a while! Process is running also in case of connection loss. Created schedules are saved automatically.')
+                    nights = document.getElementById('number');
+                    if (nights.value > 1) {
+                        alert('Calculation can take a while! Process is running also in case of connection loss. Created schedules are saved automatically.');
                     }
 
                     var myDialog = document.createElement("dialog");
@@ -374,32 +376,15 @@
                 azm_start_label.style.display = azm.checked ? 'inline-block' : 'none';
                 azm_end_label.style.display = azm.checked ? 'inline-block' : 'none';
             }
-            
-            {% if prior %}
-            oldprior=true;
-            {% else %}
-            oldprior=false;
-            {% endif %}
 
             function toggleNumber() {
                 //show/hide name for multiple nights
                 var number = document.getElementById('number');
                 var name = document.getElementById('name-div');
-                var prior = document.getElementById('prior');
 
-                if (number.value > 1) {
-                    name.style.display = 'flex';
-                    if (! prior.disabled) { oldprior=prior.checked; }
-                    prior.checked=false;
-                    prior.disabled=true;
-                }
-                else {
-                    name.style.display = 'none';
-                    prior.disabled=false;
-                    prior.checked=oldprior;
-                }
-                //name.style.display = (number.value > 1) ? 'flex' : 'none';
+                name.style.display = (number.value > 1) ? 'flex' : 'none';
             }
+
             // Run this function on page load to check if the checkbox was checked (loading from server)
             window.onload = function () {
                 toggleTime();

@@ -1773,6 +1773,49 @@ def admin():
     gc.collect()
     return render_template('admin_db.html', db=db, header=header.strip().split(',')+['ProgramID'], data=data, saved=saved, errors=errors, searchInput=searchInput, rows=rows,tooltips=tooltips)
 
+def freqPrior(freq,diffdate,oldpriority,series=False):
+    '''rescale priority based on frequency and last obs'''
+    
+    #specify interval for obs.
+    if freq=='everynight': 
+        obsint=1
+        k=0.2
+    elif freq=='twiceweek': 
+        obsint=3
+        k=0.1
+    elif freq=='onceweek': obsint=7
+    elif freq=='twicemonth': obsint=14
+    elif freq=='oncemonth': obsint=30
+    elif freq=='unspecified': obsint=10
+    
+    #modification of priority
+    if obsint<5:
+        dprior=10-20/(1+np.exp(-k*(diffdate-obsint)))
+    else:
+        dprior=20*(1-np.exp(-(diffdate-obsint)**2/obsint**2))
+        if obsint<diffdate: dprior*=-0.8
+    if freq=='unspecified' and dprior<0: dprior=0
+    
+    priority=oldpriority+dprior
+    
+    #always priority>1
+    if freq=='everynight': priority=max(1.1,priority)
+    elif freq=='twiceweek': priority=max(1.2,priority)
+    elif freq=='onceweek': priority=max(1.3,priority)
+    elif freq=='twicemonth': priority=max(1.4,priority)
+    elif freq=='oncemonth': priority=max(1.5,priority)
+    
+    priority=round(priority,1)
+    
+    #for series+priority=1 -> always 1
+    if oldpriority==1 and dprior<0: 
+        priority=1
+    if oldpriority==1 and series:
+        priority=1
+        
+    return priority
+    
+
 @app.route("/scheduler/run", methods=['GET','POST'])
 def scheduler():
     '''run automatic scheduler'''
@@ -1899,6 +1942,8 @@ def scheduler():
             
             #add selected objects by types and series
             objects1={}
+            lastObs={}  #last observation or scheduled
+            numObs={}  #number of observations+scheduled
             for obj in objects0:
                 if obj['full']['Done']==1: continue
                 if not series and obj['n_exp']=='series': continue
@@ -1927,66 +1972,39 @@ def scheduler():
                         #update priority based on last obs.
                         tr=obj['full']['Target'].lower().replace('-','').replace(' ','').replace('+','').replace('.','').replace('_','')
                         
+                        last=None   
+                        num=0                     
                         if tr in stats and group not in ['RV Standard','SpecPhot Standard']:
                             last=stats[tr]
                             if plandate>last: 
                                 #only for future planning
                                 diffdate=(plandate-last).days
                                 
-                                #specify interval for obs.
-                                if fr=='everynight': 
-                                    obsint=1
-                                    k=0.2
-                                elif fr=='twiceweek': 
-                                    obsint=3
-                                    k=0.1
-                                elif fr=='onceweek': obsint=7
-                                elif fr=='twicemonth': obsint=14
-                                elif fr=='oncemonth': obsint=30
-                                elif fr=='unspecified': obsint=10
-                                
-                                #modification of priority
-                                if obsint<5:
-                                    dprior=10-20/(1+np.exp(-k*(diffdate-obsint)))
-                                else:
-                                    dprior=20*(1-np.exp(-(diffdate-obsint)**2/obsint**2))
-                                    if obsint<diffdate: dprior*=-0.8
-                                if fr=='unspecified' and dprior<0: dprior=0
-                                
-                                obj['priority']+=dprior
-                                
-                                #always priority>1
-                                if fr=='everynight': obj['priority']=max(1.1,obj['priority'])
-                                elif fr=='twiceweek': obj['priority']=max(1.2,obj['priority'])
-                                elif fr=='onceweek': obj['priority']=max(1.3,obj['priority'])
-                                elif fr=='twicemonth': obj['priority']=max(1.4,obj['priority'])
-                                elif fr=='oncemonth': obj['priority']=max(1.5,obj['priority'])
-                                
-                                obj['priority']=round(obj['priority'],1)
-                                
-                                #for series+priority=1 -> always 1
-                                if obj['full']['Priority']==1 and dprior<0: 
-                                    obj['priority']=1
-                                if obj['full']['Priority']==1 and obj['n_exp']=='series':
-                                    obj['priority']=1
-                                
+                                obj['priority']=freqPrior(fr,diffdate,obj['full']['Priority'],series=(obj['n_exp']=='series'))                                
                         
                             if tr in obs:
+                                num=obs[tr]
                                 #decrease priority if many observations done
-                                if obs[tr]>=6*nights: obj['priority']+=10
-                                elif obs[tr]>=4*nights: obj['priority']+=5
-                                elif obs[tr]>=2*nights: obj['priority']+=2          
+                                if num>=6*nights: obj['priority']+=10
+                                elif num>=4*nights: obj['priority']+=5
+                                elif num>=2*nights: obj['priority']+=2          
                         
                         mag=obj['full']['Mag']
                         
+                        obj_id=str(uuid.uuid4())
+                        if last is not None: lastObs[obj_id]=last
+                        numObs[obj_id]=num
+                        
                         try: mag=float(mag)
                         except ValueError: 
-                            objects1[str(uuid.uuid4())]=obj
+                            objects1[obj_id]=obj                            
                             continue
             
                         if not pd.isna(mag):
                             if mag<mag_min or mag>mag_max: continue    #filter of magnitude
-                        objects1[str(uuid.uuid4())]=obj
+                            
+                        objects1[obj_id]=obj
+                        
             
             #load config - based on observatory!
             config=load_config('lasilla_config.txt')
@@ -2151,16 +2169,51 @@ def scheduler():
                         os.remove('schedules/'+out+'_alt.png')
                         os.remove('schedules/'+out+'_sky.png')
                     
-                    #remove already scheduled targets for next night scheduling
-                    objectsS=[x.target.name for x in schedule.observing_blocks]
-                    tmp={}
-                    for i,obj in enumerate(objects1.values()):
-                        if obj['target'].name in objectsS:
-                            del(objectsS[objectsS.index(obj['target'].name)])
-                            if obj['priority']<1: tmp[obj['target'].name]=obj     #every-night objects (RV std...)
-                        else: tmp[obj['target'].name]=obj
+                    if prior:
+                        #rescale priorities for scheduled target
+                        objectsS=[x.target.name for x in schedule.observing_blocks]
+                        plandate=datetime.strptime(plantime.strftime('%Y-%m-%d'), '%Y-%m-%d')
+                        
+                        for obj in objectsS:
+                            #update last obs.
+                            lastObs[obj]=plandate
+                            numObs[obj]+=1                         
+                           
+                        for obj in objects1:
+                            if objects1[obj]['full']['Priority']<1: 
+                                continue  #every-night objects (RV std...)
+                                                        
+                            if obj not in lastObs: continue #not observed
+                            
+                            diffdate=(plandate-lastObs[obj]).days+1  
+                              
+                            fr=objects1[obj]['full']['Frequency']                
+                            if pd.isna(fr): fr='unspecified'
+                            
+                            priority=freqPrior(fr,diffdate,objects1[obj]['full']['Priority'],series=(objects1[obj]['full']['Number']=='series'))
+                            print(objects1[obj]['full']['Target'],fr,priority)
+                            
+                            nig=objects1[obj]['full']['Nights']
+                            if pd.isna(nig): nig=1000
+                            
+                            #decrease priority if many observations done
+                            if numObs[obj]>=6*nig: priority+=10
+                            elif numObs[obj]>=4*nig: priority+=5
+                            elif numObs[obj]>=2*nig: priority+=2     
+                            
+                            objects1[obj]['priority']=priority    
+                    
+                    else:
+                        #remove already scheduled targets for next night scheduling
+                        objectsS=[x.target.name for x in schedule.observing_blocks]
+                        tmp={}
+                        for i,obj in enumerate(objects1.values()):
+                            if obj['target'].name in objectsS:
+                                del(objectsS[objectsS.index(obj['target'].name)])
+                                if obj['priority']<1: tmp[obj['target'].name]=obj     #every-night objects (RV std...)
+                            else: tmp[obj['target'].name]=obj
 
-                    objects1=dict(tmp)
+                        objects1=dict(tmp)
                 
                 if len(objects0)==0: break
 
