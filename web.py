@@ -1201,35 +1201,8 @@ def show_db():
                     fr=obj['Frequency']
                     if pd.isna(fr): fr='unspecified'
                     if len(fr.strip())==0: fr='unspecified'
-
-                    #specify interval for obs.
-                    if fr=='everynight':
-                        obsint=1
-                        k=0.2
-                    elif fr=='twiceweek':
-                        obsint=3
-                        k=0.1
-                    elif fr=='onceweek': obsint=7
-                    elif fr=='twicemonth': obsint=14
-                    elif fr=='oncemonth': obsint=30
-                    elif fr=='unspecified': obsint=10
                     
-                    #modification of priority
-                    if obsint<5:
-                        dprior=10-20/(1+np.exp(-k*(diffdate-obsint)))
-                    else:
-                        dprior=20*(1-np.exp(-(diffdate-obsint)**2/obsint**2))
-                        if obsint<diffdate: dprior*=-0.8
-                    if fr=='unspecified' and dprior<0: dprior=0
-
-                    obj['NewPriority']=float(obj['Priority'])+dprior
-
-                    #always priority>1
-                    if fr=='everynight': obj['NewPriority']=max(1.1,obj['NewPriority'])
-                    elif fr=='twiceweek': obj['NewPriority']=max(1.2,obj['NewPriority'])
-                    elif fr=='onceweek': obj['NewPriority']=max(1.3,obj['NewPriority'])
-                    elif fr=='twicemonth': obj['NewPriority']=max(1.4,obj['NewPriority'])
-                    elif fr=='oncemonth': obj['NewPriority']=max(1.5,obj['NewPriority'])
+                    obj['NewPriority']=freqPrior(fr,diffdate,float(obj['Priority']),series=(obj['Number']=='series')) 
 
                     #decrease priority if many observations done
                     if int(obj['Observations'])>=6*int(obj['Nights']): obj['NewPriority']+=10
@@ -3669,8 +3642,12 @@ def object_info():
         day=request.args['day']
         try: datetime.strptime(day,'%Y-%m-%d')
         except ValueError: day=datetime.now(timezone.utc).strftime('%Y-%m-%d')
-    else: day=datetime.now(timezone.utc).strftime('%Y-%m-%d')
-    plandate=datetime.strptime(day,'%Y-%m-%d')
+        plandate=datetime.strptime(day,'%Y-%m-%d')
+        if 'time' in request.args: 
+            plandate=plandate-timedelta(days=1)
+    else: 
+        day=datetime.now(timezone.utc).strftime('%Y-%m-%d')
+        plandate=datetime.strptime(day,'%Y-%m-%d')
     
     if 'time' in request.args: 
         time=request.args['time']
@@ -3756,36 +3733,8 @@ def object_info():
                     fr=ob['Frequency']
                     if pd.isna(fr): fr='unspecified'
                     if len(fr.strip())==0: fr='unspecified'
-
-                    #specify interval for obs.
-                    if fr=='everynight':
-                        obsint=1
-                        k=0.2
-                    elif fr=='twiceweek':
-                        obsint=3
-                        k=0.1
-                    elif fr=='onceweek': obsint=7
-                    elif fr=='twicemonth': obsint=14
-                    elif fr=='oncemonth': obsint=30
-                    elif fr=='unspecified': obsint=10
                     
-                    #modification of priority
-                    if obsint<5:
-                        dprior=10-20/(1+np.exp(-k*(diffdate-obsint)))
-                    else:
-                        dprior=20*(1-np.exp(-(diffdate-obsint)**2/obsint**2))
-                        if obsint<diffdate: dprior*=-0.8
-                    if fr=='unspecified' and dprior<0: dprior=0
-                    
-                    if diffdate<0: dprior=0  #in past  
-                    ob['NewPriority']=float(ob['Priority'])+dprior
-
-                    #always priority>1
-                    if fr=='everynight': ob['NewPriority']=max(1.1,ob['NewPriority'])
-                    elif fr=='twiceweek': ob['NewPriority']=max(1.2,ob['NewPriority'])
-                    elif fr=='onceweek': ob['NewPriority']=max(1.3,ob['NewPriority'])
-                    elif fr=='twicemonth': ob['NewPriority']=max(1.4,ob['NewPriority'])
-                    elif fr=='oncemonth': ob['NewPriority']=max(1.5,ob['NewPriority'])
+                    ob['NewPriority']=freqPrior(fr,diffdate,float(ob['Priority']),series=(ob['Number']=='series'))      
 
                     #decrease priority if many observations done
                     if nobs>=6*int(ob['Nights']): ob['NewPriority']+=10
