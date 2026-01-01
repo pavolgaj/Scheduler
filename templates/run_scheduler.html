@@ -273,7 +273,7 @@
                         valid = confirm('Scheduler will be calculated for the past. Do you really want to continue?');
                     }
 
-                    if (prior.checked) {
+                    if (prior.checked && (number.value > 1) ) {
                         valid = confirm('Priorities will be scaled taking into account also scheduled nights. Do you want to continue?');
                     }
                 }
