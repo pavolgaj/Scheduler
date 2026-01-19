@@ -218,6 +218,11 @@ for obj in objects:
         if pd.isna(obj['full']['EndPhase']): end=None
         else: end=obj['full']['EndPhase']
         cons.append(PhaseConstraint(objPer,start,end))
+		
+	#test observability
+    if len(cons)>0:
+        if not is_observable(cons, observatory, obj['target'], obstime):
+            continue
 
     if obj['n_exp']=='series':
         #series -> 20 blocks with 5 exp.

@@ -2085,9 +2085,10 @@ def scheduler():
                         cons.append(PhaseConstraint(objPer,start,end))
                         
                     #test observability
-                    if not is_observable(cons, observatory, obj['target'], obstime):
-                        n_obs[-1]-=1
-                        continue
+                    if len(cons)>0:
+                        if not is_observable(cons, observatory, obj['target'], obstime):
+                            n_obs[-1]-=1
+                            continue
                     
                     if obj['n_exp']=='series':
                         #series -> 20 blocks with 5 exp.
