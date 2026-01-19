@@ -94,6 +94,43 @@
                 display: inline;
                 font-weight: normal;
             }
+
+            .checkbox-wrapper {
+                display: flex;
+                align-items: center;
+                margin-bottom: 20px;
+            }
+
+            .checkbox-wrapper label {
+                margin: 0;
+                padding: 5px;
+                margin-left: -5px;
+                margin-right: 10px;
+                align-items: left;
+            }
+
+            #phase_start_label,
+            #phase_end_label,
+            #time_start_label,
+            #time_end_label {
+                font-weight: normal;
+            }
+
+            /* additional input field */
+            #phot_input,
+            #moon_input,
+            #phase_start,
+            #phase_end,
+            #time_start,
+            #time_end {
+                margin-left: 10px;
+                margin-right: 10px;
+                padding: 5px;
+                border-radius: 5px;
+                width: 100%;
+                flex: 2;
+            }
+
         </style>
         <script>
             // submit form on ENTER
@@ -115,6 +152,8 @@
         <script src="{{ url_for('static', filename='jquery.min.js') }}"></script>
         <link href="{{ url_for('static', filename='select2.min.css') }}" rel="stylesheet" />
         <script src="{{ url_for('static', filename='select2.min.js') }}"></script>
+<!-- TODO: kontrola dat: cisla, formaty, t0+P ak faza, ak len 1 faza -->
+
     </head>
 
     <body>
@@ -153,6 +192,111 @@
                 {{ info }}
             </div>
 
+            <hr>
+
+            <div class="radio-wrapper">
+                <label style="font-weight: bold;" for="status">Object Status</label>
+                <input type="radio" name="status" value="obs" {% if status=='obs' %}checked{% endif %}>
+                <label>observable</label>
+                <input type="radio" name="status" value="done" {% if status=='done' %}checked{% endif %}>
+                <label>finished</label>
+            </div>
+
+            <hr>
+
+        
+            <div class="form-group">
+                <label for="per">Period</label>
+                <input type="text" id="per" name="per" value="{{ per }}" pattern="\d+(\.\d+)?$"
+                    class="{{ 'error' if errors.get('per') else 'normal' }}" title="Orbital period (in days)." placeholder="Orbital period (in days)">
+            </div>
+            <div class="form-group">
+                <label for="t0">Epoch</label>
+                <input type="text" id="t0" name="t0" value="{{ t0 }}" pattern="\d+(\.\d+)?$"
+                    title="Initial epoch in full JD." class="{{ 'error' if errors.get('t0') else 'normal' }}" placeholder="Initial epoch in full JD">
+            </div>
+            <div class="form-group">
+                <label for="remarks">Remarks</label>
+                <input type="text" id="remarks" name="remarks" value="{{ remarks }}"
+                    title="Other remarks and comments related to observation." placeholder="Other remarks and comments related to observation">
+            </div>
+            <div class="form-group">
+                <label for="group">Group of objects
+                </label>
+                <input list="group-list" id="group" name="group" class='normal' value="{{ group }}"
+                    title="Type of object." placeholder="Type of object">
+                <datalist id="group-list" name="group-list">
+                    <!-- list of some obj types, write own possible -->
+                     {% for gr in groups | sort %}
+                        <option value="{{ gr }}"></option>
+                     {% endfor %}                    
+                </datalist>
+            </div>
+
+            <hr>
+
+            <div class="checkbox-wrapper">
+                <label for="moon">Moon phase
+                </label>
+                <input type="text" name="moon_input" id="moon_input" value="{{ moon_input }}"
+                    style="display:inline-block"
+                    title="Maximum acceptable phase of Moon. From 0 to 1 (full Moon)." pattern="^0\.\d+"
+                    class="{{ 'error' if errors.get('moon') else 'normal' }}" placeholder="Maximum acceptable phase of Moon (0 to 1)">
+            </div>
+            <div class="checkbox-wrapper">
+                <label for="phase">Orbital phase</label>
+                <label for="phase_start" id="phase_start_label" style="display:inline-block">&nbsp;&nbsp;&nbsp;from</label>
+                <input type="text" name="phase_start" id="phase_start" value="{{ phase_start }}"
+                    style="display:inline-block"
+                    title="Start phase. From 0 to 1. Use start value bigger than end one for interval around phase 0. Leave empty if NO limit."
+                    pattern="^0(\.\d+)?" class="{{ 'error' if errors.get('phase') else 'normal' }}" placeholder="Start orbital phase (0 to 1)">
+                <label for="phase_end" id="phase_end_label" style="display:inline-block">&nbsp;&nbsp;&nbsp;to</label>
+                <input type="text" name="phase_end" id="phase_end" value="{{ phase_end }}"
+                    style="display:inline-block"
+                    title="End phase. From 0 to 1. Use start value bigger than end one for interval around phase 1. Leave empty if NO limit."
+                    pattern="^0(\.\d+)?" class="{{ 'error' if errors.get('phase') else 'normal' }}" placeholder="End orbital phase (0 to 1)">
+            </div>
+            <div class="checkbox-wrapper">
+                <label for="time">Obs. date
+                </label>
+                <label for="time_start" id="time_start_label">&nbsp;&nbsp;&nbsp;from</label>
+                <input type="date" name="time_start" id="time_start" value="{{ time_start }}"
+                    style="display:inline-block"
+                    title="Start of observing period. Leave empty if NO limit."
+                    class="{{ 'error' if errors.get('time') else 'normal' }}">
+                <label for="time_end" id="time_end_label">&nbsp;&nbsp;&nbsp;to</label>
+                <input type="date" name="time_end" id="time_end" value="{{ time_end }}"
+                    style="display:inline-block"
+                    title="End of observing period. Leave empty if NO limit."
+                    class="{{ 'error' if errors.get('time') else 'normal' }}">
+            </div>
+            <div class="form-group">
+                <label for="condi">Obs. conditions</label>
+                <select id="condi" name="condi" title="Required observing conditions (clouds, seeing, wind etc.)" placeholder="Required observing conditions (clouds, seeing, wind etc.)">
+                    <option value="excellent" {% if condi=='excellent' %}selected{% endif %}>Excellent</option>
+                    <option value="good" {% if condi=='good' %}selected{% endif %}>Good (normal)</option>
+                    <option value="poor" {% if condi=='poor' %}selected{% endif %}>Poor</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="freq">Frequency</label>
+                <select id="freq" name="freq" title="Frequency of observations." placeholder="Frequency of observations.">
+                    <option value="everynight" {% if freq=='everynight' %}selected{% endif %}>Every night</option>
+                    <option value="twiceweek" {% if freq=='twiceweek' %}selected{% endif %}>Twice a week</option>
+                    <option value="onceweek" {% if freq=='onceweek' %}selected{% endif %}>Once a week</option>
+                    <option value="twicemonth" {% if freq=='twicemonth' %}selected{% endif %}>Twice a month</option>
+                    <option value="oncemonth" {% if freq=='oncemonth' %}selected{% endif %}>Once a month</option>
+                    <option value="unspecified" {% if freq=='unspecified' %}selected{% endif %}>Unspecified</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="other">Other constr.</label>
+                <input type="text" id="other" name="other" value="{{ other }}"
+                    title="Other constraints and requests for observation scheduling." placeholder="Other constraints and requests for observation scheduling">
+            </div>
+
+            <hr>
+
             <div class="form-group">
                 <label for="supervis"><u>Supervisor</u></label>
                 <input type="text" id="supervis" name="supervis" value="{{ supervis }}"
@@ -171,17 +315,11 @@
                     class="{{ 'error' if errors.get('email') else 'normal' }}" title="E-mail address of supervisor."
                     placeholder="E-mail address of supervisor">
             </div>
-            <div class="radio-wrapper">
-                <label style="font-weight: bold;" for="status">Object Status</label>
-                <input type="radio" name="status" value="obs" {% if status=='obs' %}checked{% endif %}>
-                <label>observable</label>
-                <input type="radio" name="status" value="done" {% if status=='done' %}checked{% endif %}>
-                <label>finished</label>
-            </div>
+
             <div class="form-group">
                 <label for="mess">Changes</label>
-                <textarea id="mess" name="mess" class="normal" title="Describe required changes."
-                    placeholder="Describe required changes.">{{ mess if mess else '' }}</textarea>
+                <textarea id="mess" name="mess" class="normal" title="Describe required additional changes. Leave blank if not needed."
+                    placeholder="Describe required additional changes. Leave blank if not needed.">{{ mess if mess else '' }}</textarea>
             </div>
             <br>
             <center>
@@ -204,7 +342,7 @@
         {% endif %}
         <script>
             //change selectbox to selectize mode to be searchable
-            $("select").select2();
+            $("select#target").select2();
         </script>
     </body>
 

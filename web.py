@@ -990,6 +990,9 @@ def modif_obj():
     if not session.get('logged_in'):
         return redirect(url_for('login', next=request.path))
     
+    
+    groups=["Exoplanet","Eclipsing binary","Flaring star","Pulsating star","RV Standard","SpecPhot Standard"]
+    
     if not os.path.isfile('db/objects.csv'): obj=[]
     else: 
         f=open('db/objects.csv','r')
@@ -999,6 +1002,7 @@ def modif_obj():
         for obj in reader: 
             obj_all[i]=obj
             i+=1 
+            if not obj['Type'] in groups: groups.append(obj['Type'])
         f.close()
         
         #print(obj_all)
@@ -1019,10 +1023,37 @@ def modif_obj():
             obj=obj_all[target]
             
             info=obj['Target']+': '+str(obj['Number'])+' x '+str(obj['ExpTime'])+' s; '+str(obj['Remarks'])+'; '+('observation finished' if obj['Done']=='1' else 'observations running')
+            
             status=('done' if obj['Done']=='1' else 'obs')
+            
+            per=obj['Period']
+            t0=obj['Epoch']
+            phase_start=obj['StartPhase']
+            phase_end=obj['EndPhase']
+            condi=(obj['Conditions'] if len(obj['Conditions'])>0 else 'good')
+            freq=(obj['Frequency'] if len(obj['Frequency'])>0 else 'unspecified')
+            remarks=obj['Remarks']
+            moon_input=obj['MoonPhase']
+            time_start=(obj['StartDate'].replace('T',' ').split()[0] if len(obj['StartDate'])>0 else '')
+            time_end=(obj['EndDate'].replace('T',' ').split()[0] if len(obj['EndDate'])>0 else '')
+            other=obj['OtherRequests']
+            group=obj['Type']
+
         else:
             target=''
             errors['name'] = 'Name is required.'
+            per=''
+            t0=''
+            phase_start=''
+            phase_end=''
+            condi='good'
+            freq='unspecified'
+            remarks=''
+            moon_input=''
+            time_start=''
+            time_end=''
+            other=''
+            group=''
                 
         if 'send' in request.form and len(errors)==0:
             status0=status
@@ -1032,34 +1063,180 @@ def modif_obj():
             if not email:
                 errors['email'] = 'Email is required.'
                 
-            if not errors:        
+            per0=per
+            t0_0=t0
+            phase_start0=phase_start
+            phase_end0=phase_end
+            condi0=condi
+            freq0=freq
+            remarks0=remarks
+            moon_input0=moon_input
+            time_start0=time_start
+            time_end0=time_end
+            other0=other
+            group0=group
+            
+            per=request.form['per']
+            t0=request.form['t0']
+            phase_start=request.form['phase_start']
+            phase_end=request.form['phase_end']
+            condi=request.form['condi']
+            freq=request.form['freq']
+            remarks=request.form['remarks']
+            moon_input=request.form['moon_input']
+            time_start=request.form['time_start']
+            time_end=request.form['time_end']
+            other=request.form['other']
+            group=request.form['group']
+                            
+            if not errors:      
+                
+                #detect changed values
+                changes={}
+                changes['manual']=[]
+                
+                if not per==per0: changes['Period']=per
+                if not t0==t0_0: changes['Epoch']=t0
+                
+                if not phase_start==phase_start0: 
+                    #make checks and changed automatically only if not longer interval
+                    if phase_start and phase_start0:
+                        #old phase interval
+                        if float(phase_start0)>float(phase_end0):
+                            phase0=float(phase_end0)+1-float(phase_start0)
+                        else: phase0=float(phase_end0)-float(phase_start0)
                         
-                if (status==status0) and len(mess)==0:
+                        #new phase interval
+                        if float(phase_start)>float(phase_end):
+                            phase=float(phase_end)+1-float(phase_start)
+                        else: phase=float(phase_end)-float(phase_start)
+                        
+                        if phase>phase0:
+                            #some threshold?, if moved interval?
+                            changes['manual'].append('StartPhase')
+                    changes['StartPhase']=phase_start
+                    if not phase_start:
+                        # removed
+                        changes['manual'].append('StartPhase')
+                        changes['StartPhase']='_remove_'
+                    
+                    
+                if not phase_end==phase_end0: 
+                    #make checks and changed automatically only if not longer interval
+                    if phase_end and phase_end0:
+                        #old phase interval
+                        if float(phase_start0)>float(phase_end0):
+                            phase0=float(phase_end0)+1-float(phase_start0)
+                        else: phase0=float(phase_end0)-float(phase_start0)
+                        
+                        #new phase interval
+                        if float(phase_start)>float(phase_end):
+                            phase=float(phase_end)+1-float(phase_start)
+                        else: phase=float(phase_end)-float(phase_start)
+                        
+                        if phase>phase0:
+                            #some threshold?, if moved interval?
+                            changes['manual'].append('EndPhase')
+                    changes['EndPhase']=phase_end
+                    if not phase_end:
+                        # removed
+                        changes['manual'].append('EndPhase')
+                        changes['EndPhase']='_remove_'
+                    
+                if not condi==condi0: changes['Conditions']=condi
+                
+                if not freq==freq0: 
+                    #make checks and changed automatically only if not higher frequency
+                    freqs=['everynight','twiceweek','onceweek','twicemonth','oncemonth']
+                    if (not freq=='unspecified') and (not freq0=='unspecified'):
+                        if freqs.index(freq)<freqs.index(freq0):
+                            changes['manual'].append('Frequency')
+                    
+                    changes['Frequency']=freq
+                    
+                if not remarks==remarks0: changes['Remarks']=remarks
+                if not moon_input==moon_input0: changes['MoonPhase']=moon_input
+                
+                if not time_start==time_start0: 
+                    #make checks and changed automatically only if later
+                    if time_start and time_start0:
+                        if datetime.strptime(time_start,'%Y-%m-%d')<datetime.strptime(time_start0,'%Y-%m-%d'):
+                            changes['manual'].append('StartDate') 
+                    
+                    changes['StartDate']=time_start+' 00:00:00'
+                    if not time_start:
+                        # removed
+                        changes['manual'].append('StartDate')
+                        changes['StartDate']='_remove_'
+                        
+                if not time_end==time_end0:
+                    #make checks and changed automatically only if earlier
+                    if time_end and time_end0:
+                        if datetime.strptime(time_end,'%Y-%m-%d')>datetime.strptime(time_end0,'%Y-%m-%d'):
+                            changes['manual'].append('EndDate') 
+                            
+                    changes['EndDate']=time_end+' 23:59:59'
+                    if not time_end:
+                        # removed
+                        changes['manual'].append('EndDate')
+                        changes['EndDate']='_remove_'
+                    
+                if not other==other0: changes['OtherRequests']=other
+                if not group==group0: changes['Type']=group
+                                         
+                if (status==status0) and len(mess)==0 and len(changes)==1:
                     gc.collect()
                     return "Nothing to change!"
                 
-                elif len(mess)==0:
+                elif len(mess)==0 and len(changes['manual'])==0:
+                    # can run automatically
                     if progID==obj['ProgramID'] and len(obj['ProgramID'])>0:
-                        #correct ID, change status automatically                                               
-                        obj['Done']=int(not (bool(int(obj['Done']))))  #change status
+                        #correct ID, change automatically
+                                                                       
+                        if not status==status0:
+                            obj['Done']=int(not (bool(int(obj['Done']))))  #change status
+                        #change params
+                        for param in changes:
+                            if not param=='manual':
+                                obj[param]=changes[param]
+                                mess+=f'{param}: {changes[param]}\n'
                         
                         #make backup
                         shutil.copy2('db/objects.csv','db-backup/objects-'+datetime.now().strftime("%Y%m%d-%H%M%S")+'.csv')
                         
                         f=open('db/objects.csv','w')
                         writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ProgramID','Done'])
-                        writer.writeheader()
+                        writer.writeheader()                        
                         for i in obj_all:
                             if not i==target: writer.writerow(obj_all[i])
                             else: writer.writerow(obj)
                         f.close() 
                         
-                        result='Status changed automatically!'
-                        subject=obj['Target']+': AUTOMATIC Change of observing status'
+                        result='Target changed automatically!'
+                        subject=obj['Target']+': AUTOMATIC Change of observing target'
+                        
+                        if len(changes)==1:
+                            #change only status
+                            template='message_status'
+                        else:
+                            #change params
+                            template='message_change'                           
+                            
+                    
                     else:
                         #incorrect ID, send request to admin
-                        result='Program ID incorrect or missing! Status will be changed manually by admins.'                         
-                        subject=obj['Target']+': REQUEST for Change of observing status'  
+                        result='Program ID incorrect or missing! Target will be changed manually by admins.'                         
+                        subject=obj['Target']+': REQUEST for Change of observing target'  
+                        
+                        if len(changes)==1:
+                            #change only status
+                            template='message_status'
+                        else:
+                            #change params
+                            template='message_change'
+                            for param in changes:
+                                if not param=='manual':
+                                    mess+=f'{param}: {changes[param]}\n'
                         
                         writeheader=False
                         if not os.path.isfile('db/changes.csv'): 
@@ -1069,36 +1246,74 @@ def modif_obj():
                         writer = csv.DictWriter(f, fieldnames=['target','changes','mail'])
                         
                         if writeheader: writer.writeheader()
+
+                        mess1=''
+                        if len(mess)>0:
+                            mess1+=mess.replace('\n','; ')
+                        if not status==status0:
+                            mess1+=f'change status to "{("observation finished" if status=="done" else "observations running")}"'                        
+                        
                         writer.writerow({'target': f'{obj["Target"]} ({obj["RA"]}, {obj["DEC"]}; {obj["Number"]} x {obj["ExpTime"]} s) with programID {obj["ProgramID"]}',
-                                            'changes': f'change status to "{("observation finished" if status=="done" else "observations running")}"',
+                                            'changes': mess1,
                                             'mail': email})
                         f.close()     
-                        
-                        # f=open('db/changes.txt','a')              
-                        # f.write(f'{obj["Target"]} ({obj["RA"]}, {obj["DEC"]}; {obj["Number"]} x {obj["ExpTime"]} s) with programID {obj["ProgramID"]} - change status to "{("observation finished" if status=="done" else "observations running")}"\n')
-                        # f.close()
-                                           
+                                       
                     
                     #send mail to admins and supervisior of added obj
                     send=SendMail(email)
                   
-                    send.message=render_template('message_status',supervisor=supervis,name=obj['Target'],ra=obj['RA'],dec=obj['DEC'],mag=obj['Mag'],exp=obj['ExpTime'],number=obj['Number'],night=obj['Nights'],prior=obj['Priority'],group=obj['Type'],notes=obj['Remarks'],progID=progID,result=result,status=('observation finished' if status=='done' else 'observations running'))
+                    send.message=render_template(template,supervisor=supervis,name=obj['Target'],ra=obj['RA'],dec=obj['DEC'],mag=obj['Mag'],exp=obj['ExpTime'],number=obj['Number'],night=obj['Nights'],prior=obj['Priority'],group=obj['Type'],notes=obj['Remarks'],progID=progID,result=result,status=('observation finished' if status=='done' else 'observations running')+(' (not changed)' if status==status0 else ''),message=mess)
             
                     send.mail["subject"]=subject
 
                     try:
-                        send.run()
+                       send.run()
                     except:
-                        traceback.print_exc()
-                        send.mail['cc']=''
-                        try: send.send_mail("ERROR: exception", traceback.format_exc())
-                        except: pass   #incorrect mail config
+                       traceback.print_exc()
+                       send.mail['cc']=''
+                       try: send.send_mail("ERROR: exception", traceback.format_exc())
+                       except: pass   #incorrect mail config
                         
                     gc.collect()
                     return result
                 
                 else:
                     #bigger change, send request to admin
+                    statusChange=(not status==status0)
+                    mess1=mess.replace('\n','; ')+('; ' if len(mess)>0 else '')
+                    if progID==obj['ProgramID'] and len(obj['ProgramID'])>0 and (statusChange or len(changes)-1>len(changes['manual'])):
+                        #correct ID, change automatically what possible
+                        result='Some changes done automatically! The rest will be changed manually by admins.'
+                                                                       
+                        if statusChange:
+                            obj['Done']=int(not (bool(int(obj['Done']))))  #change status
+                        #change params
+                            statusChange=False
+                        
+                        if len(changes)-1>len(changes['manual']):
+                            #change some params automatically
+                            mess+='\n\nAlready changed:\n'
+                            for param in dict(changes):
+                                if not param=='manual' and not param in changes['manual']:
+                                    obj[param]=changes[param]
+                                    mess+=f'{param}: {changes[param]}\n'
+                                    del(changes[param])
+                        
+                        #make backup
+                        shutil.copy2('db/objects.csv','db-backup/objects-'+datetime.now().strftime("%Y%m%d-%H%M%S")+'.csv')
+                        
+                        f=open('db/objects.csv','w')
+                        writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ProgramID','Done'])
+                        writer.writeheader()                        
+                        for i in obj_all:
+                            if not i==target: writer.writerow(obj_all[i])
+                            else: writer.writerow(obj)
+                        f.close() 
+                        
+                    else:
+                        result="Form submitted successfully! Target will be changed manually by admins."
+                        
+                        
                     writeheader=False
                     if not os.path.isfile('db/changes.csv'): 
                         writeheader=True
@@ -1107,8 +1322,15 @@ def modif_obj():
                     writer = csv.DictWriter(f, fieldnames=['target','changes','mail'])
                     
                     if writeheader: writer.writeheader()
-                    mess1=mess
-                    if not status==status0:
+                    
+                    mess+='\n\nNOT changed:\n'
+                    for param in dict(changes):
+                        if not param=='manual':
+                            obj[param]=changes[param]
+                            mess+=f'{param}: {changes[param]}\n'
+                            mess1+=f'{param}: {changes[param]}; '                    
+                    
+                    if statusChange:
                         mess1+=f' and change status to "{("observation finished" if status=="done" else "observations running")}"'
                     
                     writer.writerow({'target': f'{obj["Target"]} ({obj["RA"]}, {obj["DEC"]}; {obj["Number"]} x {obj["ExpTime"]} s) with programID {obj["ProgramID"]}',
@@ -1118,24 +1340,24 @@ def modif_obj():
                     
                     send=SendMail(email)
                   
-                    send.message=render_template('message_change',supervisor=supervis,name=obj['Target'],ra=obj['RA'],dec=obj['DEC'],mag=obj['Mag'],exp=obj['ExpTime'],number=obj['Number'],night=obj['Nights'],prior=obj['Priority'],group=obj['Type'],notes=obj['Remarks'],progID=progID,status=('observation finished' if status=='done' else 'observations running')+(' (not changed)' if status==status0 else ''),message=mess)
+                    send.message=render_template('message_change',supervisor=supervis,name=obj['Target'],ra=obj['RA'],dec=obj['DEC'],mag=obj['Mag'],exp=obj['ExpTime'],number=obj['Number'],night=obj['Nights'],prior=obj['Priority'],group=obj['Type'],notes=obj['Remarks'],progID=progID,status=('observation finished' if status=='done' else 'observations running')+(' (not changed)' if status==status0 else ''),message=mess,result=result)
             
                     send.mail["subject"]=obj['Target']+': REQUEST for Change of observing target'
 
                     try:
-                        send.run()
+                       send.run()
                     except:
-                        traceback.print_exc()
-                        send.mail['cc']=''
-                        try: send.send_mail("ERROR: exception", traceback.format_exc())
-                        except: pass   #incorrect mail config
+                       traceback.print_exc()
+                       send.mail['cc']=''
+                       try: send.send_mail("ERROR: exception", traceback.format_exc())
+                       except: pass   #incorrect mail config
                     
                     gc.collect()
-                    return redirect(url_for('success'))          
+                    return result          
 
-        return render_template('modify_obj.html', obj=[[x,obj_all[x]['Target']] for x in ids], target=target,info=info,supervis = supervis, email=email, mess=mess, errors=errors, progID=progID,status=status)
+        return render_template('modify_obj.html', obj=[[x,obj_all[x]['Target']] for x in ids], target=target,info=info,supervis = supervis, email=email, mess=mess, errors=errors, progID=progID,status=status, per=per,t0=t0,phase_start=phase_start,phase_end=phase_end, condi=condi, freq=freq, remarks=remarks, moon_input=moon_input, time_start=time_start, time_end=time_end, other=other, group=group, groups=groups)
     
-    return render_template('modify_obj.html', obj=[[x,obj_all[x]['Target']] for x in ids], target='',info='',supervis = '', email='', mess='', errors={}, progID='',status='')
+    return render_template('modify_obj.html', obj=[[x,obj_all[x]['Target']] for x in ids], target='',info='',supervis = '', email='', mess='', errors={}, progID='',status='', per='',t0='',phase_start='',phase_end='', condi='good', freq='unspecified', remarks='', moon_input='', time_start='', time_end='', other='', group='', groups=groups)
 
 
 
