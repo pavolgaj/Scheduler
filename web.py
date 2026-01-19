@@ -2083,6 +2083,11 @@ def scheduler():
                         if pd.isna(obj['full']['EndPhase']): end=None
                         else: end=obj['full']['EndPhase']
                         cons.append(PhaseConstraint(objPer,start,end))
+                        
+                    #test observability
+                    if not is_observable(cons, observatory, obj['target'], obstime):
+                        n_obs[-1]-=1
+                        continue
                     
                     if obj['n_exp']=='series':
                         #series -> 20 blocks with 5 exp.
@@ -2106,7 +2111,7 @@ def scheduler():
                         if blocks[-1].duration<60*u.second: blocks[-1].duration=60*u.second   #fix for short blocks
             
                 if len(blocks)==0:
-                    return '<p>Schedule is EMPTY!</p>'+'<p>Selected objects: '+str(n_selected[0])+'<br>'+'Observable objects: '+str(n_obs[0])+'</p>'                    
+                    return '<p>Schedule is EMPTY!</p>'+'<p>Selected objects: '+str(n_selected[-1])+'<br>'+'Observable objects: '+str(n_obs[-1])+'</p>'                    
             
                 #run scheduler        
                 constraintsM=[]
