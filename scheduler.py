@@ -829,6 +829,35 @@ def schedule_table(schedule,objects0={}):
     tab['target']=target
     return tab
 
+def plot_year(target, obs, ax=None):
+    '''plot altitude of target duging the year at local midnight'''
+    time=Time('2026-01-01T00:00:00Z')+np.arange(0,365,1)-obs.longitude.value/15./24  #1 year interval
+    
+    alt = obs.altaz(time, target).alt
+    # Mask out nonsense alt
+    #masked_alt = np.ma.array(alt, mask=alt < 0)
+    
+    if ax is None:
+        ax = plt.gca()
+       
+    ax.set_title(f'Midnight altitude of {target.name}')    
+    ax.plot_date(time.plot_date, alt,'-')
+    ax.set_ylim(0,90)
+    ax.set_ylabel('Altitude (deg)')
+    
+    #put month abbrev. on axis between ticks
+    ax.set_xlim([time[0].plot_date, time[-1].plot_date])
+    date_formatter = matplotlib.dates.DateFormatter('%b')
+    ax.xaxis.set_minor_formatter(date_formatter)
+    ax.xaxis.set_minor_locator(matplotlib.dates.MonthLocator(bymonthday=15))
+    ax.tick_params(axis="x", which="minor", length=0)
+    
+    ax.xaxis.set_major_locator(matplotlib.dates.MonthLocator())
+    ax.xaxis.set_major_formatter(matplotlib.ticker.NullFormatter())
+    
+    return ax
+    
+
 def batch(schedule,objects0={}):
     #{"name":"alp Lyr","v_mag":"0.03","note":"","ra":"18:36","de":"38:47","type":"target","exptime":"30","caltime":"360","iodinecell":false,"count_repeat":null,"count_of_pulses":null,"fiber":0,"spectral_range":null,"ga_sf":null,"start":"18:50","ha":"1.1-1.1","alt":"74-74"}
 

@@ -15,6 +15,13 @@
                 margin: 50px;
             }
 
+            table {
+                display: block;
+                overflow-x: auto;
+                overflow-y: auto;
+            }
+
+
             td {
                 padding-right: 30px;
                 word-wrap: break-word;
@@ -126,6 +133,18 @@
                 ph = document.getElementById('phase');
                 ph.innerHTML = phase.toFixed(4)
             }
+
+            //This will open an image in a new window
+            function img64(data) {
+                debugBase64("data:image/png;base64," + data);
+            }
+
+            //Display a base64 URL inside an iframe in another window.
+            //for chrome etc. (a href not work!)
+            function debugBase64(base64URL) {
+                var win = window.open();
+                win.document.write('<iframe src="' + base64URL + '" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>');
+            }
         </script>
 
     </head>
@@ -135,10 +154,12 @@
 
         <table>
             <tr>
-                <td style="width: 60%; max-width: 2000px;">
+                <td style="width: 55%;">
                     <table>
-                        {% for key in ['RA','DEC','Mag','Period','Epoch','ExpTime','Number','Nights','Priority','NewPriority','Type','Remarks',
-                        'MoonPhase','StartPhase','EndPhase','StartDate','EndDate','Conditions','Frequency','OtherRequests','Supervisor'] %}
+                        {% for key in
+                        ['RA','DEC','Mag','Period','Epoch','ExpTime','Number','Nights','Priority','NewPriority','Type','Remarks',
+                        'MoonPhase','StartPhase','EndPhase','StartDate','EndDate','Conditions','Frequency','OtherRequests','Supervisor']
+                        %}
                         {% if key in obj[0] %}
                         <tr>
                             <td class="key">{{ key }}</td>
@@ -149,14 +170,14 @@
                         {% endif %}
                         {% endfor %}
                         <tr>
-                            <td class="key">Status</td>                            
+                            <td class="key">Status</td>
                             {% for ob in obj %}
                             <td>
-                            {% if ob['Done']=='1' %}
-                            finished
-                            {% else %}
-                            observing
-                            {% endif %}
+                                {% if ob['Done']=='1' %}
+                                finished
+                                {% else %}
+                                observing
+                                {% endif %}
                             </td>
                             {% endfor %}
                         </tr>
@@ -175,9 +196,10 @@
                         {% endfor %}
                     </table>
                 </td>
-                <td style="min-width: 400px; max-width: 2000px; text-align: center; vertical-align: top">
-                    <div id="aladin-div" style="width:400px;height:400px;"></div>
-                    <div>
+                <td style="min-width: 400px; width: 30%; text-align: center; vertical-align: top;">
+                    <div id="aladin-div" style="width:400px;height:400px; text-align: center;"></div>
+                    <br>
+                    <div style="text-align: center;">
                         <a href="https://aladin.cds.unistra.fr/AladinLite/?target={{ obj[0]['RA'] }}{% if not obj[0]['DEC'][0]=='-' %}%2B{% endif %}{{ obj[0]['DEC'] | replace('+','') }}&fov=0.10"
                             target="_blank">Open Aladin</a>
                         <br>
@@ -185,7 +207,7 @@
                             target="_blank">Search in Simbad</a>
                     </div>
 
-                    <div style="text-align: left;">
+                    <div style="text-align: left; width: 100%">
                         <br>
                         <label for="day" style="display: inline;">Date</label>
                         <input type="date" name="day" id="day" value="{{ day }}" title="UTC Date.">
@@ -234,6 +256,10 @@
                         {% endif %}
                     </div>
 
+                </td>
+                <td style="width: 400px;  text-align: center; vertical-align: top">
+                    <img style="width: 400px ;" src='data:image/png;base64,{{ year_plot }}' alt="Altitude plot"
+                        onclick="img64('{{ year_plot }}')">
                 </td>
             </tr>
         </table>

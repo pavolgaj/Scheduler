@@ -3974,10 +3974,30 @@ def object_info():
                     
                     ob['NewPriority']='%.1f' %ob['NewPriority']        
 
+    #load config - based on observatory!
+    config=load_config('lasilla_config.txt')    
+    observatory=config['observatory']
+    
+    ra='{}h{}m{}s'.format(*objects[0]['RA'].replace(':',' ').replace(',','.').split())
+    dec='{}d{}m{}s'.format(*objects[0]['DEC'].replace(':',' ').replace(',','.').split())
+    coordinates=SkyCoord(ra,dec,frame='icrs')
+    target=FixedTarget(name=name0, coord=coordinates)
+    
+    #make plot
+    plt.Figure()
+    ax=plot_year(target,observatory)
+    #save to "buffer" file
+    buf=io.BytesIO()
+    plt.savefig(buf,format='png',dpi=150)
+    plt.close()
+    buf.seek(0)
+    #load result from buffer to html output
+    year = base64.b64encode(buf.getvalue()).decode('utf8')
+    buf.close()
     
     gc.collect()
     
-    return render_template('object.html',obj=objects,prog=programs,P=P,t0=t0,day=day,time=time,keys=keys,last=last,nobs=nobs,snr=snr,obs_name=obs_name)
+    return render_template('object.html',obj=objects,prog=programs,P=P,t0=t0,day=day,time=time,keys=keys,last=last,nobs=nobs,snr=snr,obs_name=obs_name,year_plot=year)
 
 
 	
