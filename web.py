@@ -1634,14 +1634,14 @@ def admin():
             if 'download' in request.form:
                 #download csv -> without saving DB on server
                 
-                si = io.StringIO()    # create "file-like" output for writing
-                
-                # Get the data from the form and sort them based on original order              
-                targets=[{x: updated_data[x][ids[i]] for x in header.strip().split(',')+['ProgramID']} for i in sorted(ids)]                
+                si = io.StringIO()    # create "file-like" output for writing             
                 
                 writer=csv.DictWriter(si,fieldnames=header.strip().split(',')+['ProgramID'])
                 writer.writeheader()
-                writer.writerows(targets)
+                if 'Target' in updated_data:
+                    # Get the data from the form and sort them based on original order              
+                    targets=[{x: updated_data[x][ids[i]] for x in header.strip().split(',')+['ProgramID']} for i in sorted(ids)] 
+                    writer.writerows(targets)
                 
                 #make output for web
                 output = make_response(si.getvalue())
@@ -1649,7 +1649,7 @@ def admin():
                 output.headers["Content-type"] = "text/csv"
                 return output
     
-            elif 'delete_all' in request.form:
+            elif 'delete_all' in request.form and 'Target' in updated_data:
                 #delete all targets
                 
                 # Get the data from the form and sort them based on original order   
@@ -1663,7 +1663,7 @@ def admin():
                 f.write(header.strip()+',ProgramID\n') 
                 f.close()
                 
-            elif 'accept_all' in request.form:
+            elif 'accept_all' in request.form and 'Target' in updated_data:
                 #accept all targets
                 
                 # Get the data from the form and sort them based on original order   
@@ -1699,7 +1699,7 @@ def admin():
                     
                     acc=targets
                     
-            elif 'delete_select' in request.form:
+            elif 'delete_select' in request.form and 'Target' in updated_data:
                 #delete selected targets
                 # Get the data from the form and sort them based on original order                  
                 targets0=[{x: updated_data[x][ids[i]] for x in header.strip().split(',')+['ProgramID']} for i in sorted(ids)]
@@ -1721,7 +1721,7 @@ def admin():
                     writer.writerows(targets)
                     f.close()
                 
-            elif 'accept_select' in request.form:
+            elif 'accept_select' in request.form and 'Target' in updated_data:
                 #accept selected targets
                 # Get the data from the form and sort them based on original order                  
                 targets0=[{x: updated_data[x][ids[i]] for x in header.strip().split(',')+['ProgramID']} for i in sorted(ids)]
@@ -1761,7 +1761,7 @@ def admin():
                     writer.writerows(targets)
                     f.close()
                 
-            elif len(list(filter(r_del.match,request.form.keys())))>0:
+            elif len(list(filter(r_del.match,request.form.keys())))>0 and 'Target' in updated_data:
                 #delete one target
                 id=int(list(filter(r_del.match,request.form.keys()))[0].split('_')[1]) 
                 
@@ -1781,7 +1781,7 @@ def admin():
                 f.close()
                 
             
-            elif len(list(filter(r_acc.match,request.form.keys())))>0:
+            elif len(list(filter(r_acc.match,request.form.keys())))>0 and 'Target' in updated_data:
                 #accept one target
                 id=int(list(filter(r_acc.match,request.form.keys()))[0].split('_')[1])   
                 
@@ -1943,7 +1943,7 @@ def admin():
                 
             if len(errors)>0:
                 #if some error reload displayed data - NO saved in file!
-                return render_template('admin_db.html', db=db, header=header.strip().split(',')+['ProgramID'], data=targets, saved=saved, errors=errors, searchInput=searchInput, rows=rows)
+                return render_template('admin_db.html', db=db, header=header.strip().split(',')+['ProgramID'], data=targets, saved=saved, errors=errors, searchInput=searchInput, rows=rows,tooltips=tooltips)
                                
             
             if os.path.isfile('db/objects.csv'): os.chmod('db/objects.csv', 0o666)            

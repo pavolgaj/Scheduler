@@ -158,12 +158,12 @@
         <center>
             <h1>Objects in database</h1>
             <form method="post">
-                <button type="submit" name="download" title="Download all objects in DB">Download all
+                <button type="submit" name="download" title="Download all objects in DB" {%if (not data) and (not done) %}disabled{% endif %}>Download all
                 </button>
                 <button type="submit" name="observe"
-                    title="Download objects with needed observatios (not finished).">Download observation targets
+                    title="Download objects with needed observatios (not finished)." {%if not data %}disabled{% endif %}>Download observation targets
                 </button>
-                <button type="submit" name="done" title="Download finished objects in DB">Download finished
+                <button type="submit" name="done" title="Download finished objects in DB" {%if not done %}disabled{% endif %}>Download finished
                 </button>
             </form>
         </center>
@@ -177,7 +177,7 @@
             <form method="post">
                 <a href="#finished"><button type="button">Skip to Finished objects</button></a>
                 <button type="submit" name="observe"
-                    title="Download objects with needed observatios (not finished).">Download observation targets
+                    title="Download objects with needed observatios (not finished)." {%if not data %}disabled{% endif %}>Download observation targets
                 </button>
             </form>
         </center>   
@@ -232,7 +232,7 @@
             <h2 id="finished">Finished objects</h2>
             <form method="post">
                 <a href="#observable"><button type="button">Skip to Objects for observations</button></a>
-                <button type="submit" name="done" title="Download finished objects in DB">Download finished
+                <button type="submit" name="done" title="Download finished objects in DB" {%if not done %}disabled{% endif %}>Download finished
                 </button>
             </form>
         </center>

@@ -308,19 +308,19 @@
             {% if db=='new' %}
             <center>
                 <h1>New Objects</h1>
-                <button type="submit" name="download" title="Download">Download CSV
+                <button type="submit" name="download" title="Download" {%if not data %}disabled{% endif %}>Download CSV
                 </button>
                 <button type="submit" name="accept_all" title="Accept all targets and move them to DB."
-                    onclick="return question('Accept all targets and move them to DB?');">Accept all
+                    onclick="return question('Accept all targets and move them to DB?');" {%if not data %}disabled{% endif %}>Accept all
                 </button>
                 <button type="submit" name="delete_all" title="Delete all targets"
-                    onclick="return question('Delete all targets?');">Delete all
+                    onclick="return question('Delete all targets?');" {%if not data %}disabled{% endif %}>Delete all
                 </button>
                 <button type="submit" name="accept_select" title="Accept selected targets and move them to DB."
-                    onclick="return question('Accept selected targets and move them to DB?');">Accept selected
+                    onclick="return question('Accept selected targets and move them to DB?');" {%if not data %}disabled{% endif %}>Accept selected
                 </button>
                 <button type="submit" name="delete_select" title="Delete selected targets"
-                    onclick="return question('Delete selected targets?');">Delete selected
+                    onclick="return question('Delete selected targets?');" {%if not data %}disabled{% endif %}>Delete selected
                 </button>
             </center>
             <h2 style="color: red; font-weight: bold;">Any accept/delete action also saves all modifications in table!
@@ -406,7 +406,7 @@
             {% endif %}
             <center>
                 <h1>Objects in database</h1>
-                <button type="submit" name="download" title="Download">Download CSV
+                <button type="submit" name="download" title="Download" {%if not data %}disabled{% endif %}>Download CSV
                 </button>
                 <button type="submit" name="save" title="Save DB" onclick="return saveRowNum();">Save DB
                 </button>
