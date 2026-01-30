@@ -829,34 +829,138 @@ def schedule_table(schedule,objects0={}):
     tab['target']=target
     return tab
 
-def plot_year(target, obs, ax=None):
+def plot_year(target, obs, step=5, ax=None):
     '''plot altitude of target duging the year at local midnight'''
-    time=Time('2026-01-01T00:00:00Z')+np.arange(0,365,1)-obs.longitude.value/15./24  #1 year interval
-    
-    alt = obs.altaz(time, target).alt
+    time=Time('2026-01-01T00:00:00Z')+np.arange(0,365+step,step)  #1 year interval
+
+    observer=Observer(longitude=0,latitude=obs.latitude)
+    alt = observer.altaz(time, target).alt
     # Mask out nonsense alt
     #masked_alt = np.ma.array(alt, mask=alt < 0)
-    
+
     if ax is None:
         ax = plt.gca()
-       
-    ax.set_title(f'Midnight altitude of {target.name}')    
+
+    ax.set_title(f'Local midnight altitude of {target.name}')
     ax.plot_date(time.plot_date, alt,'-')
     ax.set_ylim(0,90)
     ax.set_ylabel('Altitude (deg)')
-    
+
     #put month abbrev. on axis between ticks
     ax.set_xlim([time[0].plot_date, time[-1].plot_date])
     date_formatter = matplotlib.dates.DateFormatter('%b')
     ax.xaxis.set_minor_formatter(date_formatter)
     ax.xaxis.set_minor_locator(matplotlib.dates.MonthLocator(bymonthday=15))
     ax.tick_params(axis="x", which="minor", length=0)
-    
+
     ax.xaxis.set_major_locator(matplotlib.dates.MonthLocator())
     ax.xaxis.set_major_formatter(matplotlib.ticker.NullFormatter())
-    
+
     return ax
+
+def sun(obs,times):
+    '''approx. of sun coordinates'''
+    t=np.array([x.value for x in times-Time('2026-03-21T00:00:00Z')])  # time from equinox
+
+    eps=np.deg2rad(23.439)  #obliquity
+
+    #approx. coordinates of Sun
+    nt=2*np.pi*t/365.2425
+    dec=np.arcsin(np.sin(nt)*np.sin(eps))
+
+    cra=np.cos(nt)/np.cos(dec)
+    sra=np.sin(nt)/np.cos(dec)
+    ra=np.arctan2(sra,cra)
+
+    return np.rad2deg(ra), np.rad2deg(dec)
+
+
+def create_rise(obs,ra,dec,times):
+    '''calculate times of rise/set for given location and target'''
+    t=np.array([x.value for x in times-Time('2026-03-21T00:00:00Z')])  # time from equinox
+
+    ra=np.deg2rad(ra)
+    dec=np.deg2rad(dec)
+
+    #sunrise/sunset
+    ha=np.arccos(-np.tan(dec)*np.tan(np.deg2rad(obs.latitude.value)))  #hour angle
     
+    if isinstance(ha,float):
+        if np.isnan(ha): 
+            #circumpolar objects
+            if obs.latitude.value>0 and np.rad2deg(dec)>90-obs.latitude.value: ha=np.pi
+            elif obs.latitude.value<0 and np.rad2deg(dec)<-90-obs.latitude.value: ha=np.pi
+
+    sidS=np.rad2deg(ra+ha)%360   #sidereal time set
+    sidR=np.rad2deg(ra-ha)%360   #sidereal time rise
+
+    #sidereal time at midnight...
+    sid=360.98564736629*t-180 #+obs.longitude.value
+    sid=sid%360
+
+    #sunrise/sunset times
+    TS=sidS-sid
+    TR=sidR-sid
+    TS[TS>=360]-=360
+    TS[TS<0]+=360
+    TR[TR>=360]-=360
+    TR[TR<0]+=360
+
+    return TR/15, TS/15
+
+
+def plot_year_rise(target, obs):
+    '''plot rise/set times during the year with sunrise/sunset'''
+
+    #rise/set of target
+    time=Time('2026-01-01T00:00:00Z')+np.arange(0,366,1)  #1 year interval
+    tarR, tarS = create_rise(obs,target.ra.value,target.dec.value,time)
+
+    tarR[tarR>12]-=24
+    tarS[tarS>12]-=24
+
+    #sunrise/sunset
+    raS, decS=sun(obs, time)
+
+    sunR, sunS = create_rise(obs,raS,decS,time)
+
+    fig=plt.Figure(figsize=(4,6))
+    ax=fig.subplots()
+
+    ax.set_title(f'Visibility of {target.name}')
+
+    #night area
+    ax.fill_betweenx(time.plot_date,sunS-24,sunR,color='silver')
+
+    #plot rise/set lines and mask part outside figure
+    tarR1=np.ma.masked_array(tarR,mask=tarR>=tarS)
+    tarS1=np.ma.masked_array(tarS,mask=tarR>=tarS)
+    ax.fill_betweenx(time.plot_date,tarR1,tarS1,color='lime',alpha=0.3)
+
+    tarR2=np.ma.masked_array(tarR,mask=tarR<tarS)
+    tarS2=np.ma.masked_array(tarS,mask=tarR<tarS)
+    ax.fill_betweenx(time.plot_date,tarR2,max(sunR+2),color='lime',alpha=0.3)
+    ax.fill_betweenx(time.plot_date,-max(sunR+2),tarS2,color='lime',alpha=0.3)
+
+    #put month abbrev. on axis between ticks
+    ax.set_ylim([time[0].plot_date, time[-1].plot_date])
+    date_formatter = matplotlib.dates.DateFormatter('%b')
+    ax.yaxis.set_minor_formatter(date_formatter)
+    ax.yaxis.set_minor_locator(matplotlib.dates.MonthLocator(bymonthday=15))
+    ax.tick_params(axis="y", which="minor", length=0)
+    ax.yaxis.set_major_locator(matplotlib.dates.MonthLocator())
+    ax.yaxis.set_major_formatter(matplotlib.ticker.NullFormatter())
+
+    #ticks in hours
+    ax.set_xlabel('Local time')
+    ticks={x: str(x+24) if x<0 else str(x) for x in range(-12,13,2)}
+    ax.set_xticks(list(ticks.keys()))
+    ax.set_xticklabels(list(ticks.values()))
+    ax.set_xlim(-max(sunR+1),max(sunR+1))
+
+    #fig.savefig('rise.png',bbox_inches='tight')
+    
+    return fig
 
 def batch(schedule,objects0={}):
     #{"name":"alp Lyr","v_mag":"0.03","note":"","ra":"18:36","de":"38:47","type":"target","exptime":"30","caltime":"360","iodinecell":false,"count_repeat":null,"count_of_pulses":null,"fiber":0,"spectral_range":null,"ga_sf":null,"start":"18:50","ha":"1.1-1.1","alt":"74-74"}

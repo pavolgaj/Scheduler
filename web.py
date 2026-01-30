@@ -3988,16 +3988,27 @@ def object_info():
     ax=plot_year(target,observatory)
     #save to "buffer" file
     buf=io.BytesIO()
-    plt.savefig(buf,format='png',dpi=150)
+    plt.savefig(buf,bbox_inches='tight',format='png',dpi=150)
     plt.close()
     buf.seek(0)
     #load result from buffer to html output
     year = base64.b64encode(buf.getvalue()).decode('utf8')
     buf.close()
     
+    fig=plot_year_rise(target,observatory)
+    #save to "buffer" file
+    buf=io.BytesIO()
+    fig.savefig(buf,bbox_inches='tight',format='png',dpi=150)
+    plt.close()
+    buf.seek(0)
+    #load result from buffer to html output
+    year_rise = base64.b64encode(buf.getvalue()).decode('utf8')
+    buf.close()
+    
+    
     gc.collect()
     
-    return render_template('object.html',obj=objects,prog=programs,P=P,t0=t0,day=day,time=time,keys=keys,last=last,nobs=nobs,snr=snr,obs_name=obs_name,year_plot=year)
+    return render_template('object.html',obj=objects,prog=programs,P=P,t0=t0,day=day,time=time,keys=keys,last=last,nobs=nobs,snr=snr,obs_name=obs_name,year_plot=year,rise_plot=year_rise)
 
 
 	
