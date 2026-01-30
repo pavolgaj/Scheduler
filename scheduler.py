@@ -943,7 +943,7 @@ def plot_year_rise(target, obs):
     ax.fill_betweenx(time.plot_date,-max(sunR+2),tarS2,color='lime',alpha=0.3)
 
     #put month abbrev. on axis between ticks
-    ax.set_ylim([time[0].plot_date, time[-1].plot_date])
+    ax.set_ylim([time[-1].plot_date,time[0].plot_date])
     date_formatter = matplotlib.dates.DateFormatter('%b')
     ax.yaxis.set_minor_formatter(date_formatter)
     ax.yaxis.set_minor_locator(matplotlib.dates.MonthLocator(bymonthday=15))
