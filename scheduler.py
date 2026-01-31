@@ -888,8 +888,8 @@ def create_rise(obs,ra,dec,times):
     if isinstance(ha,float):
         if np.isnan(ha): 
             #circumpolar objects
-            if obs.latitude.value>0 and np.rad2deg(dec)>90-obs.latitude.value: ha=np.pi
-            elif obs.latitude.value<0 and np.rad2deg(dec)<-90-obs.latitude.value: ha=np.pi
+            if (obs.latitude.value>0 and np.rad2deg(dec)>90-obs.latitude.value) or (obs.latitude.value<0 and np.rad2deg(dec)<-90-obs.latitude.value): 
+                return 12.01*np.ones(t.shape) , 11.99*np.ones(t.shape)
 
     sidS=np.rad2deg(ra+ha)%360   #sidereal time set
     sidR=np.rad2deg(ra-ha)%360   #sidereal time rise
