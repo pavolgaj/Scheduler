@@ -256,6 +256,8 @@ for c in constraints:
 
 transitioner = Transitioner(slew_rate)
 scheduler = Scheduler(constraints = constraintsM,observer = observatory,transitioner = transitioner)
+if scheduler.__class__ is StdPriorityScheduler:
+    scheduler.rv_std=3   # number of RV Std. per night
 schedule = Schedule(suns,sunr)     #start and end of scheduling interval
 scheduler(blocks, schedule)
 

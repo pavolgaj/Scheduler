@@ -566,16 +566,26 @@ def new():
             #set priority for standards
             if group=='RV Standard': 
                 progID=''    #TODO?
-                prior='0.1'
-                if ic: prior='0.2'
+                if ic: 
+                    if simcal=='thar': prior='0.2'
+                    elif simcal=='ic': prior='0.22'
+                    else: prior='0.21'   
+                elif simcal=='thar': prior='0.1'   
+                elif simcal=='ic': prior='0.12'   
+                else: prior='0.11'               
                 supervis='Standards'
                 night=''
                 condi=''
                 freq=''
             elif group=='SpecPhot Standard': 
                 progID=''
-                prior='0.5'
-                if ic: prior='0.6'
+                if ic: 
+                    if simcal=='thar': prior='0.6'
+                    elif simcal=='ic': prior='0.62'
+                    else: prior='0.61'
+                elif simcal=='thar': prior='0.5'   
+                elif simcal=='ic': prior='0.52'   
+                else: prior='0.51'
                 supervis='Standards'
                 night=''
                 condi=''
@@ -721,11 +731,21 @@ def check(row):
     
     #set priority for standards
     if row['Type']=='RV Standard': 
-        row['Priority']='0.1'
-        if 'IC' in row['Remarks']: row['Priority']='0.2'
+        if 'IC FE' in row['Remarks'].replace('(','').replace(')',''): 
+            if 'ThAr' in row['Remarks']: row['Priority']='0.2'
+            elif 'CU' in row['Remarks']: row['Priority']='0.22'
+            else: row['Priority']='0.21'
+        elif 'ThAr' in row['Remarks']: row['Priority']='0.1'
+        elif 'CU' in row['Remarks']: row['Priority']='0.12'
+        else: row['Priority']='0.11'
     elif row['Type']=='SpecPhot Standard': 
-        row['Priority']='0.5'
-        if 'IC' in row['Remarks']: row['Priority']='0.6'
+        if 'IC FE' in row['Remarks'].replace('(','').replace(')',''): 
+            if 'ThAr' in row['Remarks']: row['Priority']='0.6'
+            elif 'CU' in row['Remarks']: row['Priority']='0.62'
+            else: row['Priority']='0.61'
+        elif 'ThAr' in row['Remarks']: row['Priority']='0.5'
+        elif 'CU' in row['Remarks']: row['Priority']='0.52'
+        else: row['Priority']='0.51'
 
     if len(row['MoonPhase'])>0:
         if not is_float(row['MoonPhase']): errors.append(row['Target']+': moon phase has to be number.')
@@ -2344,6 +2364,8 @@ def scheduler():
                         
                 transitioner = Transitioner(slew_rate)
                 scheduler = Scheduler(constraints = constraintsM,observer = observatory,transitioner = transitioner)
+                if scheduler.__class__ is StdPriorityScheduler:
+                    scheduler.rv_std=3   # number of RV Std. per night
                 schedule = Schedule(suns,sunr)     #start and end of scheduling interval
                 scheduler(blocks, schedule)
                 

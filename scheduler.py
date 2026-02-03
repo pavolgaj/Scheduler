@@ -1006,6 +1006,7 @@ class StdPriorityScheduler(PriorityScheduler):
 
         """
         super(StdPriorityScheduler, self).__init__(*args, **kwargs)
+        self.rv_std=1  #number of scheduled RV Std
 
     def _make_schedule(self, blocks):
         # Combine individual constraints with global constraints, and
@@ -1059,8 +1060,8 @@ class StdPriorityScheduler(PriorityScheduler):
             b = blocks[i]
             if b.priority in scheduled_std: 
                 #priorites of already sheduled std (<1) - only one per night and priority
-                if b.priority>0.2: continue    
-                if scheduled_std.count(b.priority)==3: continue    # RV std - max. 3
+                if b.priority>=0.5: continue
+                if scheduled_std.count(b.priority)==self.rv_std: continue    # number of RV Std. per night
             # Compute possible observing times by combining object constraints
             # with the master open times mask
             constraint_scores = score_array[i]
@@ -1115,7 +1116,8 @@ class StdPriorityScheduler(PriorityScheduler):
 
             if not _is_scheduled:
                 unscheduled_blocks.append(b)
-            elif b.priority<1: scheduled_std.append(b.priority)    #priorites of already sheduled std (<1) - only one per night and priority
+            elif b.priority<1:                 
+                scheduled_std.append(b.priority)    #priorites of already sheduled std (<1) - only one per night and priority
 
         return self.schedule
 
