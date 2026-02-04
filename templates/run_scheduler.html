@@ -266,7 +266,7 @@
                     var prior = document.getElementById('prior');
                     var now = new Date();
                     var nightDate = new Date(night.value);
-                    if (prior.checked && ((nightDate - now) / 86400 / 1000 > 1) || (nightDate - now) / 86400 / 1000 < -1) {
+                    if (prior.checked && (((nightDate - now) / 86400 / 1000 > 1) || ((nightDate - now) / 86400 / 1000 < -1))) {
                         valid = confirm('Scheduler will be calculated for the future or past with scaling priorities based on the frequencies. Results can be incorrect without generated NightLog for previous night. Do you really want to continue?');
                     }
                     else if ((nightDate - now) / 86400 / 1000 < -1) {
