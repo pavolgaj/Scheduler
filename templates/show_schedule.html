@@ -91,6 +91,10 @@
             .modify-row button {
                 padding: 0px;
             }
+            .warning {
+                color: red;
+                font-weight: bolder;
+            }
         </style>
         <script>
             function popup() {
@@ -167,26 +171,28 @@
             </tr>
             </thead>
             {% for row in schedule %}
-            {% if not row.Target=='Delay' %}
+            {# {% if not row.Target=='Delay' %} #}
             <tr {% if row.Priority<3 %}style="font-weight: bold"{% endif %} data-row-id="{{ loop.index0 }}" 
+{% if not row.Target=='Delay' %}       
 title="Group: {{ row._Type }}
 Supervisor: {{ row._Supervisor }}
 Conditions: {{ row._Conditions }}
 Frequency: {{ row._Frequency }}
 OtherRequests: {{ row._OtherRequests }}
 {% if row.MoonSeparation %}
-MoonDist (deg): {{ row.MoonSeparation | float() | round(0) | int() }}{% endif %}">
+MoonDist (deg): {{ row.MoonSeparation | float() | round(0) | int() }}{% endif %}"  {% endif %}>
                 <td style="width: 50px;">{{ row.index }}
-                    <input type="checkbox">
+                    <input type="checkbox">{% if not row.Target=='Delay' %}
                     <button type="button" class="modify-row" name="info" title="Info about target"
                         onclick="window.open('{{ url_for('object_info', name = row.Target, day = row.Start.split()[0], time = row.Start.split()[1][:row.Start.split()[1].rfind(':')]) }}', '_blank')"
                         formtarget=”_blank”>
                         <img src="{{ url_for('static',filename='info.svg') }}" alt="preview">
-                    </button>
+                    </button>{% endif %}
                 </td>
-                <td>{{ row.Target }}</td>
-                <td>{{ row.RA.split('.')[0] }}</td>
-                <td>{{ row.DEC.split('.')[0] }}</td>
+
+                <td>{% if not row.Target=='Delay' %}{{ row.Target }}{% endif %}</td>
+                <td>{% if not row.Target=='Delay' %}{{ row.RA.split('.')[0] }}{% endif %}</td>
+                <td>{% if not row.Target=='Delay' %}{{ row.DEC.split('.')[0] }}{% endif %}</td>
                 <td>{% if row.Mag is number %}
                     {{ row.Mag | round(1) }}
                     {% else %}
@@ -198,14 +204,14 @@ MoonDist (deg): {{ row.MoonSeparation | float() | round(0) | int() }}{% endif %}
                 <td {% if "IC" in row.Remarks %}class="warning"{% endif %}>{{ row.Remarks }}</td>
                 <td>{{ row.Start.split()[1][:row.Start.split()[1].rfind(':')] }}</td>
                 <td>{{ row.End.split()[1][:row.End.split()[1].rfind(':')] }}</td>
-                <td>{{ row.Priority }}</td>
-                <td>{% if row.Altitude %}
+                <td>{% if not row.Target=='Delay' %}{{ row.Priority }}{% endif %}</td>
+                <td>{% if not row.Target=='Delay' %}{% if row.Altitude %}
                     {{ row.Altitude | float() | round(0) | int() }}
                     {% endif %}
                     {% if row.AltitudeStart %}
                     {{ row.AltitudeStart | float() | round(0) | int() }} -
                     {{ row.AltitudeEnd | float() | round(0) | int() }}
-                    {% endif %}
+                    {% endif %}{% endif %}
                 </td>
                 <!-- <td>{% if row.Airmass %}
                     {{ row.Airmass | float() | round(1) }}
@@ -214,28 +220,28 @@ MoonDist (deg): {{ row.MoonSeparation | float() | round(0) | int() }}{% endif %}
                     {{ row.AirmassStart | float() | round(1) }} - {{ row.AirmassEnd | float() | round(1) }}
                     {% endif %}
                 </td> -->
-                <td>{% if row.Azimut %}
+                <td>{% if not row.Target=='Delay' %}{% if row.Azimut %}
                     {{ row.Azimut | float() | round(0) | int() }}
                     {% endif %}
                     {% if row.AzimutStart %}
                     {{ row.AzimutStart | float() | round(0) | int() }} -
                     {{ row.AzimutEnd | float() | round(0) | int() }}
-                    {% endif %}
+                    {% endif %}{% endif %}
                 </td>
                 <!-- <td>{% if row.MoonSeparation %}
                     {{ row.MoonSeparation | float() | round(0) | int() }}
                     {% endif %}
                 </td> -->
-                <td {% if row.Position=='-' %}style="background-color: red; " {% endif %}>
+                <td {% if row.Position=='-' %}style="background-color: red; " {% endif %}>{% if not row.Target=='Delay' %}
                     <span style="display: inline-block; width: 30px;">{{ row.Position }}</span>
                     <button type="button" class="modify-row" name="plot" title="Plot telescope limits"
                         onclick="window.open('{{ url_for('limits', ha0 = row.ha0, ha1 = row.ha1, dec=row.de, title=row.Target) }}', '_blank')"
                         formtarget=”_blank”>
                         <img src="{{ url_for('static',filename='preview.svg') }}" alt="preview">
-                    </button>
+                    </button>{% endif %}
                 </td>
             </tr>
-            {% endif %}
+            {#  {% endif %} #}
             {% endfor %}
         </table>
         <br>
