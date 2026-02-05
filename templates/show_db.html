@@ -28,7 +28,7 @@
                 text-align: left;
                 padding: 8px;
                 /* white-space: nowrap; */
-                word-wrap: break-word; 
+                word-wrap: break-word;
                 max-width: 300px;
                 min-width: 100px;
             }
@@ -101,6 +101,14 @@
                 margin-right: auto;
             }
 
+            .modify-row span {
+                height: 17px;
+                display: block;
+                margin-left: auto;
+                margin-right: auto;
+                color: blue;
+            }
+
             .modify-row button {
                 padding: 0px;
             }
@@ -158,12 +166,14 @@
         <center>
             <h1>Objects in database</h1>
             <form method="post">
-                <button type="submit" name="download" title="Download all objects in DB" {%if (not data) and (not done) %}disabled{% endif %}>Download all
+                <button type="submit" name="download" title="Download all objects in DB" {%if (not data) and (not done)
+                    %}disabled{% endif %}>Download all
                 </button>
-                <button type="submit" name="observe"
-                    title="Download objects with needed observatios (not finished)." {%if not data %}disabled{% endif %}>Download observation targets
+                <button type="submit" name="observe" title="Download objects with needed observatios (not finished)."
+                    {%if not data %}disabled{% endif %}>Download observation targets
                 </button>
-                <button type="submit" name="done" title="Download finished objects in DB" {%if not done %}disabled{% endif %}>Download finished
+                <button type="submit" name="done" title="Download finished objects in DB" {%if not done %}disabled{%
+                    endif %}>Download finished
                 </button>
             </form>
         </center>
@@ -173,15 +183,15 @@
             title="Search for target in DB.">
         <!-- table with observable obj -->
         <center>
-            <h2 id="observable">Objects for observations</h2>            
+            <h2 id="observable">Objects for observations</h2>
             <form method="post">
                 <a href="#finished"><button type="button">Skip to Finished objects</button></a>
-                <button type="submit" name="observe"
-                    title="Download objects with needed observatios (not finished)." {%if not data %}disabled{% endif %}>Download observation targets
+                <button type="submit" name="observe" title="Download objects with needed observatios (not finished)."
+                    {%if not data %}disabled{% endif %}>Download observation targets
                 </button>
             </form>
-        </center>   
-        <br>     
+        </center>
+        <br>
         <table id="my_table">
             <thead>
                 <tr>
@@ -196,7 +206,9 @@
             {% set up=loop.index %} <!-- for different color of fixed col between rows -->
             <tr>
                 {% for col in header %}
-                <td {% if (col=='Nights' or col=='Target') and row['Observations'] and row['Nights'] %}{% if (row['Observations'] | int())>=(row['Nights'] | int()) %}style="background-color: lime;"{% endif %}{% endif %}>
+                <td {% if (col=='Nights' or col=='Target' ) and row['Observations'] and row['Nights'] %}{% if
+                    (row['Observations'] | int())>=(row['Nights'] | int()) %}style="background-color: lime;"{% endif
+                    %}{% endif %}>
                     <!-- compress output values = round floats and remove decimals from RA/DEC -->
                     {% if not '.' in row[col] %}
                     {{ row[col] }}
@@ -205,7 +217,7 @@
                     {% elif col=='RA' or col=='DEC' %}
                     {{ row[col].split('.')[0] }}
                     {% else %}
-                    {{ row[col] }}                    
+                    {{ row[col] }}
                     {% endif %}
                     {% if col=='Program' %}
                     <button type="button" class="modify-row" name="info" title="Info about observing program"
@@ -213,12 +225,20 @@
                         formtarget=”_blank”>
                         <img src="{{ url_for('static',filename='info.svg') }}" alt="preview">
                     </button>
-                    {% elif  col=='Target' %}
+                    <!-- <button type="button" class="modify-row" name="email" title="Contact PI of observing proposal"
+                        onclick="window.open('{{ url_for('proposal_info', name = row[col], email=1) }}', '_blank')"
+                        formtarget=”_blank”><img src="{{ url_for('static',filename='email.svg') }}" alt="email">
+                    </button> -->
+                    {% elif col=='Target' %}
                     <button type="button" class="modify-row" name="info" title="Info about target"
                         onclick="window.open('{{ url_for('object_info', name = row.Target) }}', '_blank')"
                         formtarget=”_blank”>
                         <img src="{{ url_for('static',filename='info.svg') }}" alt="preview">
                     </button>
+                    <!-- <button type="button" class="modify-row" name="email" title="Contact PI of observing proposal"
+                        onclick="window.open('{{ url_for('proposal_info', name = row['Program'], email=1) }}', '_blank')"
+                        formtarget=”_blank”><img src="{{ url_for('static',filename='email.svg') }}" alt="email">
+                    </button> -->
                     {% endif %}
                 </td>
                 {% endfor %}
@@ -232,7 +252,8 @@
             <h2 id="finished">Finished objects</h2>
             <form method="post">
                 <a href="#observable"><button type="button">Skip to Objects for observations</button></a>
-                <button type="submit" name="done" title="Download finished objects in DB" {%if not done %}disabled{% endif %}>Download finished
+                <button type="submit" name="done" title="Download finished objects in DB" {%if not done %}disabled{%
+                    endif %}>Download finished
                 </button>
             </form>
         </center>
@@ -254,7 +275,9 @@
             <tr>
                 {% for col in header %}
                 {% if not col=='NewPriority' %}
-                <td {% if (col=='Nights' or col=='Target') and row['Observations'] and row['Nights'] %}{% if (row['Observations'] | int())>=(row['Nights'] | int()) %}style="background-color: lime;"{% endif %}{% endif %}>
+                <td {% if (col=='Nights' or col=='Target' ) and row['Observations'] and row['Nights'] %}{% if
+                    (row['Observations'] | int())>=(row['Nights'] | int()) %}style="background-color: lime;"{% endif
+                    %}{% endif %}>
                     <!-- compress output values = round floats and remove decimals from RA/DEC -->
                     {% if not '.' in row[col] %}
                     {{ row[col] }}
@@ -271,11 +294,19 @@
                         formtarget=”_blank”>
                         <img src="{{ url_for('static',filename='info.svg') }}" alt="preview">
                     </button>
-                    {% elif  col=='Target' %}
+                    <!-- <button type="button" class="modify-row" name="email" title="Contact PI of observing proposal"
+                        onclick="window.open('{{ url_for('proposal_info', name = row[col], email=1) }}', '_blank')"
+                        formtarget=”_blank”><img src="{{ url_for('static',filename='email.svg') }}" alt="email">
+                    </button> -->
+                    {% elif col=='Target' %}
                     <button type="button" class="modify-row" name="info" title="Info about target"
                         onclick="window.open('{{ url_for('object_info', name = row.Target,done=1) }}', '_blank')"
                         formtarget=”_blank”>
                         <img src="{{ url_for('static',filename='info.svg') }}" alt="preview">
+                    </button>
+                    <!-- <button type="button" class="modify-row" name="email" title="Contact PI of observing proposal"
+                        onclick="window.open('{{ url_for('proposal_info', name = row['Program'], email=1) }}', '_blank')"
+                        formtarget=”_blank”><img src="{{ url_for('static',filename='email.svg') }}" alt="email"> -->
                     </button>
                     {% endif %}
                 </td>
@@ -311,9 +342,9 @@
                 if (n === 0) {
                     return v.replace(" ", "").replace("-", "").replace("_", "");   //1st col with target name
                 }
-                if (n>9 && v.length==10 && !isNaN(Date.parse(v))) {
-                    v=Date.parse(v);  //date
-                } 
+                if (n > 9 && v.length == 10 && !isNaN(Date.parse(v))) {
+                    v = Date.parse(v);  //date
+                }
                 else if ($.isNumeric(v)) {
                     v = parseFloat(v, 10);
                 }
@@ -400,9 +431,9 @@
                 if (n === 0) {
                     return v.replace(" ", "").replace("-", "").replace("_", "");   //1st col with target name
                 }
-                if (n>9 && v.length==10 && !isNaN(Date.parse(v))) {
-                    v=Date.parse(v);  //date
-                } 
+                if (n > 9 && v.length == 10 && !isNaN(Date.parse(v))) {
+                    v = Date.parse(v);  //date
+                }
                 else if ($.isNumeric(v)) {
                     v = parseFloat(v, 10);
                 }
