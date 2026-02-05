@@ -2189,12 +2189,15 @@ def scheduler():
                         
                         last=None   
                         num=0                     
-                        if tr in stats and group not in ['RV Standard','SpecPhot Standard']:
-                            last=stats[tr]
-                            if plandate>last: 
-                                #only for future planning
+                        if group not in ['RV Standard','SpecPhot Standard']:
+                            if tr in stats:
+                                last=stats[tr]
                                 diffdate=(plandate-last).days
-                                
+                            else:
+                                diffdate=1000     #higher chance to place new targets                        
+                            
+                            if diffdate>0: 
+                                #only for future planning
                                 obj['priority']=freqPrior(fr,diffdate,obj['full']['Priority'],series=(obj['n_exp']=='series'))                                
                         
                             if tr in obs:
