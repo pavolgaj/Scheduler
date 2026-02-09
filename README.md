@@ -127,7 +127,7 @@ If scheduling multiple nights, the individual nights are scheduled separately (a
 ## Web interface
 
 - start using flask --app web run --host=0.0.0.0 -p 5000 or python3 -m flask --app web run --host=0.0.0.0 -p 5000 or running web_start.sh (running on port 5000) - for testing phase
-- start using waitress-serve --host 0.0.0.0 --port=5000 web:app or python3 -m waitress-serve --host 0.0.0.0 --port=5000 web:app or running web.sh (running on port 5000) - for production phase
+- start using gunicorn web:app -b 0.0.0.0:5000 or running web.sh (running on port 5000) - for production phase
 - running on localhost:5000/scheduler
 
 **The short user guide is written on the title page of the web interface (see [web.pdf](web.pdf)).**
