@@ -42,7 +42,7 @@ for obj in objects0:
     progID=obj['full']['ProgramID']
     if pd.isna(progID): progID=''
     if progID not in use_program:
-        if ids[str(progID)]['mode'].split()[0]=='service:': use_program.append(progID)
+        if ids[str(progID)]['mode'].split()[0]=='service': use_program.append(progID)
 
 
 #load last observations
