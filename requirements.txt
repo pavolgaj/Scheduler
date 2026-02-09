@@ -6,3 +6,6 @@ astroquery>=0.4.7
 flask
 flask-caching
 gunicorn
+gevent
+scipy
+numpy

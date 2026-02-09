@@ -76,6 +76,7 @@ mailLog.setLevel(logging.ERROR)
 app.logger.addHandler(mailLog)
 
 if not os.path.isdir('db'): os.mkdir('db')
+if not os.path.isdir('db-backup'): os.mkdir('db-backup')
 if not os.path.isdir('schedules'): os.mkdir('schedules')
 
 @app.route("/health")
