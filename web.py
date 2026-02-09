@@ -514,50 +514,51 @@ def new():
             dec1='{}d{}m{}s'.format(*dec.replace(':',' ').replace(',','.').split())
             coordinates=SkyCoord(ra1,dec1,frame='icrs')
 
-            f=open('db/objects.csv','r')
-            reader = csv.DictReader(f)
-            dup=False
-            nameDup=''
-            for obj in reader:
-                if obj['Target'].lower().replace('-','').replace(' ','').replace('_','')==name1: 
-                    warn+='Object already in DB!;'
-                    dup=True
-                    break
-                elif not nameDup:
-                    #look for close targets
-                    ra1='{}h{}m{}s'.format(*obj['RA'].replace(':',' ').replace(',','.').split())
-                    dec1='{}d{}m{}s'.format(*obj['DEC'].replace(':',' ').replace(',','.').split())
-                    coord=SkyCoord(ra1,dec1,frame='icrs')
-                    
-                    dist=coord.separation(coordinates)
-                    
-                    if dist.value*3600<5: nameDup=obj['Target']                        
-            f.close() 
-            if (not dup) and nameDup: warn+='Close target '+nameDup+' already in DB!;'
-            
-            f=open('db/new_objects.csv','r')
-            reader = csv.DictReader(f)
-            dup=False
-            nameDup=''
-            for obj in reader:
-                if obj['Target'].lower().replace('-','').replace(' ','').replace('_','')==name1: 
-                    warn+='Object already submitted!;'
-                    dup=True
-                    break
-                elif not nameDup:
-                    #look for close targets
-                    ra1='{}h{}m{}s'.format(*obj['RA'].replace(':',' ').replace(',','.').split())
-                    dec1='{}d{}m{}s'.format(*obj['DEC'].replace(':',' ').replace(',','.').split())
-                    coord=SkyCoord(ra1,dec1,frame='icrs')
-                    
-                    dist=coord.separation(coordinates)
-                    
-                    if dist.value*3600<5: nameDup=obj['Target']   
-            f.close() 
-            if (not dup) and nameDup: warn+='Close target '+nameDup+' already submitted!;'
+            if os.path.isfile('db/objects.csv'):
+                f=open('db/objects.csv','r')
+                reader = csv.DictReader(f)
+                dup=False
+                nameDup=''
+                for obj in reader:
+                    if obj['Target'].lower().replace('-','').replace(' ','').replace('_','')==name1: 
+                        warn+='Object already in DB!;'
+                        dup=True
+                        break
+                    elif not nameDup:
+                        #look for close targets
+                        ra1='{}h{}m{}s'.format(*obj['RA'].replace(':',' ').replace(',','.').split())
+                        dec1='{}d{}m{}s'.format(*obj['DEC'].replace(':',' ').replace(',','.').split())
+                        coord=SkyCoord(ra1,dec1,frame='icrs')
                         
-            if not check_simbad(name,coordinates):
-                warn+='Given coordinates do NOT agree with values in Simbad!;'
+                        dist=coord.separation(coordinates)
+                        
+                        if dist.value*3600<5: nameDup=obj['Target']                        
+                f.close() 
+                if (not dup) and nameDup: warn+='Close target '+nameDup+' already in DB!;'
+                
+                f=open('db/new_objects.csv','r')
+                reader = csv.DictReader(f)
+                dup=False
+                nameDup=''
+                for obj in reader:
+                    if obj['Target'].lower().replace('-','').replace(' ','').replace('_','')==name1: 
+                        warn+='Object already submitted!;'
+                        dup=True
+                        break
+                    elif not nameDup:
+                        #look for close targets
+                        ra1='{}h{}m{}s'.format(*obj['RA'].replace(':',' ').replace(',','.').split())
+                        dec1='{}d{}m{}s'.format(*obj['DEC'].replace(':',' ').replace(',','.').split())
+                        coord=SkyCoord(ra1,dec1,frame='icrs')
+                        
+                        dist=coord.separation(coordinates)
+                        
+                        if dist.value*3600<5: nameDup=obj['Target']   
+                f.close() 
+                if (not dup) and nameDup: warn+='Close target '+nameDup+' already submitted!;'
+                            
+                if not check_simbad(name,coordinates):
+                    warn+='Given coordinates do NOT agree with values in Simbad!;'
             
             #some warning - different to old one...
             if warn:
@@ -837,23 +838,12 @@ def bulk():
             if not progID:
                 errors['progID'] = 'Program ID is required.'   
             else:  
-                fID=open('progID.py','r')
-                exec(fID.read())
-                fID.close()
-                
+                #TODO check?  
                 f=open('db/progID.json','r')
                 ids=json.load(f)
                 f.close()       
                 
-                if len(progID)<14: errors['progID'] = 'Incorrect format of Program ID.'
-                else:
-                    try: dt=datetime.strptime(progID[:14],'%Y%m%d%H%M%S')
-                    except ValueError: errors['progID'] = 'Incorrect format of Program ID.'
-                
-                if not 'progID' in errors:
-                    if dt<datetime(2025,6,1,0,0,0) or dt>datetime.now()+timedelta(days=1):
-                        errors['progID'] = 'Incorrect format of Program ID.'
-                    elif progID not in ids: errors['progID'] = 'Program ID is incorrect/unknown.'      
+                #if progID not in ids: errors['progID'] = 'Program ID is incorrect/unknown.'   
             
 
             if errors:
@@ -1014,7 +1004,9 @@ def modif_obj():
     
     groups=["Exoplanet","Eclipsing binary","Flaring star","Pulsating star","RV Standard","SpecPhot Standard"]
     
-    if not os.path.isfile('db/objects.csv'): obj=[]
+    if not os.path.isfile('db/objects.csv'): 
+        obj=[]
+        ids=[]
     else: 
         f=open('db/objects.csv','r')
         reader = csv.DictReader(f)
@@ -4060,10 +4052,10 @@ def proposal_info():
     f.close()
     
     program={}
-    if name[0]=='2':
+    try:
         #search by ID
         if name in progs: program=progs[name]         
-    else:
+    except KeyError:
         for prog in progs:
             if name in progs[prog]['program_title']:
                 program=progs[prog]

@@ -5,6 +5,7 @@ astropy>=5.2
 astroquery>=0.4.7
 flask
 flask-caching
+redis
 gunicorn
 gevent
 scipy
