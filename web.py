@@ -535,7 +535,8 @@ def new():
                         if dist.value*3600<5: nameDup=obj['Target']                        
                 f.close() 
                 if (not dup) and nameDup: warn+='Close target '+nameDup+' already in DB!;'
-                
+            
+            if os.path.isfile('db/new_objects.csv'):    
                 f=open('db/new_objects.csv','r')
                 reader = csv.DictReader(f)
                 dup=False
@@ -557,8 +558,8 @@ def new():
                 f.close() 
                 if (not dup) and nameDup: warn+='Close target '+nameDup+' already submitted!;'
                             
-                if not check_simbad(name,coordinates):
-                    warn+='Given coordinates do NOT agree with values in Simbad!;'
+            if not check_simbad(name,coordinates):
+                warn+='Given coordinates do NOT agree with values in Simbad!;'
             
             #some warning - different to old one...
             if warn:
@@ -904,47 +905,49 @@ def bulk():
                     dec1='{}d{}m{}s'.format(*row['DEC'].replace(':',' ').replace(',','.').split())
                     coordinates=SkyCoord(ra1,dec1,frame='icrs')
 
-                    f=open('db/objects.csv','r')
-                    reader = csv.DictReader(f)
-                    dup=False
-                    nameDup=''
-                    for obj in reader:
-                        if obj['Target'].lower().replace('-','').replace(' ','').replace('_','')==name1: 
-                            warn+=row['Target']+': Object already in DB!;'
-                            dup=True
-                            break
-                        elif not nameDup:
-                            #look for close targets
-                            ra1='{}h{}m{}s'.format(*obj['RA'].replace(':',' ').replace(',','.').split())
-                            dec1='{}d{}m{}s'.format(*obj['DEC'].replace(':',' ').replace(',','.').split())
-                            coord=SkyCoord(ra1,dec1,frame='icrs')
-                            
-                            dist=coord.separation(coordinates)
-                            
-                            if dist.value*3600<5: nameDup=obj['Target']                        
-                    f.close() 
-                    if (not dup) and nameDup: warn+=row['Target']+': Close target '+nameDup+' already in DB!;'
+                    if os.path.isfile('db/objects.csv'):
+                        f=open('db/objects.csv','r')
+                        reader = csv.DictReader(f)
+                        dup=False
+                        nameDup=''
+                        for obj in reader:
+                            if obj['Target'].lower().replace('-','').replace(' ','').replace('_','')==name1: 
+                                warn+=row['Target']+': Object already in DB!;'
+                                dup=True
+                                break
+                            elif not nameDup:
+                                #look for close targets
+                                ra1='{}h{}m{}s'.format(*obj['RA'].replace(':',' ').replace(',','.').split())
+                                dec1='{}d{}m{}s'.format(*obj['DEC'].replace(':',' ').replace(',','.').split())
+                                coord=SkyCoord(ra1,dec1,frame='icrs')
+                                
+                                dist=coord.separation(coordinates)
+                                
+                                if dist.value*3600<5: nameDup=obj['Target']                        
+                        f.close() 
+                        if (not dup) and nameDup: warn+=row['Target']+': Close target '+nameDup+' already in DB!;'
                     
-                    f=open('db/new_objects.csv','r')
-                    reader = csv.DictReader(f)
-                    dup=False
-                    nameDup=''
-                    for obj in reader:
-                        if obj['Target'].lower().replace('-','').replace(' ','').replace('_','')==name1: 
-                            warn+=row['Target']+': Object already submitted!;'
-                            dup=True
-                            break
-                        elif not nameDup:
-                            #look for close targets
-                            ra1='{}h{}m{}s'.format(*obj['RA'].replace(':',' ').replace(',','.').split())
-                            dec1='{}d{}m{}s'.format(*obj['DEC'].replace(':',' ').replace(',','.').split())
-                            coord=SkyCoord(ra1,dec1,frame='icrs')
-                            
-                            dist=coord.separation(coordinates)
-                            
-                            if dist.value*3600<5: nameDup=obj['Target']   
-                    f.close() 
-                    if (not dup) and nameDup: warn+=row['Target']+': Close target '+nameDup+' already submitted!;'
+                    if os.path.isfile('db/new_objects.csv'):
+                        f=open('db/new_objects.csv','r')
+                        reader = csv.DictReader(f)
+                        dup=False
+                        nameDup=''
+                        for obj in reader:
+                            if obj['Target'].lower().replace('-','').replace(' ','').replace('_','')==name1: 
+                                warn+=row['Target']+': Object already submitted!;'
+                                dup=True
+                                break
+                            elif not nameDup:
+                                #look for close targets
+                                ra1='{}h{}m{}s'.format(*obj['RA'].replace(':',' ').replace(',','.').split())
+                                dec1='{}d{}m{}s'.format(*obj['DEC'].replace(':',' ').replace(',','.').split())
+                                coord=SkyCoord(ra1,dec1,frame='icrs')
+                                
+                                dist=coord.separation(coordinates)
+                                
+                                if dist.value*3600<5: nameDup=obj['Target']   
+                        f.close() 
+                        if (not dup) and nameDup: warn+=row['Target']+': Close target '+nameDup+' already submitted!;'
                                 
                     if not check_simbad(row['Target'],coordinates):
                         warn+=row['Target']+': Given coordinates do NOT agree with values in Simbad!;'          
