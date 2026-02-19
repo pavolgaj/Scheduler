@@ -83,6 +83,16 @@
                     }
                 });
             });
+            
+            function popup() {
+                //show info about running, not block server
+                var myDialog = document.createElement("dialog");
+                document.body.appendChild(myDialog);
+                var text = document.createTextNode(" Please, wait...");
+                myDialog.appendChild(text);
+                myDialog.showModal();
+                return true;
+            }
         </script>
     </head>
 
@@ -175,19 +185,19 @@
                 <label for="supervis"><u>Supervisor</u>
                 </label>
                 <input type="text" id="supervis" name="supervis" value="{{ supervis }}"
-                    class="{{ 'error' if errors.get('supervis') else 'normal' }}" title="Name of target supervisor. Use surname only!" placeholder="Name of target supervisor" required>
+                    class="{{ 'error' if errors.get('supervis') else 'normal' }}" title="Name of target supervisor. Use surname only!" placeholder="Name of target supervisor">
             </div>
             <div class="form-group">
                 <label for="progID"><u>Program ID</u>
                 </label>
                 <input type="text" id="progID" name="progID" value="{{ progID }}"
-                    class="{{ 'error' if errors.get('progID') else 'normal' }}" title="Program ID (obtained from AsU)." placeholder="Program ID (obtained from AsU)." required>
+                    class="{{ 'error' if errors.get('progID') else 'normal' }}" title="Program ID (obtained from AsU)." placeholder="Program ID (obtained from AsU).">
             </div>
             <div class="form-group">
                 <label for="email"><u>Email</u>
                 </label>
                 <input type="email" id="email" name="email" value="{{ email }}"
-                    class="{{ 'error' if errors.get('email') else 'normal' }}" title="E-mail address of supervisor." placeholder="E-mail address of supervisor" required>
+                    class="{{ 'error' if errors.get('email') else 'normal' }}" title="E-mail address of supervisor." placeholder="E-mail address of supervisor">
             </div>
             <div class="form-group">
                 <label for="mess">Message to admin
@@ -197,7 +207,7 @@
             </div>
             <br>
             <center>
-                <button type="submit" name="submit" id="submit" title="Send form.">Submit</button>
+                <button type="submit" name="submit" id="submit" onclick="return popup()" title="Send form.">Submit</button>
             </center>
         </form>
         <!-- shows errors in data -->
