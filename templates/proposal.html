@@ -26,9 +26,47 @@
             }
 
             tr.spaceUnder>td {
-            padding-bottom: 2em;
+                padding-bottom: 2em;
+            }
+
+            .modify-row {
+                padding: 0px;
+                width: 20px;
+                height: 20px;
+                background-color: silver;
+                border-color: black;
+                border-width: 1px;
+                border-radius: 5px;
+            }
+
+            .modify-row img {
+                height: 17px;
+                display: block;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .modify-row button {
+                padding: 0px;
             }
         </style>
+
+        <script>
+            function objects() {
+                var win = window.open();
+                var html = '<html><head><style>body {font-family: Arial, sans-serif; margin: 50px;}</style></head><body>';
+
+                html = html + '<h1>Object in program "{{ prog['program_title'] }}"</h1>'
+
+                {% for ob in prog['obj'] | sort%}
+                html = html + '<a href="{{ url_for('object_info', name = ob, done=2 ) }}" target="_blank">{{ ob }}</a><br>'
+
+                {% endfor %}
+
+                html = html + '</body></html>'
+                win.document.write(html);
+            }
+        </script>
 
     </head>
 
@@ -42,7 +80,30 @@
                 <td>{{ prog[key] }}</td>
             </tr>
             {% endfor %}
+            <tr>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td class="key">Objects
+                    <button type="button" class="modify-row" name="obj" title="Show all objects" onclick="objects()"
+                        formtarget=”_blank”>
+                        <img src="{{ url_for('static',filename='preview.svg') }}" alt="preview">
+                    </button>
+                </td>
+                <td>{{ prog['n_obj'] }}</td>
+            </tr>
+            <tr>
+                <td class="key">Observing</td>
+                <td>{{ prog['n_obs'] }}</td>
+            </tr>
+            <tr>
+                <td class="key">Finished</td>
+                <td>{{ prog['n_done'] }}</td>
+            </tr>
         </table>
+
+
 
     </body>
 

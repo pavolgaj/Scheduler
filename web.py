@@ -4054,19 +4054,56 @@ def proposal_info():
     progs=json.load(f)
     f.close()
     
+    objects=[]
+    if os.path.isfile('db/objects.csv'):
+        f=open('db/objects.csv','r')
+        reader = csv.DictReader(f)
+        for obj in reader:
+            objects.append(obj)   
+        f.close()
+    
+    progid=None
     program={}
     try:
         #search by ID
-        if name in progs: program=progs[name]         
+        if name in progs: 
+            program=progs[name] 
+            progid=name  
+        else:
+            for prog in progs:
+                if name in progs[prog]['program_title']:
+                    program=progs[prog]
+                    progid=prog
+                    break      
     except KeyError:
         for prog in progs:
             if name in progs[prog]['program_title']:
                 program=progs[prog]
+                progid=prog
                 break
     
     if len(program)==0: return 'Proposal "'+name+'" not found!'        
     
+    
+    n_obj=0
+    n_obs=0
+    n_done=0
+    obj=[]
+    if progid is not None:
+        for ob in objects:
+            if ob['ProgramID']==progid:
+                obj.append(ob['Target'])
+                n_obj+=1
+                if ob['Done']=='1': n_done+=1
+                else: n_obs+=1
+    
     gc.collect()
+    
+    program['n_obj']=n_obj
+    program['n_obs']=n_obs
+    program['n_done']=n_done
+    program['obj']=obj
+    
     
     return render_template('proposal.html',prog=program,keys=keys)
 
