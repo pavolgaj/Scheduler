@@ -163,16 +163,19 @@
                 var number = document.getElementById('number_input');
                 number.style.display = series.checked ? 'none' : 'flex';
             }
+
             function togglePhot() {
                 var phot = document.getElementById('phot');
                 var phot_input = document.getElementById('phot_input');
                 phot_input.style.display = phot.checked ? 'inline-block' : 'none';
             }
+
             function toggleMoon() {
                 var moon = document.getElementById('moon');
                 var moon_input = document.getElementById('moon_input');
                 moon_input.style.display = moon.checked ? 'inline-block' : 'none';
             }
+
             function togglePhase() {
                 var phase = document.getElementById('phase');
                 var phase_start = document.getElementById('phase_start');
@@ -184,6 +187,7 @@
                 phase_start_label.style.display = phase.checked ? 'inline-block' : 'none';
                 phase_end_label.style.display = phase.checked ? 'inline-block' : 'none';
             }
+
             function toggleTime() {
                 var time = document.getElementById('time');
                 var time_start = document.getElementById('time_start');
@@ -195,6 +199,7 @@
                 time_start_label.style.display = time.checked ? 'inline-block' : 'none';
                 time_end_label.style.display = time.checked ? 'inline-block' : 'none';
             }
+
             // Run this function on page load to check if the checkbox was checked (loading from server)
             window.onload = function () {
                 toggleSeries();
@@ -202,6 +207,16 @@
                 toggleMoon();
                 togglePhase();
                 toggleTime();
+            }
+
+            function popup() {
+                //show info about running, not block server
+                var myDialog = document.createElement("dialog");
+                document.body.appendChild(myDialog);
+                var text = document.createTextNode(" Please, wait...");
+                myDialog.appendChild(text);
+                myDialog.showModal();
+                return true;
             }
         </script>
     </head>
@@ -454,7 +469,7 @@
             </div>
             <br>
             <center>
-                <button type="submit" name="submit" title="Send form.">Submit
+                <button type="submit" name="submit" title="Send form." onclick="return popup()">Submit
                 </button>
             </center>
         </form>
