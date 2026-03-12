@@ -508,7 +508,7 @@ def new():
                 
                 return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
             
-            name1=name.lower().replace(' ', '').replace('-','').replace('_','').replace('+','').replace('.','')
+            name1=name.lower().replace(' ', '').replace('-','').replace('_','').replace('+','').replace('.','').replace('*','')
 
             ra1='{}h{}m{}s'.format(*ra.replace(':',' ').replace(',','.').split())
             dec1='{}d{}m{}s'.format(*dec.replace(':',' ').replace(',','.').split())
@@ -594,7 +594,7 @@ def new():
                 condi=''
                 freq=''
 
-            name=name.replace('*','').strip()
+            name=name.replace('*','').replace('+','').strip()
             # save the data to a database
             tmp='"'+name+'"'+','
             tmp+=ra+','
@@ -899,7 +899,7 @@ def bulk():
                     
                     if len(errors['data'])>0: continue
                     
-                    name1=row['Target'].lower().replace(' ', '').replace('-','').replace('_','').replace('+','').replace('.','')
+                    name1=row['Target'].lower().replace(' ', '').replace('-','').replace('_','').replace('+','').replace('.','').replace('*','')
 
                     ra1='{}h{}m{}s'.format(*row['RA'].replace(':',' ').replace(',','.').split())
                     dec1='{}d{}m{}s'.format(*row['DEC'].replace(':',' ').replace(',','.').split())
@@ -952,6 +952,8 @@ def bulk():
                     if not check_simbad(row['Target'],coordinates):
                         warn+=row['Target']+': Given coordinates do NOT agree with values in Simbad!;'          
 
+                    row['Target']=row['Target'].replace('+','').strip()
+                    
                 news=output.getvalue()  #loads contents of "output file"
             if len(errors['data'])==0: del(errors['data'])
 
