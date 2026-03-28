@@ -162,12 +162,32 @@ def login():
     gc.collect()
     return render_template('login.html')
 
-def dms(dd):
+def dms(dd,string=True,sep=' ',digits=2):
     #convert value in degree to deg, min,sec
     mult = -1 if dd < 0 else 1
     mnt,sec = divmod(abs(dd)*3600, 60)
     deg,mnt = divmod(mnt, 60)
-    return int(mult*deg), int(mnt), sec
+    
+    if not string:
+        #return as values
+        deg = int(deg)
+        if deg == 0 and mult < 0:
+            deg = -0.0  # preserves sign when formatted
+        elif mult<0: deg=int(deg*mult)
+        
+        return deg, int(mnt), sec
+        
+    sign = "-" if mult < 0 else ""
+    
+    sec = round(sec, digits)
+    if sec >= 60:
+        sec = 0
+        mnt += 1
+    if mnt >= 60:
+        mnt = 0
+        deg += 1
+    
+    return f"{sign}{int(deg):02d}{sep}{int(mnt):02d}{sep}{sec:0{digits+3}.{digits}f}"
 
 def is_int(text):
     #check if text is int
@@ -294,8 +314,8 @@ def new():
                         # format ra/dec with leading zero
                         if 'ra' in result_table.colnames:
                             #astroquery>=0.4.8
-                            ra='%02d %02d %05.2f' %dms(result_table['ra']/15)
-                            dec='%02d %02d %05.2f' %dms(result_table['dec'])
+                            ra=dms(result_table['ra']/15)
+                            dec=dms(result_table['dec'])
                         else:
                             #astroquery==0.4.7
                             ra=result_table['RA']
@@ -309,8 +329,8 @@ def new():
                         result_table=result_table[0]
                         if 'ra' in result_table.colnames:
                             #astroquery>=0.4.8
-                            ra='%02d %02d %05.2f' %dms(result_table['ra']/15)
-                            dec='%02d %02d %05.2f' %dms(result_table['dec'])
+                            ra=dms(result_table['ra']/15)
+                            dec=dms(result_table['dec'])
                         else:
                             #astroquery==0.4.7
                             ra=result_table['RA']
@@ -320,8 +340,8 @@ def new():
                     result_table=result_table[0]
                     if 'ra' in result_table.colnames:
                         #astroquery>=0.4.8
-                        ra='%02d %02d %05.2f' %dms(result_table['ra']/15)
-                        dec='%02d %02d %05.2f' %dms(result_table['dec'])
+                        ra=dms(result_table['ra']/15)
+                        dec=dms(result_table['dec'])
                         #select used mag (closest to V)
                         if not hasattr(result_table['V'],'mask'): mag=round(result_table['V'],2)
                         elif not hasattr(result_table['g'],'mask'): mag=round(result_table['g'],2)
@@ -386,8 +406,8 @@ def new():
                             if not 'coordinates' in data:
                                 errors['name'] = 'Object "'+name+'" NOT found in ExoFOP!'
                             else:
-                                ra='%02d %02d %05.2f' %dms(float(data['coordinates']['ra'])/15)
-                                dec='%02d %02d %05.2f' %dms(float(data['coordinates']['dec']))
+                                ra=dms(float(data['coordinates']['ra'])/15)
+                                dec=dms(float(data['coordinates']['dec']))
 
                                 if 'magnitudes' in data:
                                     mags={x['band']: x['value'] for x in data['magnitudes']}
