@@ -455,8 +455,11 @@
             //Display a base64 URL inside an iframe in another window.
             //for chrome etc. (a href not work!)
             function debugBase64(base64URL) {
-                var win = window.open();
+                var win = window.open('','img');
+                win.document.open();
                 win.document.write('<iframe src="' + base64URL + '" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>');
+                win.document.close();                
+                win.focus();
             }
 
             //This will open an image in a new window
@@ -526,8 +529,8 @@
                                             <td class="wrap">{{ group }}
                                                 <button type="button" class="modify-row" name="info"
                                                     title="Info about observing program"
-                                                    onclick="window.open('{{ url_for('proposal_info', name = group) }}', '_blank')"
-                                                    formtarget=”_blank”>
+                                                    onclick="window.open('{{ url_for('proposal_info', name = group) }}', 'program')"
+                                                    formtarget="program">
                                                     <img src="{{ url_for('static',filename='info.svg') }}"
                                                         alt="preview">
                                                 </button>
@@ -613,7 +616,7 @@ Conditions: {{ row.Conditions }}">
                                             </button>
                                             <button type="submit" class="modify-row" name="preview_{{ loop.index0 }}"
                                                 title="Altitude graph" onclick="return checkTwilight()"
-                                                formtarget=”_blank”>
+                                                formtarget=”altitude”>
                                                 <img src="{{ url_for('static',filename='preview.svg') }}" alt="preview">
                                             </button>
 
@@ -621,8 +624,8 @@ Conditions: {{ row.Conditions }}">
                                         <td>{{ row.Target }}
                                             <button type="button" class="modify-row" name="info"
                                                 title="Info about target"
-                                                onclick="window.open('{{ url_for('object_info', name = row.Target) }}', '_blank')"
-                                                formtarget=”_blank”>
+                                                onclick="window.open('{{ url_for('object_info', name = row.Target) }}', 'object')"
+                                                formtarget=”object”>
                                                 <img src="{{ url_for('static',filename='info.svg') }}" alt="preview">
                                             </button>
                                         </td>
@@ -771,11 +774,11 @@ OtherRequests: {{ row._OtherRequests }}">
                         {% if not row.Target=='Delay' %}
                         <button type="button" class="modify-row" name="info" title="Info about target"
                             {% if row.Start %}
-                            onclick="window.open('{{ url_for('object_info', name = row.Target, day = row.Start.split()[0], time = row.Start.split()[1][:row.Start.split()[1].rfind(':')]) }}', '_blank')"
+                            onclick="window.open('{{ url_for('object_info', name = row.Target, day = row.Start.split()[0], time = row.Start.split()[1][:row.Start.split()[1].rfind(':')]) }}', 'object')"
                             {% else %}
-                            onclick="window.open('{{ url_for('object_info', name = row.Target) }}', '_blank')"
+                            onclick="window.open('{{ url_for('object_info', name = row.Target) }}', 'object')"
                             {% endif %}
-                            formtarget=”_blank”>
+                            formtarget="object">
                             <img src="{{ url_for('static',filename='info.svg') }}" alt="preview">
                         </button>
                         {% endif %}
@@ -859,8 +862,8 @@ OtherRequests: {{ row._OtherRequests }}">
                         <span style="display: inline-block; width: 30px">{{ row.Position }}</span>
                         {% if row.Position %}
                         <button type="button" class="modify-row" name="plot" title="Plot telescope limits"
-                            onclick="window.open('{{ url_for('limits', ha0 = row.ha0, ha1 = row.ha1, dec=row.de, title=row.Target) }}', '_blank')"
-                            formtarget=”_blank”>
+                            onclick="window.open('{{ url_for('limits', ha0 = row.ha0, ha1 = row.ha1, dec=row.de, title=row.Target) }}', 'limit')"
+                            formtarget="limit">
                             <img src="{{ url_for('static',filename='preview.svg') }}" alt="preview">
                         </button>
                         {% endif %}

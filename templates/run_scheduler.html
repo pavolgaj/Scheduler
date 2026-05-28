@@ -644,8 +644,8 @@
                         </td>
                         <td class="wrap">{{ prog }}
                             <button type="button" class="modify-row" name="info" title="Info about observing program"
-                                onclick="window.open('{{ url_for('proposal_info', name = prog) }}', '_blank')"
-                                formtarget=”_blank”>
+                                onclick="window.open('{{ url_for('proposal_info', name = prog) }}', 'program')"
+                                formtarget="program">
                                 <img src="{{ url_for('static',filename='info.svg') }}" alt="preview">
                             </button>
                         </td>

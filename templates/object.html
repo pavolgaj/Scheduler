@@ -142,8 +142,11 @@
             //Display a base64 URL inside an iframe in another window.
             //for chrome etc. (a href not work!)
             function debugBase64(base64URL) {
-                var win = window.open();
+                var win = window.open('','img');
+                win.document.open();
                 win.document.write('<iframe src="' + base64URL + '" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>');
+                win.document.close();                
+                win.focus();
             }
         </script>
 
@@ -201,10 +204,10 @@
                     <br>
                     <div style="text-align: center;">
                         <a href="https://aladin.cds.unistra.fr/AladinLite/?target={{ obj[0]['RA'] }}{% if not obj[0]['DEC'][0]=='-' %}%2B{% endif %}{{ obj[0]['DEC'] | replace('+','') }}&fov=0.10"
-                            target="_blank">Open Aladin</a>
+                            target="aladin">Open Aladin</a>
                         <br>
                         <a href="https://simbad.u-strasbg.fr/simbad/sim-basic?Ident={{ obj[0]['RA'] }}{% if not obj[0]['DEC'][0]=='-' %}%2B{% endif %}{{ obj[0]['DEC'] | replace('+','') }}"
-                            target="_blank">Search in Simbad</a>
+                            target="simbad">Search in Simbad</a>
                     </div>
 
                     <div style="text-align: left; width: 100%">
@@ -252,7 +255,7 @@
                             </tr>
                         </table>
                         {% if nobs>0 %}
-                        <a href="{{ url_for('search',target=obs_name)}}" target="_blank">Show all observations</a>
+                        <a href="{{ url_for('search',target=obs_name)}}" target="obs">Show all observations</a>
                         {% endif %}
                     </div>
 
@@ -267,7 +270,6 @@
             </tr>
         </table>
 
-        <!-- todo: statistika pozorovani  -->
         <script type="text/javascript">
             var aladin;
             A.init.then(() => {

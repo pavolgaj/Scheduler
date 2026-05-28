@@ -178,8 +178,8 @@
             <center>
                 <h2>Observations of {{target}}
                     <button type="button" class="modify-row" name="info" title="Info about target"
-                        onclick="window.open('{{ url_for('object_info', name = target) }}&done=2', '_blank')"
-                        formtarget=”_blank”>
+                        onclick="window.open('{{ url_for('object_info', name = target) }}&done=2', 'object')"
+                        formtarget="object">
                         <img src="{{ url_for('static',filename='info.svg') }}" alt="preview">
                     </button>
                 </h2>

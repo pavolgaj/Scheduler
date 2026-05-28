@@ -86,8 +86,8 @@
                     <!-- make href to obs obj and show obs in tab -->
                     <td><a href="{{ url_for('search',target=vals['name'])}}">{{ vals['name'] }}</a>
                         <button type="button" class="modify-row" name="info" title="Info about target"
-                            onclick="window.open('{{ url_for('object_info', name = vals.name) }}&done=2', '_blank')"
-                            formtarget=”_blank”>
+                            onclick="window.open('{{ url_for('object_info', name = vals.name) }}&done=2', 'object')"
+                            formtarget="object">
                             <img src="{{ url_for('static',filename='info.svg') }}" alt="preview">
                         </button>
                     </td>

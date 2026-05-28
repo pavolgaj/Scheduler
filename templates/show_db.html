@@ -221,8 +221,8 @@
                     {% endif %}
                     {% if col=='Program' %}
                     <button type="button" class="modify-row" name="info" title="Info about observing program"
-                        onclick="window.open('{{ url_for('proposal_info', name = row[col]) }}', '_blank')"
-                        formtarget=”_blank”>
+                        onclick="window.open('{{ url_for('proposal_info', name = row[col]) }}', 'program')"
+                        formtarget="program">
                         <img src="{{ url_for('static',filename='info.svg') }}" alt="preview">
                     </button>
                     <!-- <button type="button" class="modify-row" name="email" title="Contact PI of observing proposal"
@@ -231,8 +231,8 @@
                     </button> -->
                     {% elif col=='Target' %}
                     <button type="button" class="modify-row" name="info" title="Info about target"
-                        onclick="window.open('{{ url_for('object_info', name = row.Target) }}', '_blank')"
-                        formtarget=”_blank”>
+                        onclick="window.open('{{ url_for('object_info', name = row.Target) }}', 'object')"
+                        formtarget="object">
                         <img src="{{ url_for('static',filename='info.svg') }}" alt="preview">
                     </button>
                     <!-- <button type="button" class="modify-row" name="email" title="Contact PI of observing proposal"

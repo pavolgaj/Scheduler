@@ -53,18 +53,22 @@
 
         <script>
             function objects() {
-                var win = window.open();
+                var win = window.open('','all');
                 var html = '<html><head><style>body {font-family: Arial, sans-serif; margin: 50px;}</style></head><body>';
 
                 html = html + '<h1>Object in program "{{ prog['program_title'] }}"</h1>'
 
                 {% for ob in prog['obj'] | sort%}
-                html = html + '<a href="{{ url_for('object_info', name = ob, done=2 ) }}" target="_blank">{{ ob }}</a><br>'
+                html = html + '<a href="{{ url_for('object_info', name = ob, done=2 ) }}" target="object">{{ ob }}</a><br>'
 
                 {% endfor %}
 
                 html = html + '</body></html>'
+                win.document.open();
                 win.document.write(html);
+                win.document.close();
+                
+                win.focus();
             }
         </script>
 
@@ -87,7 +91,7 @@
             <tr>
                 <td class="key">Objects
                     <button type="button" class="modify-row" name="obj" title="Show all objects" onclick="objects()"
-                        formtarget=”_blank”>
+                        formtarget="all">
                         <img src="{{ url_for('static',filename='preview.svg') }}" alt="preview">
                     </button>
                 </td>

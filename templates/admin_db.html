@@ -259,13 +259,17 @@
             }
 
             function details() {
-                var w = window.open();
+                var w = window.open('','help');
                 var html = '<html><body><ul>';
                 {% for key in tooltips %}
                 html = html + '<li><b>{{ key }}</b> - {{ tooltips[key] }}</li>'
                 {% endfor %}
                 html = html + '</ul></body></html>'
+                w.document.open();
                 w.document.write(html);
+                w.document.close();
+                
+                w.focus();
             }
 
             function question(text) {
@@ -401,13 +405,13 @@
                             <img src="{{ url_for('static',filename='delete.svg') }}" alt="delete">
                         </button>
                         <button type="button" class="modify-row" name="info" title="Info about observing program"
-                            onclick="window.open('{{ url_for('proposal_info', name = row['ProgramID']) }}', '_blank')"
-                            formtarget=”_blank”>
+                            onclick="window.open('{{ url_for('proposal_info', name = row['ProgramID']) }}', 'program')"
+                            formtarget="program">
                             <img src="{{ url_for('static',filename='info.svg') }}" alt="preview">
                         </button>
                         <button type="button" class="modify-row" name="info" title="Search in Simbad"
-                            onclick="window.open('https://simbad.u-strasbg.fr/simbad/sim-basic?Ident={{ row.RA }}{% if not row.DEC[0]=='-' %}%2B{% endif %}{{ row.DEC | replace('+','') }}', '_blank')"
-                            formtarget=”_blank”>
+                            onclick="window.open('https://simbad.u-strasbg.fr/simbad/sim-basic?Ident={{ row.RA }}{% if not row.DEC[0]=='-' %}%2B{% endif %}{{ row.DEC | replace('+','') }}', 'simbad')"
+                            formtarget="simbad">
                             <img src="{{ url_for('static',filename='simbad.svg') }}" alt="simbad">
                         </button>
                     </td>
@@ -459,7 +463,7 @@
                 info</button>
             &nbsp;&nbsp;&nbsp;
             <button type="button" name="changes" title="Show list of requested changes."
-                onclick="window.open('{{ url_for('changes') }}', '_blank')">Requested changes</button>
+                onclick="window.open('{{ url_for('changes') }}', 'changes')">Requested changes</button>
             <br>
             <br>
             <table id="my_table">
@@ -487,13 +491,13 @@
                             <img src="{{ url_for('static',filename='delete.svg') }}" alt="delete">
                         </button>
                         <button type="button" class="modify-row" name="info" title="Info about observing program"
-                            onclick="window.open('{{ url_for('proposal_info', name = row['ProgramID']) }}', '_blank')"
-                            formtarget=”_blank”>
+                            onclick="window.open('{{ url_for('proposal_info', name = row['ProgramID']) }}', 'program')"
+                            formtarget="program">
                             <img src="{{ url_for('static',filename='info.svg') }}" alt="preview">
                         </button>
                         <button type="button" class="modify-row" name="info" title="Search in Simbad"
-                            onclick="window.open('https://simbad.u-strasbg.fr/simbad/sim-basic?Ident={{ row.RA }}{% if not row.DEC[0]=='-' %}%2B{% endif %}{{ row.DEC | replace('+','') }}', '_blank')"
-                            formtarget=”_blank”>
+                            onclick="window.open('https://simbad.u-strasbg.fr/simbad/sim-basic?Ident={{ row.RA }}{% if not row.DEC[0]=='-' %}%2B{% endif %}{{ row.DEC | replace('+','') }}', 'simbad')"
+                            formtarget="simbad">
                             <img src="{{ url_for('static',filename='simbad.svg') }}" alt="simbad">
                         </button>
                     </td>
