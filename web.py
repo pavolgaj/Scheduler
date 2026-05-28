@@ -2658,7 +2658,7 @@ def modify():
     all_obj0={}
     for obj in objects0:
         if obj['full']['Done']==1: continue  #remove already finished targets
-        all_obj0[str(uuid.uuid4())]={'name':obj['full']['Target'],'obj':obj}
+        all_obj0[str(uuid.uuid4())]={'name':obj['full']['Target'],'obj':obj,'info': str(obj['full']['Number'])+' x '+str(obj['full']['ExpTime'])+'s\nRemarks: '+str(obj['full']['Remarks'])+'\nFrequency: '+str(obj['full']['Frequency'])+'\nOtherRequests: '+str(obj['full']['OtherRequests'])+'\nSupervisor: '+str(obj['full']['Supervisor'])}
                 
         # group=obj['full']['Type']
         # if pd.isna(group): group='None'

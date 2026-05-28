@@ -654,7 +654,7 @@ Conditions: {{ row.Conditions }}">
                 <label>Individual target</label>
                 <select name="obj" id="obj" title="List of all targets. Observability NOT checked!">
                     {% for obj in all_obj %}
-                    <option value="{{ obj[0] }}" {% if indObj==obj[0] %}selected{% endif %}>{{ obj[1]['name'] }}
+                    <option value="{{ obj[0] }}" {% if indObj==obj[0] %}selected{% endif %} title="{{ obj[1]['info'] }}">{{ obj[1]['name'] }}
                     </option>
                     {% endfor %}
                 </select>
