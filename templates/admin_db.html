@@ -166,9 +166,11 @@
                 filter = input.value.toUpperCase();
                 table = document.getElementById("my_table");
                 tr = table.getElementsByTagName("tr");
+                var start=3;
                 {% if db == 'new' %}
                 ids = document.getElementById("selected");
                 ids.value = '';
+                start=2;
                 {% endif %}
 
                 var n = 0;
@@ -182,10 +184,10 @@
                     }
 
                     td = tr[i].getElementsByTagName("td");
-                    for (var j = 0; j < td.length; j++) {
+                    for (var j = start; j < td.length; j++) {
                         cell = tr[i].getElementsByTagName("td")[j];
                         if (cell) {
-                            if (cell.innerHTML.toUpperCase().indexOf(filter) > -1) {
+                            if (cell.children[0].value.toUpperCase().indexOf(filter) > -1) {
                                 tr[i].style.display = "";
                                 indexInput = tr[i].querySelector('input#id');
                                 {% if db == 'new' %}
@@ -475,7 +477,9 @@
                     {% for col in header %}
                     <td {% if loop.index0==0 %} class="fix" style="left: 135px;" {% endif %}>
                         <input type="text" name="{{ col }}" value="{{ row[col] }}" {% if col in tooltips
-                            %}title="{{ tooltips[col] }}" {% endif %}>
+                            %}title="{{ tooltips[col] }}" {% endif %}
+                            {% if col=="Priority" and row[col][0]=="0" %}readonly{% endif %}
+                            >
                     </td>
                     {% endfor %}
                 </tr>
