@@ -166,11 +166,11 @@
                 filter = input.value.toUpperCase();
                 table = document.getElementById("my_table");
                 tr = table.getElementsByTagName("tr");
-                var start=3;
+                var start = 3;
                 {% if db == 'new' %}
                 ids = document.getElementById("selected");
                 ids.value = '';
-                start=2;
+                start = 2;
                 {% endif %}
 
                 var n = 0;
@@ -262,17 +262,46 @@
                 var w = window.open();
                 var html = '<html><body><ul>';
                 {% for key in tooltips %}
-                html=html+'<li><b>{{ key }}</b> - {{ tooltips[key] }}</li>'
+                html = html + '<li><b>{{ key }}</b> - {{ tooltips[key] }}</li>'
                 {% endfor %}
-                html=html+'</ul></body></html>'
+                html = html + '</ul></body></html>'
                 w.document.write(html);
             }
 
             function question(text) {
-                let mess=prompt(text+'\n\nMessage to supervisor:',"");
+                let mess = prompt(text + '\n\nMessage to supervisor:', "");
                 if (mess == null) { return false; }
-                document.getElementById('mess').value=mess;
+                document.getElementById('mess').value = mess;
                 return true;
+            }
+
+            function checkPrior(input) {
+                //don't allow to set priority of target to values reserved for standards
+                const value = input.value;
+
+                // Allow empty input
+                if (value === "") {
+                    input.value = "";
+                    return;
+                }
+
+                // Reject standalone minus sign
+                if (value === "-") {
+                    input.value = input.dataset.prev || "";
+                    return;
+                }
+
+                const currentValue = Number(value);
+
+                if (input.dataset.prev === undefined) {
+                    input.dataset.prev = "";
+                }
+
+                if (!isNaN(currentValue) && currentValue < 1) {
+                    input.value = input.dataset.prev;
+                } else {
+                    input.dataset.prev = input.value;
+                }
             }
         </script>
     </head>
@@ -313,16 +342,19 @@
                 <button type="submit" name="download" title="Download" {%if not data %}disabled{% endif %}>Download CSV
                 </button>
                 <button type="submit" name="accept_all" title="Accept all targets and move them to DB."
-                    onclick="return question('Accept all targets and move them to DB?');" {%if not data %}disabled{% endif %}>Accept all
+                    onclick="return question('Accept all targets and move them to DB?');" {%if not data %}disabled{%
+                    endif %}>Accept all
                 </button>
                 <button type="submit" name="delete_all" title="Delete all targets"
                     onclick="return question('Delete all targets?');" {%if not data %}disabled{% endif %}>Delete all
                 </button>
                 <button type="submit" name="accept_select" title="Accept selected targets and move them to DB."
-                    onclick="return question('Accept selected targets and move them to DB?');" {%if not data %}disabled{% endif %}>Accept selected
+                    onclick="return question('Accept selected targets and move them to DB?');" {%if not data
+                    %}disabled{% endif %}>Accept selected
                 </button>
                 <button type="submit" name="delete_select" title="Delete selected targets"
-                    onclick="return question('Delete selected targets?');" {%if not data %}disabled{% endif %}>Delete selected
+                    onclick="return question('Delete selected targets?');" {%if not data %}disabled{% endif %}>Delete
+                    selected
                 </button>
             </center>
             <h2 style="color: red; font-weight: bold;">Any accept/delete action also saves all modifications in table!
@@ -335,8 +367,8 @@
                 {% endfor %}
             </select>
             &nbsp;&nbsp;&nbsp;
-            <button type="button" name="info" title="Show requirement on data format."
-                onclick="details()">Format info</button>
+            <button type="button" name="info" title="Show requirement on data format." onclick="details()">Format
+                info</button>
             <br>
             <br>
             <input type="hidden" name="selected" id="selected">
@@ -423,8 +455,8 @@
                 {% endfor %}
             </select>
             &nbsp;&nbsp;&nbsp;
-            <button type="button" name="info" title="Show requirement on data format."
-                onclick="details()">Format info</button>
+            <button type="button" name="info" title="Show requirement on data format." onclick="details()">Format
+                info</button>
             &nbsp;&nbsp;&nbsp;
             <button type="button" name="changes" title="Show list of requested changes."
                 onclick="window.open('{{ url_for('changes') }}', '_blank')">Requested changes</button>
@@ -477,9 +509,8 @@
                     {% for col in header %}
                     <td {% if loop.index0==0 %} class="fix" style="left: 135px;" {% endif %}>
                         <input type="text" name="{{ col }}" value="{{ row[col] }}" {% if col in tooltips
-                            %}title="{{ tooltips[col] }}" {% endif %}
-                            {% if col=="Priority" and row[col][0]=="0" %}readonly{% endif %}
-                            >
+                            %}title="{{ tooltips[col] }}" {% endif %} {% if col=="Priority" and row[col][0]=="0"
+                            %}readonly{% else %}oninput="checkPrior(this)" data-prev="{{ row[col] }}"{% endif %}>
                     </td>
                     {% endfor %}
                 </tr>
