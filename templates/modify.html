@@ -595,6 +595,7 @@
                                         <th class="obj_th">Mag</th>
                                         <th class="obj_th">ExpTime</th>
                                         <th class="obj_th">Number</th>
+                                        <th class="obj_th">Remarks</th>
                                         {% if obs %}<th class="obj_th">Observable</th>{% endif %}
                                         <th class="obj_th">Priority</th>
                                         <th class="obj_th">Frequency</th>
@@ -635,6 +636,7 @@ Conditions: {{ row.Conditions }}">
                                         </td>
                                         <td>{{ row.ExpTime }}</td>
                                         <td>{{ row.Number }}</td>
+                                        <td>{{ row.Remarks }}</td>
                                         {% if obs %}
                                         <td>{{ obs[loop.index0] }}</td>
                                         {% endif %}
