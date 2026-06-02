@@ -19,7 +19,7 @@ from astroplan import is_observable, is_always_observable, months_observable,is_
 from astroplan import observability_table
 from astroplan import ObservingBlock,TransitionBlock
 from astroplan import EclipsingSystem,PeriodicEvent
-from astroplan import PrimaryEclipseConstraint,PhaseConstraint,SecondaryEclipseConstraint
+from astroplan import PrimaryEclipseConstraint,SecondaryEclipseConstraint
 from astroplan import Scorer
 from astroplan.constraints import Constraint,max_best_rescale,_get_altaz,min_best_rescale
 from astroplan.scheduling import SequentialScheduler,PriorityScheduler,Transitioner,Schedule
@@ -1314,6 +1314,57 @@ class AzimuthConstraint(Constraint):
 
         if self.min<self.max: return lowermask & uppermask
         else: return lowermask | uppermask   # around 360deg
+
+
+class PhaseConstraint(Constraint):
+    """
+    Constrain observations to times in some range of phases for a periodic event
+    (e.g.~transiting exoplanets, eclipsing binaries).
+    """
+
+    def __init__(self, periodic_event, min=None, max=None):
+        """
+        Parameters
+        ----------
+        periodic_event : `~astroplan.periodic.PeriodicEvent` or subclass
+            System on which to compute the phase. For example, the system
+            could be an eclipsing or non-eclipsing binary, or exoplanet system.
+        min : float (optional)
+            Minimum phase (inclusive) on interval [0, 1). Default is zero.
+        max : float (optional)
+            Maximum phase (inclusive) on interval [0, 1). Default is one.
+
+        Examples
+        --------
+        To constrain observations on orbital phases between 0.4 and 0.6,
+        >>> from astroplan import PeriodicEvent
+        >>> from astropy.time import Time
+        >>> import astropy.units as u
+        >>> binary = PeriodicEvent(epoch=Time('2017-01-01 02:00'), period=1*u.day)
+        >>> constraint = PhaseConstraint(binary, min=0.4, max=0.6)
+
+        The minimum and maximum phase must be described on the interval [0, 1).
+        To constrain observations on orbital phases between 0.6 and 1.2, for
+        example, you should subtract one from the second number:
+        >>> constraint = PhaseConstraint(binary, min=0.6, max=0.2)
+        """
+        self.periodic_event = periodic_event
+        
+        self.min = min if min is not None else 0.0
+        self.max = max if max is not None else 1.0
+        
+        if (min < 0) or (min > 1) or (max < 0) or (max > 1):
+            raise ValueError('The minimum of the PhaseConstraint must be within'
+                             ' the interval [0, 1).')
+
+    def compute_constraint(self, times, observer=None, targets=None):
+        phase = self.periodic_event.phase(times)
+
+        mask = np.where(self.max > self.min,
+                        (phase >= self.min) & (phase <= self.max),
+                        (phase >= self.min) | (phase <= self.max))
+        return mask
+
 
 
 class LimitConstraint(Constraint):

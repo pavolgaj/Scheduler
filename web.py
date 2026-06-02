@@ -2504,7 +2504,9 @@ def new_schedule():
     cols={'target':'Target', 'ra':'RA', 'dec':'DEC', 'mag':'Mag','exposure (seconds)':'ExpTime', 'number exposures':'Number','_Remarks':'Remarks', 'start time (UTC)':'Start', 'end time (UTC)':'End','altitude':'Altitude', 'airmass':'Airmass', 'azimut':'Azimut','altitude-start':'AltitudeStart', 'airmass-start':'AirmassStart', 'azimut-start':'AzimutStart','altitude-end':'AltitudeEnd', 'airmass-end':'AirmassEnd', 'azimut-end':'AzimutEnd','position':'Position','priority':'Priority','moon-separation':'MoonSeparation'}
     cols1=['Target','RA', 'DEC', 'Mag','ExpTime', 'Number','Remarks', 'Start', 'End','Position','Priority','Azimut','Altitude','Airmass']   #for download
   
-    if not 'position' in df.columns: del(cols['position'])
+    if not 'position' in df.columns: 
+        del(cols['position'])
+        cols1.remove('Position')
     
     #get created data from cache
     tmp=cache.get(code+'dfPlot') 
@@ -2883,7 +2885,7 @@ def modify():
                 
             obs=[]  #observability times
              
-            if request.form['night']:
+            if request.form['night'] and len(objects)>0:
                 #filter only observable objects
                 
                 plantime=Time(request.form['night']+' '+str(12-int(round(observatory.longitude.value/15))).rjust(2,'0')+':00:00')    #approx. local noon (in UTC)
@@ -4220,7 +4222,7 @@ def user():
         if len(errors['data'])==0: del(errors['data'])
 
         if errors:
-            return render_template('user.html',obs=obs,lat=lat.value,lon=lon.value,alt=ele.value,minAlt=minAlt.value,airmass=airmass,moon=moon.value,readout=readout,slew=slew,start=start, end=end, errors=errors,observatories=observatories,scheduler=scheduler,azm_start=request.form['azm_start'], azm_end=request.form['azm_end'],azm=(request.form.get('azm')=='checked'))
+            return render_template('user.html',obs=obs,lat=lat.value,lon=lon.value,alt=ele.value,minAlt=minAlt.value,airmass=airmass,moon=moon.value,readout=readout,slew=slew,start=time_start, end=time_end, errors=errors,observatories=observatories,scheduler=scheduler,azm_start=request.form['azm_start'], azm_end=request.form['azm_end'],azm=(request.form.get('azm')=='checked'))
         
         output.seek(0)
         objects0=load_objects(output,check=False)            
