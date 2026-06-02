@@ -255,6 +255,11 @@
                         alert('Exposure factor should be number!');
                         valid = false;
                     }
+                    else if (document.getElementById('exp').value<=0) {
+                        alert('Exposure factor should be positive number!');
+                        valid = false;
+                    }
+                }
                 }
 
                 var night = document.getElementById('night');
