@@ -2713,7 +2713,15 @@ def modify():
         idObj=request.form['obj'] 
         
         if codeObj:
-            all_obj=cache.get(codeObj)   
+            try:
+                all_obj=cache.get(codeObj)   
+            except (KeyError, TypeError):
+                return('Page cache expired! Re-load page!')
+            
+            if all_obj is None:
+                codeObj=str(uuid.uuid4())     
+                all_obj=all_obj0       
+                cache.set(codeObj,dict(all_obj0))
         else:
             codeObj=str(uuid.uuid4())     
             all_obj=all_obj0       
@@ -2839,7 +2847,9 @@ def modify():
             cache.set(code,[pd.DataFrame(df),alt_plot,sky_plot])    #save in cache
             
             if codeF: 
-                tmp=cache.get(codeF)
+                try: tmp=cache.get(codeF)
+                except (KeyError, TypeError):
+                    return('Page cache expired! Re-load page!')
                 if tmp is None:
                     codeF=''
                     objects=[]
@@ -2964,8 +2974,15 @@ def modify():
                             obs.append(tObs[0].strftime('%H:%M')+' - '+tObs[-1].strftime('%H:%M'))
                 
             if code: 
-                df,alt_plot,sky_plot=cache.get(code)
-                dfW=df.to_dict('records')
+                try:
+                    df,alt_plot,sky_plot=cache.get(code)
+                    dfW=df.to_dict('records')
+                except (KeyError, TypeError):
+                    return('Page cache expired! Re-load page!')
+                if df is None:
+                    dfW=[]
+                    alt_plot=''
+                    sky_plot=''    
             else: 
                 dfW=[]
                 alt_plot=''
@@ -2979,7 +2996,10 @@ def modify():
             #preview -> altitude plot
             id=int(list(filter(r_prev.match,request.form.keys()))[0].split('_')[1])  
             
-            objects,obs=cache.get(codeF)
+            try:
+                objects,obs=cache.get(codeF)
+            except (KeyError, TypeError):
+                return('Page cache expired! Re-load page!')
             obj=objects[id].to_dict()
             
             plantime=Time(request.form['night']+' '+str(12-int(round(observatory.longitude.value/15))).rjust(2,'0')+':00:00')    #approx. local noon (in UTC)
@@ -3053,13 +3073,24 @@ def modify():
             #add one target
             id=int(list(filter(r_add.match,request.form.keys()))[0].split('_')[1])  
             
-            objects,obs=cache.get(codeF)
+            try:
+                objects,obs=cache.get(codeF)
+            except (KeyError, TypeError):
+                return('Page cache expired! Re-load page!')
             obj=objects[id].to_dict()
             
             #get data
             if code: 
-                df,alt_plot,sky_plot=cache.get(code)
-                data=df.to_dict('index')
+                try: 
+                    df,alt_plot,sky_plot=cache.get(code)
+                    data=df.to_dict('index')
+                except (KeyError, TypeError):
+                    return('Page cache expired! Re-load page!')
+                if df is None:
+                    code=str(uuid.uuid4())    #unique hash for different users     
+                    data={}
+                    alt_plot=''
+                    sky_plot=''    
             else: 
                 code=str(uuid.uuid4())    #unique hash for different users     
                 data={}
@@ -3109,6 +3140,9 @@ def modify():
             new_obj['Remarks']=new_obj['_Remarks']
             del(new_obj['_Remarks'])
             
+            #after=int(request.form['after'])
+            #print(after)
+            
             data[last+1]=new_obj            
             df=pd.DataFrame().from_dict(data,'index')
             
@@ -3119,13 +3153,24 @@ def modify():
             calc=0
             
         if 'indiv' in request.form:
-            #add individual target           
-            obj=all_obj[idObj]['obj']['full'].to_dict()
+            #add individual target  
+            try:         
+                obj=all_obj[idObj]['obj']['full'].to_dict()
+            except (KeyError, TypeError):
+                return('Page cache expired! Re-load page!')
 
             #get data
             if code: 
-                df,alt_plot,sky_plot=cache.get(code)
-                data=df.to_dict('index')
+                try:
+                    df,alt_plot,sky_plot=cache.get(code)
+                    data=df.to_dict('index')
+                except (KeyError, TypeError):
+                    return('Page cache expired! Re-load page!')
+                if df is None:
+                    code=str(uuid.uuid4())    #unique hash for different users     
+                    data={}
+                    alt_plot=''
+                    sky_plot=''    
             else: 
                 code=str(uuid.uuid4())    #unique hash for different users     
                 data={}
@@ -3176,6 +3221,19 @@ def modify():
             del(new_obj['_Remarks'])
             
             data[last+1]=new_obj
+                        
+            # after=int(request.form['after'])
+            # #add after row (indexed from 0, but in tab. from 1!)
+            # if last==after-1: data[last+1]=new_obj 
+            # elif after==0:
+            #     new_data={0: new_obj}
+            #     new_data={**new_data, **{x+1: data[x] for x in data}}
+            #     data=dict(new_data)
+            # else:
+            #     new_data={x: data[x] for x in data if int(x)<after}
+            #     new_data[after]=new_obj
+            #     new_data={**new_data, **{x+1: data[x] for x in data if int(x)>=after}}
+            #     data=dict(new_data)  
                           
                        
             df=pd.DataFrame().from_dict(data,'index')
@@ -3186,7 +3244,13 @@ def modify():
             
             calc=0
             
-            if codeF: objects,obs=cache.get(codeF)
+            if codeF: 
+                try: objects,obs=cache.get(codeF)
+                except (KeyError, TypeError):
+                    return('Page cache expired! Re-load page!')
+                if objects is None:
+                    objects=[]
+                    obs=[]    
             else: 
                 objects=[]
                 obs=[]
@@ -3195,8 +3259,16 @@ def modify():
             #add gap/delay       
             #get data
             if code: 
-                df,alt_plot,sky_plot=cache.get(code)
-                data=df.to_dict('index')
+                try:
+                    df,alt_plot,sky_plot=cache.get(code)
+                    data=df.to_dict('index')
+                except (KeyError, TypeError):
+                    return('Page cache expired! Re-load page!')
+                if df is None:
+                    code=str(uuid.uuid4())    #unique hash for different users     
+                    data={}
+                    alt_plot=''
+                    sky_plot=''    
             else: 
                 code=str(uuid.uuid4())    #unique hash for different users     
                 data={}
@@ -3254,7 +3326,13 @@ def modify():
             
             calc=0
             
-            if codeF: objects,obs=cache.get(codeF)
+            if codeF: 
+                try: objects,obs=cache.get(codeF)
+                except (KeyError, TypeError):
+                    return('Page cache expired! Re-load page!')
+                if objects is None:
+                    objects=[]
+                    obs=[]    
             else: 
                 objects=[]
                 obs=[]
@@ -3269,14 +3347,27 @@ def modify():
             name=''
             schedules=[os.path.splitext(os.path.basename(x))[0] for x in  sorted(glob.glob('schedules/*.csv'), key=os.path.getmtime)][::-1]  
             
-            if codeF: objects,obs=cache.get(codeF)
+            if codeF: 
+                try: objects,obs=cache.get(codeF)
+                except (KeyError, TypeError):
+                    return('Page cache expired! Re-load page!')
+                if objects is None:
+                    objects=[] 
+                    obs=[]    
             else: 
                 objects=[] 
                 obs=[]
             
             if code: 
-                df,alt_plot,sky_plot=cache.get(code)
-                dfW=df.to_dict('records')
+                try:
+                    df,alt_plot,sky_plot=cache.get(code)
+                    dfW=df.to_dict('records')
+                except (KeyError, TypeError):
+                    return('Page cache expired! Re-load page!')
+                if df is None:
+                    dfW=[]
+                    alt_plot=''
+                    sky_plot=''    
             else: 
                 dfW=[]
                 alt_plot=''
@@ -3294,7 +3385,13 @@ def modify():
             startF=''
             nightF=''
            
-            if codeF: objects,obs=cache.get(codeF)
+            if codeF: 
+                try: objects,obs=cache.get(codeF)
+                except (KeyError, TypeError):
+                    return('Page cache expired! Re-load page!')
+                if objects is None:
+                    objects=[]   
+                    obs=[]    
             else: 
                 objects=[]   
                 obs=[]      
@@ -3307,13 +3404,19 @@ def modify():
             #recalculate schedule
             
             if not 'id' in request.form:
-                if codeF: objects=cache.get(codeF)
+                if codeF: 
+                    try: objects=cache.get(codeF)
+                    except (KeyError, TypeError):
+                        return('Page cache expired! Re-load page!')
+                    if objects is None: objects=[]
                 else: objects=[]
             
                 return render_template('modify.html', schedules=schedules,name=name,schedule=[],code='', codeF=codeF, alt_plot='',sky='',start=request.form['start'],night=request.form['night'],groups=groups,use_group=use_group,objects=objects,calc=0,total_time=16,all_obj=sorted(all_obj.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj=idObj,condi=condi,scroll=False,freq=freq)
             else: ids=[int(i) for i in request.form.to_dict(flat=False)['id']]          
 
-            df0=pd.DataFrame(cache.get(code)[0])
+            try: df0=pd.DataFrame(cache.get(code)[0])
+            except (KeyError, TypeError):
+                return('Page cache expired! Re-load page!')
         
             #sort and delete rows
             data={i-1: df0.to_dict('index')[i-1] for i in ids}
@@ -3423,7 +3526,13 @@ def modify():
             else: alt_plot,sky_plot='',''
             cache.set(code,[pd.DataFrame(df),alt_plot,sky_plot])    #save in cache
             
-            if codeF: objects,obs=cache.get(codeF)
+            if codeF: 
+                try: objects,obs=cache.get(codeF)
+                except (KeyError, TypeError):
+                    return('Page cache expired! Re-load page!')
+                if objects is None:
+                    objects=[]
+                    obs=[]    
             else: 
                 objects=[]
                 obs=[]
@@ -3438,13 +3547,19 @@ def modify():
         if 'run' in request.form:
             #re-schedule        
             if not 'id' in request.form:
-                if codeF: objects=cache.get(codeF)
+                if codeF: 
+                    try: objects=cache.get(codeF)
+                    except (KeyError, TypeError):
+                        return('Page cache expired! Re-load page!')
+                    if objects is None: objects=[]
                 else: objects=[]
             
                 return render_template('modify.html', schedules=schedules,name=name,schedule=[],code='', codeF=codeF, alt_plot='',sky='',start=request.form['start'],night=request.form['night'],groups=groups,use_group=use_group,objects=objects,all_obj=sorted(all_obj.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj=idObj,freq=freq,condi=condi)
             else: ids=[int(i) for i in request.form.to_dict(flat=False)['id']]          
 
-            df0=pd.DataFrame(cache.get(code)[0])
+            try: df0=pd.DataFrame(cache.get(code)[0])
+            except (KeyError, TypeError):
+                return('Page cache expired! Re-load page!')
         
             #sort and delete rows
             data={i-1: df0.to_dict('index')[i-1] for i in ids}
@@ -3577,14 +3692,27 @@ def modify():
             start=observatory.sun_set_time(midnight,n_grid_points=10, which='previous',horizon=-12*u.deg)
             
             if code: 
-                df,alt_plot,sky_plot=cache.get(code)
-                dfW=df.to_dict('records')
+                try:
+                    df,alt_plot,sky_plot=cache.get(code)
+                    dfW=df.to_dict('records')
+                except (KeyError, TypeError):
+                    return('Page cache expired! Re-load page!')
+                if df is None:
+                    dfW=[]
+                    alt_plot=''
+                    sky_plot=''    
             else: 
                 dfW=[]
                 alt_plot=''
                 sky_plot=''     
                 
-            if codeF: objects,obs=cache.get(codeF)
+            if codeF: 
+                try: objects,obs=cache.get(codeF)
+                except (KeyError, TypeError):
+                    return('Page cache expired! Re-load page!')
+                if objects is None:
+                    objects=[]   
+                    obs=[]     
             else: 
                 objects=[]   
                 obs=[]        
@@ -3597,7 +3725,9 @@ def modify():
         if 'save' in request.form:
             #save scheduler on server
             
-            df,alt_plot,sky_plot=cache.get(code)
+            try: df,alt_plot,sky_plot=cache.get(code)
+            except (KeyError, TypeError):
+                return('Page cache expired! Re-load page!')
             
             name=request.form['save-name'].replace('/','_').replace('\\','_')
             if not '.csv' in name: name+='.csv'
@@ -3621,7 +3751,9 @@ def modify():
         
         if 'download' in request.form:
             #download csv
-            df=cache.get(code)[0]
+            try: df=cache.get(code)[0]
+            except (KeyError, TypeError):
+                return('Page cache expired! Re-load page!')
             
             si = io.StringIO()    # create "file-like" output for writing
             
@@ -3638,7 +3770,10 @@ def modify():
         
         if 'json' in request.form:
             #download json
-            df=cache.get(code)[0]
+            try: df=cache.get(code)[0]
+            except (KeyError, TypeError):
+                return('Page cache expired! Re-load page!')
+            
             si = io.StringIO()    # create "file-like" output for writing
             
             if 'AltitudeStart' in df.columns:
@@ -3654,7 +3789,10 @@ def modify():
         
         if 'batch' in request.form:
             #download batch
-            df=cache.get(code)[0]
+            try: df=cache.get(code)[0]
+            except (KeyError, TypeError):
+                return('Page cache expired! Re-load page!')
+                
             si = io.StringIO()    # create "file-like" output for writing
             
             df1=pd.DataFrame()
