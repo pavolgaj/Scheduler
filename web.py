@@ -2487,7 +2487,10 @@ def new_schedule():
     
     #get unique hash code -> load data from cache
     code=request.args.get('code')
-    schedule,objects=cache.get(code)  
+    try:
+        schedule,objects=cache.get(code)  
+    except (KeyError, TypeError):
+        return('Page cache expired! Re-load page!')
 
     if len(schedule.observing_blocks)==0:
         return '<p>Schedule is EMPTY!</p>'+'<p>Selected objects: '+str(request.args.get('selected'))+'<br>'+'Observable objects: '+str(request.args.get('observable'))+'</p>'
