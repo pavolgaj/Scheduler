@@ -2068,6 +2068,11 @@ def scheduler():
     ids=json.load(f)
     f.close()
     
+    #load config - based on observatory!
+    config=load_config('lasilla_config.txt')
+    minAlt=config['minAlt'].value
+    maxAir=config['airmass']
+    
     for obj in objects0:
         if obj['full']['Done']==1: continue  #remove already finished targets
         group=obj['full']['Type']
@@ -2108,12 +2113,20 @@ def scheduler():
             name=request.form['name']  
             limits=request.form['position']           
             series = (request.form.get('series')=='checked')
-            scheduler=request.form['scheduler']      
+            scheduler=request.form['scheduler']     
+            minAlt=request.form['minAlt'] 
+            maxAir=request.form['maxAir'] 
             expF=request.form['exp']  
             prior = (request.form.get('prior')=='checked')  #rescale priorities
             
             if not expF: expF=1
             else: expF=float(expF)
+            
+            if not minAlt: minAlt=config['minAlt'].value
+            else: minAlt=float(minAlt)
+            
+            if not maxAir: maxAir=config['maxAir']
+            else: maxAir=float(maxAir)
             
             if not 'use_group' in request.form:
                 return 'NO objects to schedule!'     
@@ -2134,7 +2147,7 @@ def scheduler():
             else: mag_min=float(mag_min)
             
             mag_max=request.form['mag_max'].strip()
-            if len(mag_max)==0: mag_max=20
+            if len(mag_max)==0: mag_max=30
             else: mag_max=float(mag_max)
             
             if mag_min>mag_max:
@@ -2242,9 +2255,7 @@ def scheduler():
                         objects1[obj_id]=obj
                         
             
-            #load config - based on observatory!
-            config=load_config('lasilla_config.txt')
-            
+            #load config - based on observatory!       
             observatory=config['observatory']
             
             read_out = config['read_out']     #read_out time of camera + comp (with readout) + ...
@@ -2256,8 +2267,8 @@ def scheduler():
             elif scheduler=='StdPriority': Scheduler=StdPriorityScheduler
                        
             #general constraints
-            constraints0 = [ModifAltitudeConstraint(config['minAlt'],config['maxAlt'],boolean_constraint=True), 
-                        ModifAirmassConstraint(config['airmass'],boolean_constraint=False),AtNightConstraint.twilight_nautical(), MoonSeparationConstraint(config['moon'])]
+            constraints0 = [ModifAltitudeConstraint(minAlt*u.deg,config['maxAlt'],boolean_constraint=True), 
+                        ModifAirmassConstraint(maxAir,boolean_constraint=False),AtNightConstraint.twilight_nautical(), MoonSeparationConstraint(config['moon'])]
             
             #load telescope restrictions and set constraint
             limE,limW=load_limits()
@@ -2474,7 +2485,7 @@ def scheduler():
                 return render_template('multi_schedule.html', names=out_names, selected=n_selected, observable=n_obs, scheduled=n_sch)
     
     gc.collect()
-    return render_template('run_scheduler.html',night=datetime.now(timezone.utc).strftime('%Y-%m-%d'),number=1,name='',groups=groups,scheduler='StdPriority',use_group=groups,time=False,azm=False,position='both',condi=condi,use_condi=['good','poor','na'],programs=programs,exp=1,freq=freq,use_freq=['everynight', 'twiceweek', 'onceweek', 'twicemonth', 'oncemonth', 'unspecified'],prior=True)
+    return render_template('run_scheduler.html',night=datetime.now(timezone.utc).strftime('%Y-%m-%d'),number=1,name='',groups=groups,scheduler='StdPriority',use_group=groups,time=False,azm=False,position='both',condi=condi,use_condi=['good','poor','na'],programs=programs,exp=1,freq=freq,use_freq=['everynight', 'twiceweek', 'onceweek', 'twicemonth', 'oncemonth', 'unspecified'],prior=True, minAlt=minAlt,maxAir=maxAir)
 
 
 @app.route("/scheduler/new_schedule", methods=['GET','POST'])

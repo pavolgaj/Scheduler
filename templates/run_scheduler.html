@@ -260,6 +260,27 @@
                         valid = false;
                     }
                 }
+
+                if (document.getElementById('minAlt').value) {
+                    if (!isFloat(document.getElementById('minAlt').value)) {
+                        alert('Minimal Altitude should be number!');
+                        valid = false;
+                    }
+                    else if (document.getElementById('minAlt').value<=0) {
+                        alert('Minimal Altitude should be positive number!');
+                        valid = false;
+                    }
+                }
+
+                if (document.getElementById('maxAir').value) {
+                    if (!isFloat(document.getElementById('maxAir').value)) {
+                        alert('Maximal Airmass should be number!');
+                        valid = false;
+                    }
+                    else if (document.getElementById('maxAir').value<=0) {
+                        alert('Maximal Airmass should be positive number!');
+                        valid = false;
+                    }
                 }
 
                 var night = document.getElementById('night');
@@ -461,6 +482,18 @@
                     style="display::{{ 'inline-block' if azm else 'none' }}"
                     title="Upper azimuth limit (i.e. end of permitted slot). Leave empty if NO limit."
                     placeholder="Upper azimuth limit in deg">
+            </div>
+
+            <div class="form-group">
+                <label for="minAlt">Min. Altitude </label>
+                <input type="text" name="minAlt" id="minAlt" value="{{ minAlt }}" title="Minimal altitude of targets (deg)."
+                    pattern="\d+(\.\d+)?"">
+            </div>
+
+            <div class="form-group">
+                <label for="maxAir">Max. Airmass </label>
+                <input type="text" name="maxAir" id="maxAir" value="{{ maxAir }}" title="Maximal airmass of targets)."
+                    pattern="\d+(\.\d+)?"">
             </div>
 
             <div class="form-group">
