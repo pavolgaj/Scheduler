@@ -2232,11 +2232,19 @@ def scheduler():
                                 obj['priority']=freqPrior(fr,diffdate,obj['full']['Priority'],series=(obj['n_exp']=='series'))                                
                         
                             if tr in obs:
-                                num=obs[tr]
                                 #decrease priority if many observations done
-                                if num>=6*nights: obj['priority']+=10
-                                elif num>=4*nights: obj['priority']+=5
-                                elif num>=2*nights: obj['priority']+=2          
+                                #thresholds based on number of requested nights
+                                if nights<3:
+                                    if obs[tr]>=6*nights: obj['priority']+=10
+                                    elif obs[tr]>=4*nights: obj['priority']+=5
+                                    elif obs[tr]>=2*nights: obj['priority']+=2
+                                elif nights<5:
+                                    if obs[tr]>=3*nights: obj['priority']+=10
+                                    elif obs[tr]>=2*nights: obj['priority']+=5
+                                else:
+                                    if obs[tr]>=nights+10: obj['priority']+=10
+                                    elif obs[tr]>=nights+5: obj['priority']+=5
+                                    elif obs[tr]>=nights: obj['priority']+=2            
                         
                         mag=obj['full']['Mag']
                         

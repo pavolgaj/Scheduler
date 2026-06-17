@@ -146,11 +146,20 @@ for obj in objects0:
 
                 if tr in obs:
                     #decrease priority if many observations done
-                    if obs[tr]>=6*nights: obj['priority']+=10
-                    elif obs[tr]>=4*nights: obj['priority']+=5
-                    elif obs[tr]>=2*nights: obj['priority']+=2 
-                    
-            objects1[str(uuid.uuid4())]=obj            
+                    #thresholds based on number of requested nights
+                    if nights<3:
+                        if obs[tr]>=6*nights: obj['priority']+=10
+                        elif obs[tr]>=4*nights: obj['priority']+=5
+                        elif obs[tr]>=2*nights: obj['priority']+=2
+                    elif nights<5:
+                        if obs[tr]>=3*nights: obj['priority']+=10
+                        elif obs[tr]>=2*nights: obj['priority']+=5
+                    else:
+                        if obs[tr]>=nights+10: obj['priority']+=10
+                        elif obs[tr]>=nights+5: obj['priority']+=5
+                        elif obs[tr]>=nights: obj['priority']+=2    
+
+            objects1[str(uuid.uuid4())]=obj
 
 #load config - based on observatory!
 config=load_config('lasilla_config.txt')
