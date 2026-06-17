@@ -1465,9 +1465,19 @@ def show_db():
                     obj['NewPriority']=freqPrior(fr,diffdate,float(obj['Priority']),series=(obj['Number']=='series')) 
 
                     #decrease priority if many observations done
-                    if int(obj['Observations'])>=6*int(obj['Nights']): obj['NewPriority']+=10
-                    elif int(obj['Observations'])>=4*int(obj['Nights']): obj['NewPriority']+=5
-                    elif int(obj['Observations'])>=2*int(obj['Nights']): obj['NewPriority']+=2 
+                    #thresholds based on number of requested nights
+                    if int(obj['Nights'])<3:
+                        if int(obj['Observations'])>=6*int(obj['Nights']): obj['NewPriority']+=10
+                        elif int(obj['Observations'])>=4*int(obj['Nights']): obj['NewPriority']+=5
+                        elif int(obj['Observations'])>=2*int(obj['Nights']): obj['NewPriority']+=2
+                    elif int(obj['Nights'])<5:
+                        if int(obj['Observations'])>=3*int(obj['Nights']): obj['NewPriority']+=10
+                        elif int(obj['Observations'])>=2*int(obj['Nights']): obj['NewPriority']+=5
+                    else:
+                        if int(obj['Observations'])>=int(obj['Nights'])+10: obj['NewPriority']+=10
+                        elif int(obj['Observations'])>=int(obj['Nights'])+5: obj['NewPriority']+=5
+                        elif int(obj['Observations'])>=int(obj['Nights']): obj['NewPriority']+=2                   
+                    
                     
                     obj['NewPriority']='%.1f' %obj['NewPriority']
                 
@@ -4173,9 +4183,18 @@ def object_info():
                     ob['NewPriority']=freqPrior(fr,diffdate,float(ob['Priority']),series=(ob['Number']=='series'))      
 
                     #decrease priority if many observations done
-                    if nobs>=6*int(ob['Nights']): ob['NewPriority']+=10
-                    elif nobs>=4*int(ob['Nights']): ob['NewPriority']+=5
-                    elif nobs>=2*int(ob['Nights']): ob['NewPriority']+=2 
+                    #thresholds based on number of requested nights
+                    if int(ob['Nights'])<3:
+                        if nobs>=6*int(ob['Nights']): ob['NewPriority']+=10
+                        elif nobs>=4*int(ob['Nights']): ob['NewPriority']+=5
+                        elif nobs>=2*int(ob['Nights']): ob['NewPriority']+=2
+                    elif int(ob['Nights'])<5:
+                        if nobs>=3*int(ob['Nights']): ob['NewPriority']+=10
+                        elif nobs>=2*int(ob['Nights']): ob['NewPriority']+=5
+                    else:
+                        if nobs>=int(ob['Nights'])+10: ob['NewPriority']+=10
+                        elif nobs>=int(ob['Nights'])+5: ob['NewPriority']+=5
+                        elif nobs>=int(ob['Nights']): ob['NewPriority']+=2      
                     
                     ob['NewPriority']='%.1f' %ob['NewPriority']        
 
