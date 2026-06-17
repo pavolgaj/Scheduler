@@ -104,7 +104,7 @@ for obj in objects0:
                 else:
                     diffdate=1000     #higher chance to place new targets  
 
-                if diffdate>0: 
+                if diffdate>0 and prior: 
                     #only for future planning
 
                     #specify interval for obs.
@@ -169,7 +169,7 @@ elif scheduler=='StdPriority': Scheduler=StdPriorityScheduler
 
 #general constraints
 constraints0 = [ModifAltitudeConstraint(config['minAlt'],config['maxAlt'],boolean_constraint=True),
-            ModifAirmassConstraint(config['airmass'],boolean_constraint=False),AtNightConstraint.twilight_nautical(), MoonSeparationConstraint(config['moon'])]
+            StrongAirmassConstraint(config['airmass'],boolean_constraint=False),AtNightConstraint.twilight_nautical(), MoonSeparationConstraint(config['moon'])]
 
 #load telescope restrictions and set constraint
 limE,limW=load_limits()

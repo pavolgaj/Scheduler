@@ -1224,6 +1224,77 @@ class ModifAirmassConstraint(AirmassConstraint):
             mi = 1/np.cos(np.deg2rad(90-maxalts)) if self.min is None else self.min
             # values below 1 should be disregarded
             return min_best_rescale(secz, mi, mx, less_than_min=0)
+        
+        
+class StrongAirmassConstraint(AirmassConstraint):
+    """
+    Constrain the airmass of a target. With stronger preferency of low airmass target!
+
+    In the current implementation the airmass is approximated by the secant of
+    the zenith angle.
+
+    .. note::
+        The ``max`` and ``min`` arguments appear in the order (max, min)
+        in this initializer to support the common case for users who care
+        about the upper limit on the airmass (``max``) and not the lower
+        limit.
+
+    Parameters
+    ----------
+    max : float or `None`
+        Maximum airmass of the target. `None` indicates no limit.
+    min : float or `None`
+        Minimum airmass of the target. `None` indicates no limit.
+    boolean_contstraint : bool
+
+    Examples
+    --------
+    To create a constraint that requires the airmass be "better than 2",
+    i.e. at a higher altitude than airmass=2::
+
+        AirmassConstraint(2)
+    """
+
+    def __init__(self, max=None, min=1, boolean_constraint=True, strength=12):
+        self.strength=strength
+        super(StrongAirmassConstraint, self).__init__(max, min, boolean_constraint)
+
+    def compute_constraint(self, times, observer, targets):
+        cached_altaz = _get_altaz(times, observer, targets)
+        secz = cached_altaz['altaz'].secz.value
+        if self.boolean_constraint:
+            if self.min is None and self.max is not None:
+                mask = secz <= self.max
+            elif self.max is None and self.min is not None:
+                mask = self.min <= secz
+            elif self.min is not None and self.max is not None:
+                mask = (self.min <= secz) & (secz <= self.max)
+            else:
+                raise ValueError("No max and/or min specified in "
+                                 "AirmassConstraint.")
+            return mask
+        else:
+            if self.max is None:
+                raise ValueError("Cannot have a float AirmassConstraint if max is None.")
+            else:
+                mx = self.max
+
+            #scaling according to culmination altitude
+            if observer.latitude>=0*u.deg: maxalt=90*u.deg-observer.latitude+targets.dec
+            else: maxalt=180*u.deg-(90*u.deg-observer.latitude+targets.dec)
+            maxalt[maxalt<=(90-np.rad2deg(np.arccos(1/self.max)))*u.deg]=90*u.deg
+            maxalt[maxalt>90*u.deg]=180*u.deg-maxalt[maxalt>90*u.deg]
+            maxalts=np.full(secz.shape,np.float64(maxalt))
+
+            mi = 1/np.cos(np.deg2rad(90-maxalts)) if self.min is None else self.min
+            # values below 1 should be disregarded
+            
+            const=np.exp(-self.strength*(secz-mi))
+            
+            const[secz>mx]=0
+            
+            return const
+                
 
 class ModifMoonSeparationConstraint(MoonSeparationConstraint):
     """

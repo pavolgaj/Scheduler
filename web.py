@@ -2227,7 +2227,7 @@ def scheduler():
                             else:
                                 diffdate=1000     #higher chance to place new targets                        
                             
-                            if diffdate>0: 
+                            if diffdate>0 and prior: 
                                 #only for future planning
                                 obj['priority']=freqPrior(fr,diffdate,obj['full']['Priority'],series=(obj['n_exp']=='series'))                                
                         
@@ -2268,7 +2268,7 @@ def scheduler():
                        
             #general constraints
             constraints0 = [ModifAltitudeConstraint(minAlt*u.deg,config['maxAlt'],boolean_constraint=True), 
-                        ModifAirmassConstraint(maxAir,boolean_constraint=False),AtNightConstraint.twilight_nautical(), MoonSeparationConstraint(config['moon'])]
+                        StrongAirmassConstraint(maxAir,boolean_constraint=False),AtNightConstraint.twilight_nautical(), MoonSeparationConstraint(config['moon'])]
             
             #load telescope restrictions and set constraint
             limE,limW=load_limits()
