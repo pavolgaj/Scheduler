@@ -16,6 +16,17 @@ obs_lat=-29.25572   #latitude of observatory
 
 def make_stats():
     '''make statistics of observations'''
+    try:
+        return run_stats()
+    except ValueError as exc:
+        if "is not in list" in str(exc):
+            return None
+        raise
+    except FileNotFoundError as exc:
+        return None
+
+def run_stats():
+    '''make statistics of observations'''
     stats={}
     observations={}
     new=[]
