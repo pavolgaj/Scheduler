@@ -3009,6 +3009,26 @@ def modify():
                 try:
                     df,alt_plot,sky_plot=cache.get(code)
                     dfW=df.to_dict('records')
+                    
+                    if 'id' in request.form:
+                        ids=[int(i) for i in request.form.to_dict(flat=False)['id']] 
+                        #sort and delete rows
+                        data={i-1: df.to_dict('index')[i-1] for i in ids}
+                        df=pd.DataFrame().from_dict(data,'index')
+                                    
+                        # get data from inputs in tab
+                        updated_data = request.form.to_dict(flat=False)  
+                        exps=[int(round(float(x))) for x in updated_data['exp']]
+                        nums=[int(x) for x in updated_data['number']]
+                        nots=updated_data['notes']
+                        
+                        #update values in df
+                        df['ExpTime']=exps
+                        df['Number']=nums
+                        df['Remarks']=nots
+                        
+                        dfW=df.to_dict('records')
+                        
                 except (KeyError, TypeError):
                     return('Page cache expired! Re-load page!')
                 if df is None:
@@ -3116,6 +3136,26 @@ def modify():
                 try: 
                     df,alt_plot,sky_plot=cache.get(code)
                     data=df.to_dict('index')
+                    
+                    if 'id' in request.form:
+                        ids=[int(i) for i in request.form.to_dict(flat=False)['id']] 
+                        #sort and delete rows
+                        data={i-1: df.to_dict('index')[i-1] for i in ids}
+                        df=pd.DataFrame().from_dict(data,'index')
+                                    
+                        # get data from inputs in tab
+                        updated_data = request.form.to_dict(flat=False)  
+                        exps=[int(round(float(x))) for x in updated_data['exp']]
+                        nums=[int(x) for x in updated_data['number']]
+                        nots=updated_data['notes']
+                        
+                        #update values in df
+                        df['ExpTime']=exps
+                        df['Number']=nums
+                        df['Remarks']=nots
+                        
+                        data=df.to_dict('index')
+                        
                 except (KeyError, TypeError):
                     return('Page cache expired! Re-load page!')
                 if df is None:
@@ -3196,6 +3236,25 @@ def modify():
                 try:
                     df,alt_plot,sky_plot=cache.get(code)
                     data=df.to_dict('index')
+                    
+                    if 'id' in request.form:
+                        ids=[int(i) for i in request.form.to_dict(flat=False)['id']] 
+                        #sort and delete rows
+                        data={i-1: df.to_dict('index')[i-1] for i in ids}
+                        df=pd.DataFrame().from_dict(data,'index')
+                                    
+                        # get data from inputs in tab
+                        updated_data = request.form.to_dict(flat=False)  
+                        exps=[int(round(float(x))) for x in updated_data['exp']]
+                        nums=[int(x) for x in updated_data['number']]
+                        nots=updated_data['notes']
+                        
+                        #update values in df
+                        df['ExpTime']=exps
+                        df['Number']=nums
+                        df['Remarks']=nots
+                        
+                        data=df.to_dict('index')
                 except (KeyError, TypeError):
                     return('Page cache expired! Re-load page!')
                 if df is None:
@@ -3252,21 +3311,7 @@ def modify():
             new_obj['Remarks']=new_obj['_Remarks']
             del(new_obj['_Remarks'])
             
-            data[last+1]=new_obj
-                        
-            # after=int(request.form['after'])
-            # #add after row (indexed from 0, but in tab. from 1!)
-            # if last==after-1: data[last+1]=new_obj 
-            # elif after==0:
-            #     new_data={0: new_obj}
-            #     new_data={**new_data, **{x+1: data[x] for x in data}}
-            #     data=dict(new_data)
-            # else:
-            #     new_data={x: data[x] for x in data if int(x)<after}
-            #     new_data[after]=new_obj
-            #     new_data={**new_data, **{x+1: data[x] for x in data if int(x)>=after}}
-            #     data=dict(new_data)  
-                          
+            data[last+1]=new_obj                          
                        
             df=pd.DataFrame().from_dict(data,'index')
             
@@ -3294,6 +3339,26 @@ def modify():
                 try:
                     df,alt_plot,sky_plot=cache.get(code)
                     data=df.to_dict('index')
+                    
+                    if 'id' in request.form:
+                        ids=[int(i) for i in request.form.to_dict(flat=False)['id']] 
+                        #sort and delete rows
+                        data={i-1: df.to_dict('index')[i-1] for i in ids}
+                        df=pd.DataFrame().from_dict(data,'index')
+                                    
+                        # get data from inputs in tab
+                        updated_data = request.form.to_dict(flat=False)  
+                        exps=[int(round(float(x))) for x in updated_data['exp']]
+                        nums=[int(x) for x in updated_data['number']]
+                        nots=updated_data['notes']
+                        
+                        #update values in df
+                        df['ExpTime']=exps
+                        df['Number']=nums
+                        df['Remarks']=nots
+                        
+                        data=df.to_dict('index')
+                    
                 except (KeyError, TypeError):
                     return('Page cache expired! Re-load page!')
                 if df is None:
@@ -3727,6 +3792,25 @@ def modify():
                 try:
                     df,alt_plot,sky_plot=cache.get(code)
                     dfW=df.to_dict('records')
+                    
+                    if 'id' in request.form:
+                        ids=[int(i) for i in request.form.to_dict(flat=False)['id']] 
+                        #sort and delete rows
+                        data={i-1: df.to_dict('index')[i-1] for i in ids}
+                        df=pd.DataFrame().from_dict(data,'index')
+                                    
+                        # get data from inputs in tab
+                        updated_data = request.form.to_dict(flat=False)  
+                        exps=[int(round(float(x))) for x in updated_data['exp']]
+                        nums=[int(x) for x in updated_data['number']]
+                        nots=updated_data['notes']
+                        
+                        #update values in df
+                        df['ExpTime']=exps
+                        df['Number']=nums
+                        df['Remarks']=nots
+                        
+                        dfW=df.to_dict('records')
                 except (KeyError, TypeError):
                     return('Page cache expired! Re-load page!')
                 if df is None:
