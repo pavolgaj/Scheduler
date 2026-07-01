@@ -2464,7 +2464,7 @@ def scheduler():
                             if pd.isna(fr): fr='unspecified'
                             
                             priority=freqPrior(fr,diffdate,objects1[obj]['full']['Priority'],series=(objects1[obj]['full']['Number']=='series'))
-                            print(objects1[obj]['full']['Target'],fr,priority)
+                            #print(objects1[obj]['full']['Target'],fr,priority)
                             
                             nig=objects1[obj]['full']['Nights']
                             if pd.isna(nig): nig=1000
