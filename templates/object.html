@@ -57,6 +57,24 @@
                 color: white;
                 cursor: pointer;
             }
+
+            .modify-row {
+                padding: 0px;
+                width: 20px;
+                height: 20px;
+                background-color: silver;
+                border-color: black;
+                border-width: 1px;
+                border-radius: 5px;
+                margin-right: 2px;
+            }
+
+            .modify-row img {
+                height: 17px;
+                display: block;
+                margin-left: auto;
+                margin-right: auto;
+            }
         </style>
 
         <script>
@@ -193,7 +211,15 @@
                         <tr>
                             <td class="key">{{ key }}</td>
                             {% for pr in prog %}
-                            <td>{{ pr[key] }}</td>
+                            <td>{{ pr[key] }}
+                                {% if key=="program_title" %}
+                                <button type="button" class="modify-row" name="info" title="Info about observing program"
+                        onclick="window.open('{{ url_for('proposal_info', name = pr[key]) }}', 'program')"
+                        formtarget="program">
+                        <img src="{{ url_for('static',filename='info.svg') }}" alt="preview">
+                    </button>
+                                {% endif %}
+                            </td>
                             {% endfor %}
                         </tr>
                         {% endfor %}
