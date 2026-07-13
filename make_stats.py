@@ -85,7 +85,7 @@ def run_stats():
             if target.lower() in ['bias','flat','comp','test','zero','thar','','dark','pokus','neco','xx','calibration','djdj',
                                   'rtjhrstjh','shgdfz','shs','shswh','ttt','yflju','t','twst','ttarget','ic','ic-cu','ic cu',
                                   'lampa','i2cu','i2-cu','i2-fe-i2-cu','cu-ic','back','back2','dome','pok','front','spektrum',
-                                  'tharCU','th-ar-cu-I2-frontend','4-4','6-4','6-5','arc','cu','th-ar-cu','cu cell','cu-cell']: continue
+                                  'tharCU','th-ar-cu-I2-frontend','4-4','6-4','6-5','arc','cu','th-ar-cu','cu cell','cu-cell','dummy','dummz']: continue
             if 'test' in target.lower(): continue
             if 'front' in target.lower(): continue
             if 'dome' in target.lower(): continue
@@ -101,6 +101,7 @@ def run_stats():
             if 'dark' in target.lower(): continue
             if 'arc ' in target.lower(): continue 
             if 'arc-' in target.lower(): continue 
+            if 'dummy' in target.lower(): continue 
 
             #utilize similar objects names - spaces, lower/upper case etc.
             if not target.lower().replace('-','').replace(' ','').replace('+','').replace('.','') in names: 
