@@ -60,15 +60,18 @@ for obj in objects:
     nights=int(obj['Nights'])
     exp0=float(obj['ExpTime'])
     if name not in all_obs: continue   #no observations
+    #print(name)
 
     if len(all_obs[name])<nights: continue  #observations less than requested
-
+    #print(name)
     if lastweek:
         last=datetime.datetime.strptime(all_obs[name][-1],'%Y-%m-%d')
         if datetime.datetime.now()-last>datetime.timedelta(days=8):
+            #print('old')
             continue    #old object -> ignore
 
     good=[]
+    snrsG=[]
     snrs=[]
     quest=[]
     for obs in all_obs[name]:
@@ -83,6 +86,7 @@ for obj in objects:
                     if len(row['snr'])>0:
                         snrs.append(float(row['snr']))
                         if float(row['snr'])>snr:
+                            snrsG.append(float(row['snr']))
                             if obs not in good: good.append(obs)
                             #break
                         elif float(row['snr'])>snrQ:
@@ -92,9 +96,9 @@ for obj in objects:
         f.close()
 
     if len(snrs)==0: continue  #no usable spectra
-
+    #print('test')
     if len(good)>=nights:
-        tmp={'name':obj['Target'],'nights':nights,'observed':len(good),'snr':round(np.mean(snrs),1), 'progID':obj['ProgramID']}
+        tmp={'name':obj['Target'],'nights':nights,'observed':len(good),'snr':round(np.mean(snrsG),1), 'progID':obj['ProgramID']}
         goods.append(tmp)
         if obj['ProgramID'] in goodProg: goodProg[obj['ProgramID']].append(tmp)
         else: goodProg[obj['ProgramID']]=[tmp]
