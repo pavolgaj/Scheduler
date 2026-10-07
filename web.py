@@ -1376,7 +1376,7 @@ def modif_obj():
                     if statusChange:
                         mess1+=f' and change status to "{("observation finished" if status=="done" else "observations running")}"'
                     
-                    writer.writerow({'target': f'{obj["Target"]} (ID: {obj['ObjectID']}; {obj["RA"]}, {obj["DEC"]}; {obj["Number"]} x {obj["ExpTime"]} s) with programID {obj["ProgramID"]}',
+                    writer.writerow({'target': f'{obj["Target"]} (ID: {obj["ObjectID"]}; {obj["RA"]}, {obj["DEC"]}; {obj["Number"]} x {obj["ExpTime"]} s) with programID {obj["ProgramID"]}',
                                       'changes': mess1,
                                       'mail': email})
                     f.close()                    
