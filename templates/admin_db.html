@@ -534,8 +534,12 @@
                     {% for col in header %}
                     <td {% if loop.index0==0 %} class="fix" style="left: 135px;" {% endif %}>
                         <input type="text" name="{{ col }}" value="{{ row[col] }}" {% if col in tooltips
-                            %}title="{{ tooltips[col] }}" {% endif %} {% if col=="Priority" and row[col][0]=="0"
-                            %}readonly{% else %}oninput="checkPrior(this)" data-prev="{{ row[col] }}" {% endif %}>
+                            %}title="{{ tooltips[col] }}" {% endif %} 
+                            {% if col=="Priority" %}
+                            {% if row[col][0]=="0" %}readonly{% else %} oninput="checkPrior(this)" data-prev="{{ row[col] }}" {% endif %}
+                            {% endif %}
+                            {% if col=="ObjectID" %}readonly{% endif %}
+                            >
                     </td>
                     {% endfor %}
                 </tr>

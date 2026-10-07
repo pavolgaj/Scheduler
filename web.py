@@ -19,6 +19,9 @@ import base64
 from datetime import datetime,timezone,timedelta
 import requests
 
+import secrets
+import string
+
 from make_stats import make_stats
 
 import matplotlib
@@ -216,6 +219,10 @@ def check_dns(text,min=None,max=None):
     if int(tmp[1])>=60 or int(tmp[1])<0: return False
     if float(tmp[2])>=60 or float(tmp[2])<0: return False    
     return True    
+
+#generate ObjectID
+def generate_id() -> str:
+    return ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(12))
 
 
 #header for obj in DB
@@ -1036,10 +1043,8 @@ def modif_obj():
         f=open('db/objects.csv','r')
         reader = csv.DictReader(f)
         obj_all={}
-        i=0
         for obj in reader: 
-            obj_all[i]=obj
-            i+=1 
+            obj_all[obj['ObjectID']]=obj
             if not obj['Type'] in groups: groups.append(obj['Type'])
         f.close()
         
@@ -1057,10 +1062,10 @@ def modif_obj():
         email = request.form['email'].strip()
         mess=request.form['mess'].strip()
         if 'target' in request.form:
-            target=int(request.form['target'])
+            target=request.form['target']
             obj=obj_all[target]
             
-            info=obj['Target']+': '+str(obj['Number'])+' x '+str(obj['ExpTime'])+' s; '+str(obj['Remarks'])+'; '+('observation finished' if obj['Done']=='1' else 'observations running')
+            info=obj['Target']+' (ID: '+obj['ObjectID']+')'+': '+str(obj['Number'])+' x '+str(obj['ExpTime'])+' s; '+str(obj['Remarks'])+'; '+('observation finished' if obj['Done']=='1' else 'observations running')
             
             status=('done' if obj['Done']=='1' else 'obs')
             
@@ -1243,7 +1248,7 @@ def modif_obj():
                         shutil.copy2('db/objects.csv','db-backup/objects-'+datetime.now().strftime("%Y%m%d-%H%M%S")+'.csv')
                         
                         f=open('db/objects.csv','w')
-                        writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ProgramID','Done'])
+                        writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ObjectID','ProgramID','Done'])
                         writer.writeheader()                        
                         for i in obj_all:
                             if not i==target: writer.writerow(obj_all[i])
@@ -1300,7 +1305,7 @@ def modif_obj():
                     #send mail to admins and supervisior of added obj
                     send=SendMail(email)
                   
-                    send.message=render_template(template,supervisor=supervis,name=obj['Target'],ra=obj['RA'],dec=obj['DEC'],mag=obj['Mag'],exp=obj['ExpTime'],number=obj['Number'],night=obj['Nights'],prior=obj['Priority'],group=obj['Type'],notes=obj['Remarks'],progID=progID,result=result,status=('observation finished' if status=='done' else 'observations running')+(' (not changed)' if status==status0 else ''),message=mess)
+                    send.message=render_template(template,supervisor=supervis,name=f"{obj['Target']} (ID: {obj['ObjectID']})",ra=obj['RA'],dec=obj['DEC'],mag=obj['Mag'],exp=obj['ExpTime'],number=obj['Number'],night=obj['Nights'],prior=obj['Priority'],group=obj['Type'],notes=obj['Remarks'],progID=progID,result=result,status=('observation finished' if status=='done' else 'observations running')+(' (not changed)' if status==status0 else ''),message=mess)
             
                     send.mail["subject"]=subject
 
@@ -1341,7 +1346,7 @@ def modif_obj():
                         shutil.copy2('db/objects.csv','db-backup/objects-'+datetime.now().strftime("%Y%m%d-%H%M%S")+'.csv')
                         
                         f=open('db/objects.csv','w')
-                        writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ProgramID','Done'])
+                        writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ObjectID','ProgramID','Done'])
                         writer.writeheader()                        
                         for i in obj_all:
                             if not i==target: writer.writerow(obj_all[i])
@@ -1371,14 +1376,14 @@ def modif_obj():
                     if statusChange:
                         mess1+=f' and change status to "{("observation finished" if status=="done" else "observations running")}"'
                     
-                    writer.writerow({'target': f'{obj["Target"]} ({obj["RA"]}, {obj["DEC"]}; {obj["Number"]} x {obj["ExpTime"]} s) with programID {obj["ProgramID"]}',
+                    writer.writerow({'target': f'{obj["Target"]} (ID: {obj['ObjectID']}; {obj["RA"]}, {obj["DEC"]}; {obj["Number"]} x {obj["ExpTime"]} s) with programID {obj["ProgramID"]}',
                                       'changes': mess1,
                                       'mail': email})
                     f.close()                    
                     
                     send=SendMail(email)
                   
-                    send.message=render_template('message_change',supervisor=supervis,name=obj['Target'],ra=obj['RA'],dec=obj['DEC'],mag=obj['Mag'],exp=obj['ExpTime'],number=obj['Number'],night=obj['Nights'],prior=obj['Priority'],group=obj['Type'],notes=obj['Remarks'],progID=progID,status=('observation finished' if status=='done' else 'observations running')+(' (not changed)' if status==status0 else ''),message=mess,result=result)
+                    send.message=render_template('message_change',supervisor=supervis,name=f"{obj['Target']} (ID: {obj['ObjectID']})",ra=obj['RA'],dec=obj['DEC'],mag=obj['Mag'],exp=obj['ExpTime'],number=obj['Number'],night=obj['Nights'],prior=obj['Priority'],group=obj['Type'],notes=obj['Remarks'],progID=progID,status=('observation finished' if status=='done' else 'observations running')+(' (not changed)' if status==status0 else ''),message=mess,result=result)
             
                     send.mail["subject"]=obj['Target']+': REQUEST for Change of observing target'
 
@@ -1393,9 +1398,9 @@ def modif_obj():
                     gc.collect()
                     return result          
 
-        return render_template('modify_obj.html', obj=[[x,obj_all[x]['Target']] for x in ids], target=target,info=info,supervis = supervis, email=email, mess=mess, errors=errors, progID=progID,status=status, per=per,t0=t0,phase_start=phase_start,phase_end=phase_end, condi=condi, freq=freq, remarks=remarks, moon_input=moon_input, time_start=time_start, time_end=time_end, other=other, group=group, groups=groups)
+        return render_template('modify_obj.html', obj=[[x,f"{obj_all[x]['Target']} (ID: {x})"] for x in ids], target=target,info=info,supervis = supervis, email=email, mess=mess, errors=errors, progID=progID,status=status, per=per,t0=t0,phase_start=phase_start,phase_end=phase_end, condi=condi, freq=freq, remarks=remarks, moon_input=moon_input, time_start=time_start, time_end=time_end, other=other, group=group, groups=groups)
     
-    return render_template('modify_obj.html', obj=[[x,obj_all[x]['Target']] for x in ids], target='',info='',supervis = '', email='', mess='', errors={}, progID='',status='', per='',t0='',phase_start='',phase_end='', condi='good', freq='unspecified', remarks='', moon_input='', time_start='', time_end='', other='', group='', groups=groups)
+    return render_template('modify_obj.html', obj=[[x,f"{obj_all[x]['Target']} (ID: {x})"] for x in ids], target='',info='',supervis = '', email='', mess='', errors={}, progID='',status='', per='',t0='',phase_start='',phase_end='', condi='good', freq='unspecified', remarks='', moon_input='', time_start='', time_end='', other='', group='', groups=groups)
 
 
 
@@ -1492,7 +1497,7 @@ def show_db():
                 obj['Last']=last                  
                      
     
-    header='Target,RA,DEC,Mag,Period,Epoch,ExpTime,Number,Nights,Observations,Last,Priority,NewPriority,Type,Remarks,MoonPhase,StartPhase,EndPhase,StartDate,EndDate,Conditions,Frequency,OtherRequests,Supervisor,Program'    
+    header='Target,RA,DEC,Mag,Period,Epoch,ExpTime,Number,Nights,Observations,Last,Priority,NewPriority,Type,Remarks,MoonPhase,StartPhase,EndPhase,StartDate,EndDate,Conditions,Frequency,OtherRequests,Supervisor,ObjectID,Program'    
     
     if request.method == 'POST':
         if 'download' in request.form:
@@ -1731,6 +1736,15 @@ def admin():
                 if len(errors)>0: writer.writerows([{x:t[x] for x in header.strip().split(',')+['ProgramID']} for t in targets])  #problems with data
                 f.close()
                 
+                #read used IDs
+                used=[]
+                
+                f=open('db/objects.csv','r')
+                reader = csv.DictReader(f)
+                for i,obj in enumerate(reader):
+                    used.append(obj['ObjectID'])
+                f.close()
+                
                 if len(errors)==0: 
                     #if all data OK
                     if not os.path.isfile('db/objects.csv'):
@@ -1741,7 +1755,14 @@ def admin():
                         shutil.copy2('db/objects.csv','db-backup/objects-'+datetime.now().strftime("%Y%m%d-%H%M%S")+'.csv')
                         f=open('db/objects.csv','a')                
                                     
-                    writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ProgramID','Done'])
+                    writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ObjectID','ProgramID','Done'])
+                    
+                    for target in targets:
+                        #create new unique ID
+                        target['ObjectID']=generate_id()
+                        while target['ObjectID'] in used: target['ObjectID']=generate_id()
+                        used.append(target['ObjectID'])
+                    
                     writer.writerows(targets)
                     f.close()  
                     
@@ -1778,12 +1799,26 @@ def admin():
                 id_select=[int(x) for x in selected[:-1].split(',')]
                 targets=[]
                 if len(selected)>0:
+                    #read used IDs
+                    used=[]
+                    
+                    f=open('db/objects.csv','r')
+                    reader = csv.DictReader(f)
+                    for i,obj in enumerate(reader):
+                        used.append(obj['ObjectID'])
+                    f.close()
+                                                                           
                     for id in ids:
                         if not id in id_select: targets.append(targets0[id])
                         else:
                             target=dict(targets0[id]) 
                             target['Done']='0'      
                             tmp,errors=check(target)   #make data check
+                            
+                            #create new unique ID
+                            target['ObjectID']=generate_id()
+                            while target['ObjectID'] in used: target['ObjectID']=generate_id()
+                            used.append(target['ObjectID'])
                             
                             if len(errors)==0: 
                                 #if data OK        
@@ -1794,7 +1829,7 @@ def admin():
                                     #make backup
                                     shutil.copy2('db/objects.csv','db-backup/objects-'+datetime.now().strftime("%Y%m%d-%H%M%S")+'.csv')
                                     f=open('db/objects.csv','a')
-                                writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ProgramID','Done'])
+                                writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ObjectID','ProgramID','Done'])
                                 writer.writerow(target)
                                 f.close() 
                                 
@@ -1839,7 +1874,20 @@ def admin():
                 target['Done']='0'      
                 tmp,errors=check(target)   #make data check
                 
-                if len(errors)==0:        
+                if len(errors)==0:   
+                    #read used IDs
+                    used=[]
+                    
+                    f=open('db/objects.csv','r')
+                    reader = csv.DictReader(f)
+                    for i,obj in enumerate(reader):
+                        used.append(obj['ObjectID'])
+                    f.close()
+                    
+                    #create new unique ID
+                    target['ObjectID']=generate_id()
+                    while target['ObjectID'] in used: target['ObjectID']=generate_id()
+                         
                     #if data OK        
                     if not os.path.isfile('db/objects.csv'):
                         f=open('db/objects.csv','w')
@@ -1849,7 +1897,7 @@ def admin():
                         shutil.copy2('db/objects.csv','db-backup/objects-'+datetime.now().strftime("%Y%m%d-%H%M%S")+'.csv')
                     
                         f=open('db/objects.csv','a')
-                    writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ProgramID','Done'])
+                    writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ObjectID','ProgramID','Done'])
                     writer.writerow(target)
                     f.close() 
                     
@@ -1877,7 +1925,7 @@ def admin():
                     #accepted/removed target          
                     send=SendMail(progs[target['ProgramID']]['mail'])                                    
                         
-                    send.message=render_template('message',supervisor=target['Supervisor'],name=target['Target'],ra=target['RA'],dec=target['DEC'],mag=target['Mag'],exp=target['ExpTime'],number=target['Number'],night=target['Nights'],prior=target['Priority'],group=target['Type'],notes=target['Remarks'],message=mess,progID=target['ProgramID']).replace('Additional comments:','Comments from admin:')
+                    send.message=render_template('message',supervisor=target['Supervisor'],name=f"{target['Target']} (ID: {target['ObjectID']})",ra=target['RA'],dec=target['DEC'],mag=target['Mag'],exp=target['ExpTime'],number=target['Number'],night=target['Nights'],prior=target['Priority'],group=target['Type'],notes=target['Remarks'],message=mess,progID=target['ProgramID']).replace('Additional comments:','Comments from admin:')
                     
                     if acc: 
                         #accepted target
@@ -1928,9 +1976,9 @@ def admin():
                 si = io.StringIO()    # create "file-like" output for writing
                 
                 # Get the data from the form and sort them based on original order   
-                targets=[{x: updated_data[x][ids[i]] for x in header.strip().split(',')+['ProgramID','Done']} for i in sorted(ids)]
+                targets=[{x: updated_data[x][ids[i]] for x in header.strip().split(',')+['ObjectID','ProgramID','Done']} for i in sorted(ids)]
                 
-                writer=csv.DictWriter(si,fieldnames=header.strip().split(',')+['ProgramID','Done'])
+                writer=csv.DictWriter(si,fieldnames=header.strip().split(',')+['ObjectID','ProgramID','Done'])
                 writer.writeheader()
                 writer.writerows(targets)
                 
@@ -1943,7 +1991,7 @@ def admin():
                 #save changes in table to DB
                             
                 # Get the data from the form and sort them based on original order   
-                targets=[{x: updated_data[x][ids[i]] for x in header.strip().split(',')+['ProgramID','Done']} for i in sorted(ids)]
+                targets=[{x: updated_data[x][ids[i]] for x in header.strip().split(',')+['ObjectID','ProgramID','Done']} for i in sorted(ids)]
                 
                 #make data check
                 for target in targets:
@@ -1956,7 +2004,7 @@ def admin():
                     
                     #if all data OK -> save                    
                     f=open('db/objects.csv','w')
-                    writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ProgramID','Done'])
+                    writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ObjectID','ProgramID','Done'])
                     writer.writeheader()
                     writer.writerows(targets)
                     f.close() 
@@ -1968,7 +2016,7 @@ def admin():
                 id=int(list(filter(r_del.match,request.form.keys()))[0].split('_')[1])
                 
                 # Get the data from the form and sort them based on original order   
-                targets=[{x: updated_data[x][ids[i]] for x in header.strip().split(',')+['ProgramID','Done']} for i in sorted(ids)]
+                targets=[{x: updated_data[x][ids[i]] for x in header.strip().split(',')+['ObjectID','ProgramID','Done']} for i in sorted(ids)]
                 
                 #make data check
                 for i,target in enumerate(targets):
@@ -1984,14 +2032,14 @@ def admin():
                     
                     #if all data OK -> save
                     f=open('db/objects.csv','w')
-                    writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ProgramID','Done'])
+                    writer=csv.DictWriter(f,fieldnames=header.strip().split(',')+['ObjectID','ProgramID','Done'])
                     writer.writeheader()
                     writer.writerows(targets)
                     f.close()
                 
             if len(errors)>0:
                 #if some error reload displayed data - NO saved in file!
-                return render_template('admin_db.html', db=db, header=header.strip().split(',')+['ProgramID'], data=targets, saved=saved, errors=errors, searchInput=searchInput, rows=rows,tooltips=tooltips)
+                return render_template('admin_db.html', db=db, header=header.strip().split(',')+['ObjectID','ProgramID'], data=targets, saved=saved, errors=errors, searchInput=searchInput, rows=rows,tooltips=tooltips)
                                
             
             if os.path.isfile('db/objects.csv'): os.chmod('db/objects.csv', 0o666)            
@@ -2005,7 +2053,7 @@ def admin():
         if not os.path.isfile('db/new_objects.csv'): return render_template('admin_db.html', db=db, header=header.strip().split(',')+['ProgramID'], data=[], saved=saved, errors=errors, searchInput=searchInput, rows=rows)
         f=open('db/new_objects.csv','r')
     elif db=='objects': 
-        if not os.path.isfile('db/objects.csv'): return render_template('admin_db.html', db=db, header=header.strip().split(',')+['ProgramID'], data=[], saved=saved, errors=errors, searchInput=searchInput, rows=rows)
+        if not os.path.isfile('db/objects.csv'): return render_template('admin_db.html', db=db, header=header.strip().split(',')+['ObjectID','ProgramID'], data=[], saved=saved, errors=errors, searchInput=searchInput, rows=rows)
         f=open('db/objects.csv','r')
     reader = csv.DictReader(f)
     data=[]
@@ -2014,7 +2062,10 @@ def admin():
     f.close()
     
     gc.collect()
-    return render_template('admin_db.html', db=db, header=header.strip().split(',')+['ProgramID'], data=data, saved=saved, errors=errors, searchInput=searchInput, rows=rows,tooltips=tooltips)
+    if db=='new': 
+        return render_template('admin_db.html', db=db, header=header.strip().split(',')+['ProgramID'], data=data, saved=saved, errors=errors, searchInput=searchInput, rows=rows,tooltips=tooltips)
+    elif db=='objects': 
+        return render_template('admin_db.html', db=db, header=header.strip().split(',')+['ObjectID','ProgramID'], data=data, saved=saved, errors=errors, searchInput=searchInput, rows=rows,tooltips=tooltips)
 
 def freqPrior(freq,diffdate,oldpriority,series=False):
     '''rescale priority based on frequency and last obs'''
