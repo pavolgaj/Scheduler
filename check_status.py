@@ -98,13 +98,13 @@ for obj in objects:
     if len(snrs)==0: continue  #no usable spectra
     #print('test')
     if len(good)>=nights:
-        tmp={'name':obj['Target'],'nights':nights,'observed':len(good),'snr':round(np.mean(snrsG),1), 'progID':obj['ProgramID']}
+        tmp={'name':f"{obj['Target']} (ID: {obj['ObjectID']})",'nights':nights,'observed':len(good),'snr':round(np.mean(snrsG),1), 'progID':obj['ProgramID']}
         goods.append(tmp)
         if obj['ProgramID'] in goodProg: goodProg[obj['ProgramID']].append(tmp)
         else: goodProg[obj['ProgramID']]=[tmp]
             
     elif len(quest)+len(good)>=nights:
-        tmp={'name':obj['Target'],'nights':nights,'observed':len(quest)+len(good),'good':len(good),'faint':len(quest),'snr':round(np.mean(snrs),1), 'progID':obj['ProgramID']}
+        tmp={'name':f"{obj['Target']} (ID: {obj['ObjectID']})",'nights':nights,'observed':len(quest)+len(good),'good':len(good),'faint':len(quest),'snr':round(np.mean(snrs),1), 'progID':obj['ProgramID']}
         faints.append(tmp)
         if obj['ProgramID'] in faintProg: faintProg[obj['ProgramID']].append(tmp)
         else: faintProg[obj['ProgramID']]=[tmp]
