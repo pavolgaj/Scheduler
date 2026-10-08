@@ -2309,7 +2309,8 @@ def scheduler():
                         
                         mag=obj['full']['Mag']
                         
-                        obj_id=str(uuid.uuid4())
+                        #obj_id=str(uuid.uuid4())
+                        obj_id=obj['full']['ObjectID']
                         if last is not None: lastObs[obj_id]=last
                         numObs[obj_id]=num
                         
@@ -2743,7 +2744,7 @@ def modify():
     all_obj0={}
     for obj in objects0:
         if obj['full']['Done']==1: continue  #remove already finished targets
-        all_obj0[str(uuid.uuid4())]={'name':obj['full']['Target'],'obj':obj,'info': str(obj['full']['Number'])+' x '+str(obj['full']['ExpTime'])+'s\nRemarks: '+str(obj['full']['Remarks'])+'\nFrequency: '+str(obj['full']['Frequency'])+'\nOtherRequests: '+str(obj['full']['OtherRequests'])+'\nSupervisor: '+str(obj['full']['Supervisor'])}
+        all_obj0[obj['full']['ObjectID']]={'name':obj['full']['Target'],'obj':obj,'info': str(obj['full']['Number'])+' x '+str(obj['full']['ExpTime'])+'s\nRemarks: '+str(obj['full']['Remarks'])+'\nFrequency: '+str(obj['full']['Frequency'])+'\nOtherRequests: '+str(obj['full']['OtherRequests'])+'\nSupervisor: '+str(obj['full']['Supervisor'])}
                 
         # group=obj['full']['Type']
         # if pd.isna(group): group='None'
@@ -3769,7 +3770,7 @@ def modify():
                 tmp['n_exp']=obj.Number
                 tmp['priority']=obj.Priority                
                 
-                objects1[str(uuid.uuid4())]=tmp
+                objects1[tmp['full']['ObjectID']]=tmp
                 
             
             # Prefiltering
@@ -3933,6 +3934,27 @@ def modify():
             output = make_response(si.getvalue())
             output.headers["Content-Disposition"] = "attachment; filename=schedule.csv"
             output.headers["Content-type"] = "text/csv"
+            return output 
+        
+        if 'list' in request.form:
+            #download list with targets IDs
+            try: df=cache.get(code)[0]
+            except (KeyError, TypeError):
+                return('Page cache expired! Re-load page!')
+            
+            si = io.StringIO()    # create "file-like" output for writing
+            
+            if not '_ObjectID' in df.columns: 
+                return 'NO ObjectID for scheduler targets!'
+            
+            #df['_ObjectID'].to_csv(si,index=False)
+            for index, row in df.iterrows():
+                if len(row['_ObjectID']): si.write(row['_ObjectID']+'\n')
+            
+            output = make_response(si.getvalue())
+            output.headers["Content-Disposition"] = "attachment; filename=targets-ids.txt"
+            output.headers["Content-type"] = "text/txt"
+            
             return output 
         
         if 'json' in request.form:
@@ -4141,7 +4163,7 @@ def show():
         ha0=[]
         ha1=[]
         de=[]
-        for i,obj in df.iterrows():           
+        for i,obj in df.iterrows():         
             ra='{}h{}m{}s'.format(*obj.RA.replace(':',' ').replace(',','.').split())
             dec='{}d{}m{}s'.format(*obj.DEC.replace(':',' ').replace(',','.').split())
             coordinates=SkyCoord(ra,dec,frame='icrs')

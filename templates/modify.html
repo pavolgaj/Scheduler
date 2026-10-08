@@ -701,6 +701,8 @@ Conditions: {{ row.Conditions }}">
                     <button type="submit" name="download" id="download" title="Download schedule as CSV." {% if not code
                         %}disabled style="background-color:gray; color: black; cursor: default;" {% endif %}>Download
                         CSV</button>
+                    <button type="submit" name="list" id="list" title="Download list of targets IDs." {% if not code
+                        %}disabled style="background-color:gray; color: black; cursor: default;" {% endif %}>Download IDs</button>
                     <button type="submit" name="json" id="json" title="Download schedule as JSON." {% if not code
                         %}disabled style="background-color:gray; color: black; cursor: default;" {% endif %}>Download
                         JSON</button>
