@@ -2731,7 +2731,7 @@ def modify():
     schedules=[os.path.splitext(os.path.basename(x))[0] for x in  sorted(glob.glob('schedules/*.csv'), key=os.path.getmtime)][::-1]  
     
     if not os.path.isfile('db/objects.csv'):
-        return render_template('modify.html', schedules=schedules,name='',schedule=[],code='',codeF='', alt_plot='',sky='',start='',night='',groups={},use_group=[],objects=[],obs=[],indiv=True, calc=0,total_time=16,all_obj=[],codeObj='',indObj='',condi='all')
+        return render_template('modify.html', schedules=schedules,name='',schedule=[],code='',codeF='', alt_plot='',sky='',start='',night='',groups={},use_group=[],objects=[],obs=[],indiv=True, calc=0,total_time=16,all_obj=[],codeObj='',indObj='',condi='all',scroll=False,freq='all',errors=[])
     objects0=load_objects('db/objects.csv',check=False)   #check in Simbad?
     
     f=open('db/progID.json','r')
@@ -2786,7 +2786,7 @@ def modify():
             cache.set(codeObj,dict(all_obj0))
             if len(all_obj0)==0: codeObj=''
         
-            return render_template('modify.html', schedules=schedules,name=name,schedule=[],code='',codeF='', alt_plot='',sky='',start='',night='',groups=groups,use_group=[],objects=[],obs=[],prev_plot='',indiv=True,modify=True, calc=1,total_time=16,all_obj=sorted(all_obj0.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj='',condi='all',scroll=False,freq='all')
+            return render_template('modify.html', schedules=schedules,name=name,schedule=[],code='',codeF='', alt_plot='',sky='',start='',night='',groups=groups,use_group=[],objects=[],obs=[],prev_plot='',indiv=True,modify=True, calc=1,total_time=16,all_obj=sorted(all_obj0.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj='',condi='all',scroll=False,freq='all',errors=[])
         
     
     if request.method=='POST':
@@ -2795,6 +2795,8 @@ def modify():
         codeObj=request.form['codeObj']  
         
         idObj=request.form['obj'] 
+        
+        errors=[]
         
         if codeObj:
             try:
@@ -3383,6 +3385,125 @@ def modify():
             else: 
                 objects=[]
                 obs=[]
+ 
+        if 'import' in request.form:
+            #import targets by IDs  
+
+            #get data
+            if code: 
+                try:
+                    df,alt_plot,sky_plot=cache.get(code)
+                    data=df.to_dict('index')
+                    
+                    if 'id' in request.form:
+                        ids=[int(i) for i in request.form.to_dict(flat=False)['id']] 
+                        #sort and delete rows
+                        data={i-1: df.to_dict('index')[i-1] for i in ids}
+                        df=pd.DataFrame().from_dict(data,'index')
+                                    
+                        # get data from inputs in tab
+                        updated_data = request.form.to_dict(flat=False)  
+                        exps=[int(round(float(x))) for x in updated_data['exp']]
+                        nums=[int(x) for x in updated_data['number']]
+                        nots=updated_data['notes']
+                        
+                        #update values in df
+                        df['ExpTime']=exps
+                        df['Number']=nums
+                        df['Remarks']=nots
+                        
+                        data=df.to_dict('index')
+                except (KeyError, TypeError):
+                    return('Page cache expired! Re-load page!')
+                if df is None:
+                    code=str(uuid.uuid4())    #unique hash for different users     
+                    data={}
+                    alt_plot=''
+                    sky_plot=''    
+            else: 
+                code=str(uuid.uuid4())    #unique hash for different users     
+                data={}
+                alt_plot=''
+                sky_plot=''
+            
+            if len(data)>0: last=list(sorted(data.keys()))[-1]
+            else: last=-1
+            
+            ids=request.form['importIDs'].splitlines()
+            errors=[]
+            
+            for objid in [x.strip() for x in ids]:
+                if len(objid)==0: continue
+                if not objid in all_obj:
+                    #wrong ID
+                    errors.append(objid)
+                    continue
+                
+                obj=all_obj[objid]['obj']['full'].to_dict()
+            
+                new_obj={'_'+x: obj[x] if not pd.isna(obj[x]) else '' for x in obj}
+                new_obj['index']=last+2
+                new_obj['Target']=new_obj['_Target']
+                new_obj['RA']=new_obj['_RA']
+                new_obj['DEC']=new_obj['_DEC']
+                new_obj['Mag']=new_obj['_Mag']
+                new_obj['duration (minutes)']=''
+                new_obj['Start']=''
+                new_obj['End']=''
+                new_obj['configuration']=''
+                if len(data)>0:
+                    if 'Azimut' in data[last]:
+                        #old schedule
+                        new_obj['Altitude']=''
+                        new_obj['Airmass']=''
+                        new_obj['Azimut']=''
+                    else:
+                        new_obj['AltitudeStart']=''
+                        new_obj['AirmassStart']=''
+                        new_obj['AzimutStart']=''
+                        new_obj['AltitudeEnd']=''
+                        new_obj['AirmassEnd']=''
+                        new_obj['AzimutEnd']=''  
+                        new_obj['MoonSeparation']=''
+                else:
+                    new_obj['AltitudeStart']=''
+                    new_obj['AirmassStart']=''
+                    new_obj['AzimutStart']=''
+                    new_obj['AltitudeEnd']=''
+                    new_obj['AirmassEnd']=''
+                    new_obj['AzimutEnd']=''            
+                    new_obj['MoonSeparation']=''
+                new_obj['Priority']=obj['Priority']
+                new_obj['ExpTime']=obj['ExpTime']
+                if obj['Number']=='series': new_obj['Number']=5
+                else: new_obj['Number']=obj['Number']
+                new_obj['Position']=''
+                new_obj['Remarks']=new_obj['_Remarks']
+                del(new_obj['_Remarks'])
+                
+                data[last+1]=new_obj
+                last+=1
+            
+            df=pd.DataFrame().from_dict(data,'index')
+                        
+            cache.set(code,[pd.DataFrame(df),alt_plot,sky_plot])    #save in cache
+            
+            dfW=df.to_dict('records')
+            
+            calc=0
+            
+            if codeF: 
+                try: objects,obs=cache.get(codeF)
+                except (KeyError, TypeError):
+                    return('Page cache expired! Re-load page!')
+                if objects is None:
+                    objects=[]
+                    obs=[]    
+            else: 
+                objects=[]
+                obs=[]
+             
+ 
                 
         if 'gap' in request.form:
             #add gap/delay       
@@ -3521,8 +3642,7 @@ def modify():
                 dfW=[]
                 alt_plot=''
                 sky_plot=''
-                
-                  
+
         
         if 'new' in request.form:  
             #create new empty schedule
@@ -4011,7 +4131,7 @@ def modify():
             output.headers["Content-type"] = "text/json"
             return output 
         
-        return render_template('modify.html', schedules=schedules,name=name,schedule=dfW,code=code, codeF=codeF,alt_plot=alt_plot,sky=sky_plot,start=startF,night=nightF,groups=groups,use_group=use_group,objects=objects,obs=obs,indiv=indiv,calc=calc,total_time=total_time,all_obj=sorted(all_obj.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj=idObj,condi=condi,scroll=scroll,freq=freq)
+        return render_template('modify.html', schedules=schedules,name=name,schedule=dfW,code=code, codeF=codeF,alt_plot=alt_plot,sky=sky_plot,start=startF,night=nightF,groups=groups,use_group=use_group,objects=objects,obs=obs,indiv=indiv,calc=calc,total_time=total_time,all_obj=sorted(all_obj.items(), key=lambda kv: (kv[1]['name'].lower().replace(' ',''), kv[0])),codeObj=codeObj,indObj=idObj,condi=condi,scroll=scroll,freq=freq,errors=errors)
     else:
         all_obj=all_obj0
         

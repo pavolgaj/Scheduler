@@ -169,8 +169,8 @@
                 var previousRow = row;
 
                 for (var i = 0; i < 5; i++) {
-                    if (previousRow && previousRow.tagName === 'TR') {                        
-                        if (previousRow.previousElementSibling==null) break;
+                    if (previousRow && previousRow.tagName === 'TR') {
+                        if (previousRow.previousElementSibling == null) break;
                         previousRow = previousRow.previousElementSibling;
                     } else {
                         break; // Stop if there are no more rows above
@@ -200,14 +200,14 @@
                 var nextRow = row;
 
                 for (var i = 0; i < 6; i++) {
-                    if (nextRow && nextRow.tagName === 'TR') {                        
+                    if (nextRow && nextRow.tagName === 'TR') {
                         //if (nextRow.nextElementSibling==null) break;
                         nextRow = nextRow.nextElementSibling;
                     } else {
                         break; // Stop if there are no more rows above
                     }
                 }
-                row.parentNode.insertBefore(row,nextRow);
+                row.parentNode.insertBefore(row, nextRow);
 
                 var calc = document.getElementById('calc_test');
                 calc.value = 0;
@@ -306,7 +306,7 @@
                     if (!isInt(inp.value)) {
                         valid = false;
                     }
-                    else if (inp.value<0) {
+                    else if (inp.value < 0) {
                         valid = false;
                     }
                 });
@@ -320,7 +320,7 @@
                     if (!isInt(inp.value)) {
                         valid = false;
                     }
-                    else if (inp.value<0) {
+                    else if (inp.value < 0) {
                         valid = false;
                     }
                 });
@@ -349,7 +349,7 @@
                 exps = document.getElementsByName('exp');
                 nums = document.getElementsByName('number');
                 for (var i = 0; i < exps.length; i++) {
-                    allocTime += exps[i].value * nums[i].value + 2*60;  //add time for slew
+                    allocTime += exps[i].value * nums[i].value + 2 * 60;  //add time for slew
                 }
 
                 var totTime = document.getElementById('total_time').value;
@@ -393,23 +393,23 @@
                 start = document.getElementById('start').value;
 
                 if (night && start) {
-                    dt0=new Date(night+'T'+start0+':00Z');
-                    dt=new Date(night+'T'+start+':00Z');
+                    dt0 = new Date(night + 'T' + start0 + ':00Z');
+                    dt = new Date(night + 'T' + start + ':00Z');
 
-                    if (dt0-new Date(night+'T00:00:00Z')>0.5*86400*1000) {
-                        dt0=new Date(dt0-86400*1000);
+                    if (dt0 - new Date(night + 'T00:00:00Z') > 0.5 * 86400 * 1000) {
+                        dt0 = new Date(dt0 - 86400 * 1000);
                     }
-                    if (dt-new Date(night+'T00:00:00Z')>0.5*86400*1000) {
-                        dt=new Date(dt-86400*1000);
+                    if (dt - new Date(night + 'T00:00:00Z') > 0.5 * 86400 * 1000) {
+                        dt = new Date(dt - 86400 * 1000);
                     }
 
-                    diff=dt-dt0;
+                    diff = dt - dt0;
 
                     var totTime = document.getElementById('total_time').value;
 
                     if (totTime != 16) {
-                        document.getElementById('total_time').value=totTime-diff/1000/3600;
-                        start0=start;
+                        document.getElementById('total_time').value = totTime - diff / 1000 / 3600;
+                        start0 = start;
                     }
                 }
             }
@@ -446,7 +446,7 @@
             document.addEventListener('DOMContentLoaded', (event) => {
                 const form = document.querySelector('form');
                 form.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
+                    if (e.key === 'Enter' && document.activeElement!=document.getElementById('importIDs')) {
                         e.preventDefault();
                     }
                 });
@@ -455,25 +455,26 @@
             //Display a base64 URL inside an iframe in another window.
             //for chrome etc. (a href not work!)
             function debugBase64(base64URL) {
-                var win = window.open('','img');
+                var win = window.open('', 'img');
                 win.document.open();
                 win.document.write('<iframe src="' + base64URL + '" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>');
-                win.document.close();                
+                win.document.close();
                 win.focus();
             }
 
             //This will open an image in a new window
             function img64(data) {
                 debugBase64("data:image/png;base64," + data);
-            }   
+            }
+
         </script>
 
     </head>
 
-    <body>        
+    <body>
         <form method="post" id="main-form">
             <input type="hidden" name="calc_test" id="calc_test" value="{{ calc }}">
-            <input type="hidden" name="total_time" id="total_time" value="{{ total_time }}"> 
+            <input type="hidden" name="total_time" id="total_time" value="{{ total_time }}">
             <div>
                 <center>
                     <label for="name">Name of schedule</label>
@@ -570,12 +571,18 @@
                                 <label for="freq">Observation frequency</label><br>
                                 <select id="freq" name="freq" title="Frequency of observations.">
                                     <option value="all" {% if freq=='all' %}selected{% endif %}>All</option>
-                                    <option value="everynight" {% if freq=='everynight' %}selected{% endif %}>Every night</option>
-                                    <option value="twiceweek" {% if freq=='twiceweek' %}selected{% endif %}>Twice a week</option>
-                                    <option value="onceweek" {% if freq=='onceweek' %}selected{% endif %}>Once a week</option>
-                                    <option value="twicemonth" {% if freq=='twicemonth' %}selected{% endif %}>Twice a month</option>
-                                    <option value="oncemonth" {% if freq=='oncemonth' %}selected{% endif %}>Once a month</option>
-                                    <option value="unspecified" {% if freq=='unspecified' %}selected{% endif %}>Unspecified</option>
+                                    <option value="everynight" {% if freq=='everynight' %}selected{% endif %}>Every
+                                        night</option>
+                                    <option value="twiceweek" {% if freq=='twiceweek' %}selected{% endif %}>Twice a week
+                                    </option>
+                                    <option value="onceweek" {% if freq=='onceweek' %}selected{% endif %}>Once a week
+                                    </option>
+                                    <option value="twicemonth" {% if freq=='twicemonth' %}selected{% endif %}>Twice a
+                                        month</option>
+                                    <option value="oncemonth" {% if freq=='oncemonth' %}selected{% endif %}>Once a month
+                                    </option>
+                                    <option value="unspecified" {% if freq=='unspecified' %}selected{% endif %}>
+                                        Unspecified</option>
                                 </select><br><br>
                                 <input type="checkbox" name="individual" id="individual" value="checked"
                                     title="Apply inidividual object constraints." {% if indiv %}checked{% endif %}
@@ -605,13 +612,12 @@
                                         <th class="obj_th">OtherRequests</th>
                                     </thead>
                                     {% for row in objects %}
-                                    <tr data-row-id="{{ loop.index0 }}"
-title="Group: {{ row.Type }}
+                                    <tr data-row-id="{{ loop.index0 }}" title="Group: {{ row.Type }}
 Supervisor: {{ row.Supervisor }}
 Conditions: {{ row.Conditions }}">
                                         <td class="actions">
                                             <button type="submit" class="modify-row" name="add_{{ loop.index0 }}"
-                                                title="Add" > <!-- onclick='return add_after()' -->
+                                                title="Add"> <!-- onclick='return add_after()' -->
                                                 <img src="{{ url_for('static',filename='add.svg') }}" alt="add">
                                             </button>
                                             <button type="submit" class="modify-row" name="preview_{{ loop.index0 }}"
@@ -659,13 +665,17 @@ Conditions: {{ row.Conditions }}">
                 <label>Individual target</label>
                 <select name="obj" id="obj" title="List of all targets. Observability NOT checked!">
                     {% for obj in all_obj %}
-                    <option value="{{ obj[0] }}" {% if indObj==obj[0] %}selected{% endif %} title="{{ obj[1]['info'] }}">{{ obj[1]['name'] }}
+                    <option value="{{ obj[0] }}" {% if indObj==obj[0] %}selected{% endif %}
+                        title="{{ obj[1]['info'] }}">{{ obj[1]['name'] }}  (ID: {{ obj[0] }})
                     </option>
                     {% endfor %}
                 </select>
                 <button type="submit" name="indiv" {% if not codeObj %}disabled
                     style="background-color:gray; color: black; cursor: default;" {% endif %}
-                    title="Add selected target to the schedule.">Add</button>   <!-- onclick='return add_after()' -->
+                    title="Add selected target to the schedule.">Add</button> <!-- onclick='return add_after()' -->
+                &nbsp;&nbsp;&nbsp;
+                <button type="button" title="Add targets from list by ObjectIDs."
+                    onclick="document.getElementById('import').style.display='Flex'">Import by IDs</button>
                 &nbsp;&nbsp;&nbsp;
                 <button type="submit" name="gap" title="Add gap/delay to the schedule.">Add gap</button>
 
@@ -681,7 +691,7 @@ Conditions: {{ row.Conditions }}">
                 <input type="time" name="start" id="start" value="{{ start }}" title="Time for observations start."
                     onchange="modify()">
                 <script>
-                    var start0="{{ start }}";
+                    var start0 = "{{ start }}";
                 </script>
                 <button type="submit" name="twilight" id="twilight" title="Set time to astronomical twilight."
                     onclick="return checkTwilight()">Astronomical twilight</button>
@@ -702,7 +712,8 @@ Conditions: {{ row.Conditions }}">
                         %}disabled style="background-color:gray; color: black; cursor: default;" {% endif %}>Download
                         CSV</button>
                     <button type="submit" name="list" id="list" title="Download list of targets IDs." {% if not code
-                        %}disabled style="background-color:gray; color: black; cursor: default;" {% endif %}>Download IDs</button>
+                        %}disabled style="background-color:gray; color: black; cursor: default;" {% endif %}>Export
+                        IDs</button>
                     <button type="submit" name="json" id="json" title="Download schedule as JSON." {% if not code
                         %}disabled style="background-color:gray; color: black; cursor: default;" {% endif %}>Download
                         JSON</button>
@@ -717,7 +728,8 @@ Conditions: {{ row.Conditions }}">
             <!-- table with observable obj -->
             <center>
                 <h2>Objects for observations</h2>
-                <h3 style="color: red;">Modifications of this table (removing or reordering rows) are applied only after running "Recalculate" or "Reschedule".</h3>
+                <h3 style="color: red;">Modifications of this table (removing or reordering rows) are applied only after
+                    running "Recalculate" or "Reschedule".</h3>
             </center>
             <table id="schedule_table">
                 <thead>
@@ -740,8 +752,7 @@ Conditions: {{ row.Conditions }}">
                     <th>Position</th>
                 </thead>
                 {% for row in schedule %}
-                <tr data-row-id="{{ loop.index0 }}"
-title="Group: {{ row._Type }}
+                <tr data-row-id="{{ loop.index0 }}" title="Group: {{ row._Type }}
 Supervisor: {{ row._Supervisor }}
 Conditions: {{ row._Conditions }}
 Frequency: {{ row._Frequency }}
@@ -755,16 +766,16 @@ OtherRequests: {{ row._OtherRequests }}">
                             onclick="moveUp(this)">
                             <img src="{{ url_for('static',filename='up.svg') }}" alt="up">
                         </button>
-                         <button type="button" class="modify-row" name="down_{{ row.index }}" title="Move down"
+                        <button type="button" class="modify-row" name="down_{{ row.index }}" title="Move down"
                             onclick="moveDown(this)">
                             <img src="{{ url_for('static',filename='down.svg') }}" alt="down">
                         </button>
                         <button type="button" class="modify-row" name="up5_{{ row.index }}" title="Move up by 5 rows"
                             onclick="moveUp5(this)">
                             <img src="{{ url_for('static',filename='up5.svg') }}" alt="up5">
-                        </button>                       
-                        <button type="button" class="modify-row" name="down5_{{ row.index }}" title="Move down by 5 rows"
-                            onclick="moveDown5(this)">
+                        </button>
+                        <button type="button" class="modify-row" name="down5_{{ row.index }}"
+                            title="Move down by 5 rows" onclick="moveDown5(this)">
                             <img src="{{ url_for('static',filename='down5.svg') }}" alt="down5">
                         </button>
                     </td>
@@ -774,13 +785,12 @@ OtherRequests: {{ row._OtherRequests }}">
                     </td>
                     <td>{{ row.Target }}
                         {% if not row.Target=='Delay' %}
-                        <button type="button" class="modify-row" name="info" title="Info about target"
-                            {% if row.Start %}
+                        <button type="button" class="modify-row" name="info" title="Info about target" {% if row.Start
+                            %}
                             onclick="window.open('{{ url_for('object_info', name = row.Target, day = row.Start.split()[0], time = row.Start.split()[1][:row.Start.split()[1].rfind(':')]) }}', 'object')"
                             {% else %}
-                            onclick="window.open('{{ url_for('object_info', name = row.Target) }}', 'object')"
-                            {% endif %}
-                            formtarget="object">
+                            onclick="window.open('{{ url_for('object_info', name = row.Target) }}', 'object')" {% endif
+                            %} formtarget="object">
                             <img src="{{ url_for('static',filename='info.svg') }}" alt="preview">
                         </button>
                         {% endif %}
@@ -888,6 +898,34 @@ OtherRequests: {{ row._OtherRequests }}">
                     style="background-color:gray; color: black; cursor: default;" {% endif %}
                     title="Run scheduler with objects in the schedule. It will create new schedule and any unsaved changes will be loosed!">Re-schedule</button>
             </center>
+
+            <div style="
+                    position: fixed;
+                    inset: 0;
+                    background: rgba(0,0,0,.5);
+                    display: none;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 2;
+                " id="import">
+                <div style="
+                    background: white;
+                    padding: 20px;
+                    border-radius: 8px;
+                    width: 500px;
+                ">
+                    <p>List of targets IDs (one per line):</p>
+
+                    <textarea id="importIDs" name="importIDs" style="width:100%; height:200px; resize:vertical;" autofocus></textarea>
+
+                    <div style="margin-top:10px; text-align:right;">
+                        <button type="button"
+                            onclick="document.getElementById('importIDs').value=''; document.getElementById('import').style.display='None'">Cancel</button>
+                        <button type='submit' name="import">OK</button>
+                    </div>
+                </div>
+            </div>
+
         </form>
 
         {% if alt_plot %}
@@ -908,6 +946,12 @@ OtherRequests: {{ row._OtherRequests }}">
         {% if scroll %}
         <script>
             window.scrollTo(0, document.body.scrollHeight);
+        </script>
+        {% endif %}
+
+        {% if errors %}
+        <script>
+            alert('Wrong object IDs: \n{{ errors | join("\\n") }}')
         </script>
         {% endif %}
 
