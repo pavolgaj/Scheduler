@@ -82,6 +82,10 @@ if not os.path.isdir('db'): os.mkdir('db')
 if not os.path.isdir('db-backup'): os.mkdir('db-backup')
 if not os.path.isdir('schedules'): os.mkdir('schedules')
 
+#change to mirrors
+simbad_servers=['simbad.cds.unistra.fr','simbad.harvard.edu']
+vizier_servers = ['vizier.cds.unistra.fr',"vizier.cfa.harvard.edu"]  
+
 @app.route("/health")
 def health():
     '''check if everything works -> monitoring on server side'''
@@ -229,6 +233,33 @@ def generate_id() -> str:
 header='Target,RA,DEC,Mag,Period,Epoch,ExpTime,Number,Nights,Priority,Type,Remarks,MoonPhase,StartPhase,EndPhase,StartDate,EndDate,Conditions,Frequency,OtherRequests,Supervisor'
 header+='\n'
 
+def status_simbad(server,TIMEOUT=10):
+    #check Simbad status
+    try:
+        r = requests.get(f"https://{server}/simbad/sim-tap/capabilities", timeout=TIMEOUT)
+    except requests.RequestException as e:
+        #print(f"DOWN  {server:<24}")
+        return False
+    
+    if r.status_code == 200: return True
+    return False
+
+def status_vizier(server,TIMEOUT=10):
+    #check Vizier status
+    viz = Vizier(vizier_server=server, timeout=TIMEOUT, row_limit=1)
+    try:
+        # end-to-end query: server + database. cache=False so an
+        # earlier outage response is never served from the cache
+        result = viz.query_object("M31", cache=False)
+        if result is None:
+            print(f"FAIL  {server:<24} reachable, but query returned nothing")
+            return False
+        print(f"OK    {server:<24}")
+        return True
+    except Exception as e:  # ReadTimeout, ConnectTimeout, ...
+        print(f"DOWN  {server:<24}")
+        return False
+
 # Route for displaying the form
 @app.route('/scheduler/new', methods=['GET', 'POST'])
 def new():
@@ -299,7 +330,18 @@ def new():
                 ra=''
                 dec=''
                 mag=''
-               
+                
+                #check Simbad availability
+                for server in simbad_servers:
+                    if status_simbad(server):
+                        Simbad.server=server
+                        break
+                else:
+                    errors['name'] = 'Simbad server not available!'
+                    
+                    return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
+                
+                               
                 Simbad.reset_votable_fields() 
                 try:
                     #astroquery>=0.4.8
@@ -442,6 +484,17 @@ def new():
             if name:
                 per=''
                 t0=''
+                
+                #check vizier availability
+                for server in vizier_servers:
+                    if status_vizier(server):
+                        Vizier.server=server
+                        break
+                else:
+                    errors['name'] = 'Vizier server not available!'
+                    
+                    return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
+                
                 catn=list(Vizier.find_catalogs('vsx').keys())[0]
                 vsx=Vizier(catalog=catn, columns=["Epoch","Period"])
                 vsx.ROW_LIMIT = -1
@@ -584,9 +637,14 @@ def new():
                         if dist.value*3600<5: nameDup=obj['Target']   
                 f.close() 
                 if (not dup) and nameDup: warn+='Close target '+nameDup+' already submitted!;'
-                            
-            if not check_simbad(name,coordinates):
-                warn+='Given coordinates do NOT agree with values in Simbad!;'
+            
+            #check Simbad availability
+            for server in simbad_servers:
+                if status_simbad(server):
+                    Simbad.server=server
+                    if not check_simbad(name,coordinates):
+                        warn+='Given coordinates do NOT agree with values in Simbad!;'
+                    break        
             
             #some warning - different to old one...
             if warn:
@@ -975,9 +1033,14 @@ def bulk():
                                 if dist.value*3600<5: nameDup=obj['Target']   
                         f.close() 
                         if (not dup) and nameDup: warn+=row['Target']+': Close target '+nameDup+' already submitted!;'
-                                
-                    if not check_simbad(row['Target'],coordinates):
-                        warn+=row['Target']+': Given coordinates do NOT agree with values in Simbad!;'          
+                    
+                    #check Simbad availability
+                    for server in simbad_servers:
+                        if status_simbad(server):
+                            Simbad.server=server
+                            if not check_simbad(row['Target'],coordinates):
+                                warn+=row['Target']+': Given coordinates do NOT agree with values in Simbad!;' 
+                            break             
 
                     row['Target']=row['Target'].replace('+','').strip()
                     
@@ -1925,7 +1988,7 @@ def admin():
                     #accepted/removed target          
                     send=SendMail(progs[target['ProgramID']]['mail'])                                    
                         
-                    send.message=render_template('message',supervisor=target['Supervisor'],name=f"{target['Target']} (ID: {target['ObjectID']})",ra=target['RA'],dec=target['DEC'],mag=target['Mag'],exp=target['ExpTime'],number=target['Number'],night=target['Nights'],prior=target['Priority'],group=target['Type'],notes=target['Remarks'],message=mess,progID=target['ProgramID']).replace('Additional comments:','Comments from admin:')
+                    send.message=render_template('message',supervisor=target['Supervisor'],name=f"{target['Target']}"+(f" (ID: {target['ObjectID']})" if 'ObjectID' in target else ''),ra=target['RA'],dec=target['DEC'],mag=target['Mag'],exp=target['ExpTime'],number=target['Number'],night=target['Nights'],prior=target['Priority'],group=target['Type'],notes=target['Remarks'],message=mess,progID=target['ProgramID']).replace('Additional comments:','Comments from admin:')
                     
                     if acc: 
                         #accepted target
