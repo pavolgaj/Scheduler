@@ -22,15 +22,22 @@
                 background-color: #f9f9f9;
             }
 
-            .form-group {
+            .form-group,
+            .form2-group {
                 display: flex;
                 align-items: center;
                 margin-bottom: 15px;
             }
 
-            .form-group label {
+            .form-group label,
+            .form2-group label {
                 flex: 1;
                 font-weight: bold;
+            }
+
+            .form2-group div {
+                flex: 2;
+                padding-right: 5px;
             }
 
             .form-group input,
@@ -250,10 +257,6 @@
                     alert('Exposure time should be integer number!');
                     return false;
                 }
-                if (document.getElementById('exp').value < 1) {
-                    alert('Exposure time should be at least 1!');
-                    return false;
-                }
 
                 if (!document.getElementById('night').value) {
                     alert('Number of nights is missing!');
@@ -296,7 +299,7 @@
                     }
                 }
                 else {
-                    document.getElementById('number').value=1;    
+                    document.getElementById('number').value = 1;
                 }
 
                 if (document.getElementById('moon').checked) {
@@ -306,7 +309,7 @@
                     }
                 }
                 else {
-                    document.getElementById('moon_input').value='';    
+                    document.getElementById('moon_input').value = '';
                 }
 
                 if (document.getElementById('phase').checked) {
@@ -320,8 +323,8 @@
                     }
                 }
                 else {
-                    document.getElementById('phase_start').value='';    
-                    document.getElementById('phase_end').value='';  
+                    document.getElementById('phase_start').value = '';
+                    document.getElementById('phase_end').value = '';
                 }
 
                 if (document.getElementById('time').checked) {
@@ -335,8 +338,8 @@
                     }
                 }
                 else {
-                    document.getElementById('time_start').value='';    
-                    document.getElementById('time_end').value='';  
+                    document.getElementById('time_start').value = '';
+                    document.getElementById('time_end').value = '';
                 }
 
                 return true;
@@ -386,10 +389,12 @@
                 <input type="text" id="name" name="name" value="{{ name }}"
                     class="{{ 'error' if errors.get('name') else 'normal' }}" required title="Target name."
                     placeholder="Target name." style="flex: 2;">
-                <button type="submit" name="simbad" title="Look for coordinates and magnitude in Simbad." onclick="return run()">Search in
+                <button type="submit" name="simbad" title="Look for coordinates and magnitude in Simbad."
+                    onclick="return run()">Search in
                     Simbad
                 </button>
-                <button type="submit" name="exofop" title="Look for coordinates and magnitude in ExoFOP." onclick="return run()">Search in
+                <button type="submit" name="exofop" title="Look for coordinates and magnitude in ExoFOP."
+                    onclick="return run()">Search in
                     ExoFOP
                 </button>
                 <br>
@@ -418,12 +423,45 @@
                 <input type="text" id="mag" name="mag" value="{{ mag }}" class="normal" title="Object magnitude."
                     placeholder="Object magnitude">
             </div>
-            
+
+            <div class="form2-group">
+                <label>Prop.mot.
+                </label>
+                <div class="form-group">
+                    <label for="pmra">RA</label>
+                    <input type="text" id="pmra" name="pmra" value="{{ pmra }}"
+                        class="{{ 'error' if errors.get('pmra') else 'normal' }}" title='Proper motion in RA in mas/yr.'
+                        placeholder='Proper motion in RA in mas/yr.'>
+                </div>
+                <div class="form-group">
+                    <label for="pmde">DEC</label>
+                    <input type="text" id="pmde" name="pmde" value="{{ pmde }}"
+                        class="{{ 'error' if errors.get('pmde') else 'normal' }}"
+                        title='Proper motion in DEC in mas/yr.' placeholder='Proper motion in DEC in mas/yr.'>
+                </div>
+            </div>
+
+            <div class="form2-group">
+                <div class="form-group">
+                    <label for="spec" style="flex: 2;">Spectral type</label>
+                    <input type="text" id="spec" name="spec" value="{{ spec }}"
+                        class="{{ 'error' if errors.get('spec') else 'normal' }}" title='Spectral type.'
+                        placeholder='Spectral type.' style="flex: 3;">
+                </div>
+                <div class="form-group">
+                    <label for="rv" style="flex: 2; padding-left: 10px;">Radial vel.</label>
+                    <input type="text" id="rv" name="rv" value="{{ rv }}"
+                        class="{{ 'error' if errors.get('rv') else 'normal' }}" title='Mean radial velocity in km/s.'
+                        placeholder='Mean radial velocity in km/s.' style="flex: 3;">
+                </div>
+            </div>
+
             <div class="button-group">
                 <label>Search Period in</label>
-                <button type="submit" name="vsx" title="Get ephemeris from AAVSO VSX." onclick="return run()">VSX Search</button>
-                <button type="submit" name="exoarch"
-                    title="Get ephemeris from NASA Exoplanet Archive." onclick="return run()">ExoArchive</button>
+                <button type="submit" name="vsx" title="Get ephemeris from AAVSO VSX." onclick="return run()">VSX
+                    Search</button>
+                <button type="submit" name="exoarch" title="Get ephemeris from NASA Exoplanet Archive."
+                    onclick="return run()">ExoArchive</button>
             </div>
             <div class="form-group">
                 <label for="per">Period</label>
