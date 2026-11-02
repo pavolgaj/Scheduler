@@ -236,12 +236,12 @@
                     return false;
                 }
 
-                if (!document.getElementById('per').value.checkValidity()) {
+                if (!document.getElementById('per').checkValidity()) {
                     alert('Period should be a number!');
                     return false;
                 }
 
-                if (!document.getElementById('t0').value.checkValidity()) {
+                if (!document.getElementById('t0').checkValidity()) {
                     alert('Epoch should be a number!');
                     return false;
                 }
@@ -300,7 +300,7 @@
                 }
 
                 if (document.getElementById('moon').checked) {
-                    if (!document.getElementById('moon_input').value.checkValidity()) {
+                    if (!document.getElementById('moon_input').checkValidity()) {
                         alert('Moon phase should be a number!');
                         return false;
                     }
@@ -310,11 +310,11 @@
                 }
 
                 if (document.getElementById('phase').checked) {
-                    if (!document.getElementById('phase_start').value.checkValidity()) {
+                    if (!document.getElementById('phase_start').checkValidity()) {
                         alert('Start phase should be a number!');
                         return false;
                     }
-                    if (!document.getElementById('phase_end').value.checkValidity()) {
+                    if (!document.getElementById('phase_end').checkValidity()) {
                         alert('End phase should be a number!');
                         return false;
                     }
@@ -325,11 +325,11 @@
                 }
 
                 if (document.getElementById('time').checked) {
-                    if (!document.getElementById('time_start').value.checkValidity()) {
+                    if (!document.getElementById('time_start').checkValidity()) {
                         alert('Start date is invalid!');
                         return false;
                     }
-                    if (!document.getElementById('time_end').value.checkValidity()) {
+                    if (!document.getElementById('time_end').checkValidity()) {
                         alert('End date is invalid!');
                         return false;
                     }
