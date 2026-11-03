@@ -342,6 +342,10 @@
                     document.getElementById('time_end').value = '';
                 }
 
+                if ((document.getElementById('supervis').value.indexOf(' ')>0) && (document.getElementById('supervis').value.indexOf(',')<0)) {
+                    return confirm("Use only supervisor surname. Do you want to continue?");
+                }
+
                 return true;
             }
 
@@ -435,7 +439,7 @@
                 </div>
                 <div class="form-group">
                     <label for="pmde">DEC</label>
-                    <input type="text" id="pmde" name="pmde" value="{{ pmde }}"
+                    <input type="text" id="pmdec" name="pmdec" value="{{ pmdec }}"
                         class="{{ 'error' if errors.get('pmde') else 'normal' }}"
                         title='Proper motion in DEC in mas/yr.' placeholder='Proper motion in DEC in mas/yr.'>
                 </div>
@@ -448,11 +452,12 @@
                         class="{{ 'error' if errors.get('spec') else 'normal' }}" title='Spectral type.'
                         placeholder='Spectral type.' style="flex: 3;">
                 </div>
+                <span style="flex:0.1;"></span>
                 <div class="form-group">
                     <label for="rv" style="flex: 2; padding-left: 10px;">Radial vel.</label>
                     <input type="text" id="rv" name="rv" value="{{ rv }}"
-                        class="{{ 'error' if errors.get('rv') else 'normal' }}" title='Mean radial velocity in km/s.'
-                        placeholder='Mean radial velocity in km/s.' style="flex: 3;">
+                        class="{{ 'error' if errors.get('rv') else 'normal' }}" title='Catalog radial velocity in km/s.'
+                        placeholder='Catalog radial velocity in km/s.' style="flex: 3;">
                 </div>
             </div>
 

@@ -83,8 +83,8 @@ if not os.path.isdir('db-backup'): os.mkdir('db-backup')
 if not os.path.isdir('schedules'): os.mkdir('schedules')
 
 #change to mirrors
-simbad_servers=['simbad.cds.unistra.fr','simbad.harvard.edu']
-vizier_servers = ['vizier.cds.unistra.fr',"vizier.cfa.harvard.edu"]  
+simbad_servers=['simbad.cds.unistra.fr','simbad.harvard.edu','simbad.idia.ac.za']
+vizier_servers = ['vizier.cds.unistra.fr',"vizier.cfa.harvard.edu","vizier.cfa.harvard.edu",'vizier.idia.ac.za','vizier.china-vo.org','vizier.nao.ac.jp','vizier.ast.cam.ac.uk']  
 
 @app.route("/health")
 def health():
@@ -230,7 +230,7 @@ def generate_id() -> str:
 
 
 #header for obj in DB
-header='Target,RA,DEC,Mag,Period,Epoch,ExpTime,Number,Nights,Priority,Type,Remarks,MoonPhase,StartPhase,EndPhase,StartDate,EndDate,Conditions,Frequency,OtherRequests,Supervisor'
+header='Target,RA,DEC,Mag,PmRA,PmDEC,SpecType,RV,Period,Epoch,ExpTime,Number,Nights,Priority,Type,Remarks,MoonPhase,StartPhase,EndPhase,StartDate,EndDate,Conditions,Frequency,OtherRequests,Supervisor'
 header+='\n'
 
 def status_simbad(server,TIMEOUT=10):
@@ -252,12 +252,12 @@ def status_vizier(server,TIMEOUT=10):
         # earlier outage response is never served from the cache
         result = viz.query_object("M31", cache=False)
         if result is None:
-            print(f"FAIL  {server:<24} reachable, but query returned nothing")
+            #print(f"FAIL  {server:<24} reachable, but query returned nothing")
             return False
-        print(f"OK    {server:<24}")
+        #print(f"OK    {server:<24}")
         return True
     except Exception as e:  # ReadTimeout, ConnectTimeout, ...
-        print(f"DOWN  {server:<24}")
+        #print(f"DOWN  {server:<24}")
         return False
 
 # Route for displaying the form
@@ -286,6 +286,10 @@ def new():
         name = request.form['name'].strip()
         ra = request.form['ra'].strip()
         dec = request.form['dec'].strip()
+        pmra = request.form['pmra'].strip()
+        pmdec = request.form['pmdec'].strip()
+        spec = request.form['spec'].strip()
+        rv = request.form['rv'].strip()
         mag = request.form['mag'].strip()
         per = request.form['per'].strip()
         t0 = request.form['t0'].strip()
@@ -330,25 +334,32 @@ def new():
                 ra=''
                 dec=''
                 mag=''
+                pmra=''
+                pmdec=''
+                spec=''
+                rv=''
                 
                 #check Simbad availability
                 for server in simbad_servers:
                     if status_simbad(server):
                         Simbad.server=server
+                        Simbad.SIMBAD_URL=f'https://{server}/simbad/sim-script'   #astroquery==0.4.7
                         break
                 else:
                     errors['name'] = 'Simbad server not available!'
                     
-                    return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
+                    return render_template('add.html', name=name, ra=ra, dec=dec, pmra=pmra, pmdec=pmdec, spec=spec, rv=rv, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
                 
                                
                 Simbad.reset_votable_fields() 
                 try:
                     #astroquery>=0.4.8
                     Simbad.add_votable_fields("allfluxes")
+                    Simbad.add_votable_fields('pmdec','pmra','rvz_radvel','sp_type')
                 except KeyError:
                     #astroquery==0.4.7
                     Simbad.add_votable_fields("flux(V)",'flux(g)','flux(R)','flux(r)','flux(I)','flux(i)','flux(B)','flux(u)','flux(U)','flux(G)','flux(J)','flux(z)','flux(H)','flux(K)')
+                    Simbad.add_votable_fields('pm','rvz_radvel','sptype')
                 
                 #issue with fluxes                
                 try: result_table = Simbad.query_object(name)
@@ -391,6 +402,10 @@ def new():
                         #astroquery>=0.4.8
                         ra=dms(result_table['ra']/15)
                         dec=dms(result_table['dec'])
+                        pmra=result_table['pmra'] if not hasattr(result_table['pmra'],'mask') else ''
+                        pmdec=result_table['pmdec'] if not hasattr(result_table['pmdec'],'mask') else ''
+                        spec=result_table['sp_type'] if not hasattr(result_table['sp_type'],'mask') else ''
+                        rv=result_table['rvz_radvel'] if not hasattr(result_table['rvz_radvel'],'mask') else ''
                         #select used mag (closest to V)
                         if not hasattr(result_table['V'],'mask'): mag=round(result_table['V'],2)
                         elif not hasattr(result_table['g'],'mask'): mag=round(result_table['g'],2)
@@ -410,6 +425,10 @@ def new():
                         #astroquery==0.4.7
                         ra=result_table['RA']
                         dec=result_table['DEC'].replace('+','')
+                        pmra=result_table['PMRA'] if not hasattr(result_table['PMRA'],'mask') else ''
+                        pmdec=result_table['PMDEC'] if not hasattr(result_table['PMDEC'],'mask') else ''
+                        spec=result_table['SP_TYPE'] if not hasattr(result_table['sp_type'],'mask') else ''
+                        rv=result_table['RVZ_RADVEL'] if not hasattr(result_table['RVZ_RADVEL'],'mask') else ''
                         #select used mag (closest to V)
                         if not hasattr(result_table['FLUX_V'],'mask'): mag=round(result_table['FLUX_V'],2)
                         elif not hasattr(result_table['FLUX_g'],'mask'): mag=round(result_table['FLUX_g'],2)
@@ -428,7 +447,7 @@ def new():
             else: errors['name'] = 'Name is required.'
             
             gc.collect()
-            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
+            return render_template('add.html', name=name, ra=ra, dec=dec, pmra=pmra, pmdec=pmdec, spec=spec, rv=rv, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
         
         elif 'exofop' in request.form:
             #search obj in exofop - ra,dec,mag
@@ -436,6 +455,10 @@ def new():
                 ra=''
                 dec=''
                 mag=''
+                pmra=''
+                pmdec=''
+                spec=''
+                rv=''
                 
                 urlID = 'https://exofop.ipac.caltech.edu/tess/gototicid.php?target='+name+'&json'
                 urlData = 'https://exofop.ipac.caltech.edu/tess/target.php?id='
@@ -458,6 +481,32 @@ def new():
                                 ra=dms(float(data['coordinates']['ra'])/15)
                                 dec=dms(float(data['coordinates']['dec']))
 
+                                #pmra,pmdec
+                                pmra=data['coordinates']['pm_ra']
+                                pmdec=data['coordinates']['pm_dec']
+                                
+                                Teff=None
+                                rv=''
+                                
+                                for param in data['stellar_parameters']:
+                                    if 'teff' in param:
+                                        try: Teff=float(param['teff'])
+                                        except: pass
+                                    if 'rv' in param:
+                                        try: rv=float(param['rv'])
+                                        except: pass
+                                    
+                                spec=''
+                                if Teff is not None:
+                                    #estimate SpType
+                                    if Teff>33e3: spec='O'
+                                    elif Teff>10e3: spec='B'
+                                    elif Teff>7.3e3: spec='A'
+                                    elif Teff>6e3: spec='F'
+                                    elif Teff>5.3e3: spec='G'
+                                    elif Teff>3.9e3: spec='K'
+                                    else: spec='M'                                
+                                
                                 if 'magnitudes' in data:
                                     mags={x['band']: x['value'] for x in data['magnitudes']}
                                     if 'V' in mags: mag=mags['V']
@@ -477,7 +526,7 @@ def new():
             else: errors['name'] = 'Name is required.'
             
             gc.collect()
-            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
+            return render_template('add.html', name=name, ra=ra, dec=dec, pmra=pmra, pmdec=pmdec, spec=spec, rv=rv, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
         
         elif 'vsx' in request.form:
             #search P,t0 in VSX cat
@@ -486,14 +535,18 @@ def new():
                 t0=''
                 
                 #check vizier availability
+                vizier_available=False
+                
                 for server in vizier_servers:
                     if status_vizier(server):
                         Vizier.server=server
+                        vizier_available=True
                         break
-                else:
+                    
+                if not vizier_available:
                     errors['name'] = 'Vizier server not available!'
                     
-                    return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
+                    return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, pmra=pmra, pmdec=pmdec, spec=spec, rv=rv, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
                 
                 catn=list(Vizier.find_catalogs('vsx').keys())[0]
                 vsx=Vizier(catalog=catn, columns=["Epoch","Period"])
@@ -511,7 +564,7 @@ def new():
             else: errors['name'] = 'Name is required.'
             
             gc.collect()
-            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors,remarks=remarks, simcal=simcal,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
+            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, pmra=pmra, pmdec=pmdec, spec=spec, rv=rv, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors,remarks=remarks, simcal=simcal,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
         elif 'exoarch' in request.form:
             #search P,t0 in exoplanet archive
             if name:
@@ -531,7 +584,7 @@ def new():
             else: errors['name'] = 'Name is required.'
             
             gc.collect()
-            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
+            return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, pmra=pmra, pmdec=pmdec, spec=spec, rv=rv, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
 
 
 
@@ -586,7 +639,7 @@ def new():
             if errors:
                 gc.collect()
                 
-                return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
+                return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, pmra=pmra, pmdec=pmdec, spec=spec, rv=rv, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
             
             name1=name.lower().replace(' ', '').replace('-','').replace('_','').replace('+','').replace('.','').replace('*','')
 
@@ -642,6 +695,7 @@ def new():
             for server in simbad_servers:
                 if status_simbad(server):
                     Simbad.server=server
+                    Simbad.SIMBAD_URL=f'https://{server}/simbad/sim-script'   #astroquery==0.4.7
                     if not check_simbad(name,coordinates):
                         warn+='Given coordinates do NOT agree with values in Simbad!;'
                     break        
@@ -649,7 +703,7 @@ def new():
             #some warning - different to old one...
             if warn:
                 if not (warn==warn0 and warnIgn):
-                    return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
+                    return render_template('add.html', name=name, ra=ra, dec=dec, mag=mag, pmra=pmra, pmdec=pmdec, spec=spec, rv=rv, per=per, t0=t0, exp=exp, number=number, night=night, series=series, ic=ic, phot=phot, phot_input=phot_input, prior=prior, group=group, moon=moon, moon_input=moon_input, phase=phase, phase_start=phase_start, phase_end=phase_end, time=time, time_start=time_start, time_end=time_end, other=other, supervis = supervis, email=email, mess=mess, errors=errors, remarks=remarks, simcal=simcal,condi=condi,progID=progID,groups=groups,freq=freq,warn=warn)
 
             #set priority for standards
             if group=='RV Standard': 
@@ -685,6 +739,10 @@ def new():
             tmp+=ra+','
             tmp+=dec+','
             tmp+=mag+','
+            tmp+=pmra+','
+            tmp+=pmdec+','
+            tmp+='"'+spec+'",'
+            tmp+=rv+','
             tmp+=per+','
             tmp+=t0+','
             tmp+=exp+','
@@ -758,7 +816,7 @@ def new():
             return redirect(url_for('success'))
 
     gc.collect()
-    return render_template('add.html', name='', ra='', dec='', mag='', per='', t0='', exp='', number=1, night=1, series=False, ic=False, phot=False, phot_input='', prior=3, group='', moon=False, moon_input='', phase=False, phase_start='', phase_end='', time=False, time_start='', time_end='', other='', supervis = '', email='', mess='', errors={}, remarks='', simcal='thar',condi='good',groups=groups,freq='unspecified',warn='')
+    return render_template('add.html', name='', ra='', dec='', pmra='', pmdec='', spec='', rv='', mag='', per='', t0='', exp='', number=1, night=1, series=False, ic=False, phot=False, phot_input='', prior=3, group='', moon=False, moon_input='', phase=False, phase_start='', phase_end='', time=False, time_start='', time_end='', other='', supervis = '', email='', mess='', errors={}, remarks='', simcal='thar',condi='good',groups=groups,freq='unspecified',warn='')
 
 
 # Route for the success page
@@ -1038,6 +1096,7 @@ def bulk():
                     for server in simbad_servers:
                         if status_simbad(server):
                             Simbad.server=server
+                            Simbad.SIMBAD_URL=f'https://{server}/simbad/sim-script'   #astroquery==0.4.7
                             if not check_simbad(row['Target'],coordinates):
                                 warn+=row['Target']+': Given coordinates do NOT agree with values in Simbad!;' 
                             break             
@@ -1560,7 +1619,7 @@ def show_db():
                 obj['Last']=last                  
                      
     
-    header='Target,RA,DEC,Mag,Period,Epoch,ExpTime,Number,Nights,Observations,Last,Priority,NewPriority,Type,Remarks,MoonPhase,StartPhase,EndPhase,StartDate,EndDate,Conditions,Frequency,OtherRequests,Supervisor,ObjectID,Program'    
+    header='Target,RA,DEC,Mag,PmRA,PmDEC,SpecType,RV,Period,Epoch,ExpTime,Number,Nights,Observations,Last,Priority,NewPriority,Type,Remarks,MoonPhase,StartPhase,EndPhase,StartDate,EndDate,Conditions,Frequency,OtherRequests,Supervisor,ObjectID,Program'    
     
     if request.method == 'POST':
         if 'download' in request.form:
@@ -1703,6 +1762,10 @@ def admin():
             'RA': 'right accession in format "H M S" or "H:M:S" in epoch J2000.0.',
             'DEC': 'declination in format "D M S" or "D:M:S" in epoch J2000.0.',
             'Mag': 'magnitude of target in V (or another close filter).',
+            'PmRA': 'Proper motion in RA in mas/yr.',
+            'PmDEC': 'Proper motion in DEC in mas/yr.',
+            'SpecType': 'Spectral type.',
+            'RV': 'Catalog radial velocity in km/s.',
             'Period': 'orbital period in days.',
             'Epoch': 'initial epoch in full JD.',
             'ExpTime': 'exposure time in seconds.',
@@ -1720,6 +1783,7 @@ def admin():
             'Frequency': 'Frequency of observations (everynight, twiceweek, onceweek, twicemonth, oncemonth, unspecified).',
             'OtherRequests': 'Other constraints and requests for observation scheduling. Leave empty if NOT aplicable.',
             'Supervisor': 'Name of target supervisor. Use surname only!',
+            'ObjectID': 'Unique target ID (not change it!!!).',
             'ProgramID': 'Program ID (obtained from AsU).'
     }
     
