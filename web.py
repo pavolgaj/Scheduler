@@ -1191,6 +1191,11 @@ def modif_obj():
             
             status=('done' if obj['Done']=='1' else 'obs')
             
+            pmra = obj['PmRA']
+            pmdec = obj['PmDEC']
+            spec = obj['SpecType']
+            rv = obj['RV']
+            mag = obj['Mag']
             per=obj['Period']
             t0=obj['Epoch']
             phase_start=obj['StartPhase']
@@ -1207,6 +1212,11 @@ def modif_obj():
         else:
             target=''
             errors['name'] = 'Name is required.'
+            pmra = ''
+            pmdec = ''
+            spec = ''
+            rv = ''
+            mag = ''
             per=''
             t0=''
             phase_start=''
@@ -1227,7 +1237,12 @@ def modif_obj():
                 errors['supervis'] = 'Supervisor is required.'
             if not email:
                 errors['email'] = 'Email is required.'
-                
+            
+            pmra0 = pmra
+            pmdec0 = pmdec
+            spec0 = spec
+            rv0 = rv
+            mag0 = mag
             per0=per
             t0_0=t0
             phase_start0=phase_start
@@ -1241,6 +1256,11 @@ def modif_obj():
             other0=other
             group0=group
             
+            pmra = request.form['pmra'].strip()
+            pmdec = request.form['pmdec'].strip()
+            spec = request.form['spec'].strip()
+            rv = request.form['rv'].strip()
+            mag = request.form['mag'].strip()
             per=request.form['per']
             t0=request.form['t0']
             phase_start=request.form['phase_start']
@@ -1259,6 +1279,12 @@ def modif_obj():
                 #detect changed values
                 changes={}
                 changes['manual']=[]
+                
+                if not pmra==pmra0: changes['PmRA']=pmra
+                if not pmdec==pmdec0: changes['PmDEC']=pmdec
+                if not spec==spec0: changes['SpecType']=spec
+                if not rv==rv0: changes['RV']=rv
+                if not mag==mag0: changes['Mag']=mag
                 
                 if not per==per0: changes['Period']=per
                 if not t0==t0_0: changes['Epoch']=t0
@@ -1418,7 +1444,7 @@ def modif_obj():
                         if not status==status0:
                             mess1+=f'change status to "{("observation finished" if status=="done" else "observations running")}"'                        
                         
-                        writer.writerow({'target': f'{obj["Target"]} ({obj["RA"]}, {obj["DEC"]}; {obj["Number"]} x {obj["ExpTime"]} s) with programID {obj["ProgramID"]}',
+                        writer.writerow({'target': f'{obj["Target"]} (ID: {obj["ObjectID"]}; {obj["RA"]}, {obj["DEC"]}; {obj["Number"]} x {obj["ExpTime"]} s) with programID {obj["ProgramID"]}',
                                             'changes': mess1,
                                             'mail': email})
                         f.close()     
@@ -1520,9 +1546,9 @@ def modif_obj():
                     gc.collect()
                     return result          
 
-        return render_template('modify_obj.html', obj=[[x,f"{obj_all[x]['Target']} (ID: {x})"] for x in ids], target=target,info=info,supervis = supervis, email=email, mess=mess, errors=errors, progID=progID,status=status, per=per,t0=t0,phase_start=phase_start,phase_end=phase_end, condi=condi, freq=freq, remarks=remarks, moon_input=moon_input, time_start=time_start, time_end=time_end, other=other, group=group, groups=groups)
+        return render_template('modify_obj.html', obj=[[x,f"{obj_all[x]['Target']} (ID: {x})"] for x in ids], target=target,info=info,supervis = supervis, email=email, mess=mess, errors=errors, progID=progID,status=status, pmra=pmra, pmdec=pmdec, spec=spec, rv=rv, mag=mag, per=per,t0=t0,phase_start=phase_start,phase_end=phase_end, condi=condi, freq=freq, remarks=remarks, moon_input=moon_input, time_start=time_start, time_end=time_end, other=other, group=group, groups=groups)
     
-    return render_template('modify_obj.html', obj=[[x,f"{obj_all[x]['Target']} (ID: {x})"] for x in ids], target='',info='',supervis = '', email='', mess='', errors={}, progID='',status='', per='',t0='',phase_start='',phase_end='', condi='good', freq='unspecified', remarks='', moon_input='', time_start='', time_end='', other='', group='', groups=groups)
+    return render_template('modify_obj.html', obj=[[x,f"{obj_all[x]['Target']} (ID: {x})"] for x in ids], target='',info='',supervis = '', email='', mess='', errors={}, progID='',status='', pmra='', pmdec='', spec='', rv='', mag='', per='',t0='',phase_start='',phase_end='', condi='good', freq='unspecified', remarks='', moon_input='', time_start='', time_end='', other='', group='', groups=groups)
 
 
 
