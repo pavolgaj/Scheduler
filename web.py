@@ -5062,6 +5062,36 @@ def logs():
                    
     return render_template('logs.html',night=obs,type=file_extension,files=files,error=error)
 
+@app.route('/scheduler/all_stats', methods=['GET', 'POST'])
+def all_stats():
+    '''show global statistics'''
+    gc.collect()
+    if not session.get('logged_in'):
+        return redirect(url_for('login', next=request.path))
+    directory = "static/statistics"   #path to logs
+    
+    #list all log files
+    files = [os.path.splitext(os.path.basename(x))[0].replace('statistics_','') for x in sorted(glob.glob(directory+'/statistics_*.pdf'))[::-1]]
+    
+    if len(files)==0: return render_template('all_stats.html',night='',files=[])
+    
+    
+    if request.method == 'POST':
+        start = request.form['start']  
+        stop = request.form['stop']  
+        
+        #generate new log after changes and show it
+        subprocess.call(["python3", "make_stats.py", start, stop])
+        
+        start=datetime.strptime(start,'%Y-%m-%d').date()
+        stop=datetime.strptime(stop,'%Y-%m-%d').date()
+        if start.strftime('%Y%m')==stop.strftime('%Y%m'): outname=start.strftime('%Y%m')
+        else: outname=start.strftime('%Y%m')+'-'+stop.strftime('%Y%m')
+        
+        return send_file('statistics/statistics_'+outname+'.pdf', download_name='statistics_'+outname+'.pdf', as_attachment=True) 
+                   
+    return render_template('all_stats.html',night='',files=files)
+
 
 @app.route("/scheduler/search", methods=['GET', 'POST'])
 def search():
