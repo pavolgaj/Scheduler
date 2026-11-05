@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime,timezone
 import uuid
+import sys
 
 import matplotlib
 matplotlib.use('Agg')
@@ -26,6 +27,14 @@ objects0=load_objects('db/objects.csv',check=False)   #check in Simbad?
 
 use_group=[]
 use_program=[]
+search_programs=True
+
+if len(sys.argv)>1:
+    for x in sys.argv:
+        if 'name' in x: name=x.split('=')[1].strip()
+        else:
+            use_program.append(x)
+            search_programs=False
 
 f=open('db/progID.json','r')
 ids=json.load(f)
@@ -41,8 +50,9 @@ for obj in objects0:
     #add program name
     progID=obj['full']['ProgramID']
     if pd.isna(progID): progID=''
-    if progID not in use_program:
-        if ids[str(progID)]['mode'].split()[0]=='service': use_program.append(progID)
+    if progID not in use_program and search_programs:
+        if ids[str(progID)]['mode'].split()[0]=='service:': use_program.append(progID)
+            #if ids[str(progID)]['readout'].lower()==readout or readout=='both' or progID=='20250627082100PLATOSpec': use_program.append(progID)
 
 
 #load last observations
